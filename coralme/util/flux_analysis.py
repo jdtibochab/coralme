@@ -7,6 +7,9 @@ import tqdm
 
 
 def exchange_single_model(me, flux_dict = 0, solution=0):
+	"""
+	Returns a summary of exchange reactions and fluxes
+	"""
 	complete_dict = {'id':[],'name':[],'reaction':[],'lower_bound':[],'upper_bound':[],'flux':[]}
 
 	if solution:
@@ -41,6 +44,11 @@ def exchange_single_model(me, flux_dict = 0, solution=0):
 	return df
 
 def get_met_coeff(stoich,growth_rate,growth_key='mu'):
+	"""
+	Returns a float stoichiometric coefficient of a metabolite
+	in a reaction. If the coefficient is a sympy expression,
+	it substitutes a growth rate to get a float.
+	"""
 	if hasattr(stoich, 'subs'):
 		try:
 			return float(stoich.subs(growth_key,growth_rate))
@@ -49,6 +57,9 @@ def get_met_coeff(stoich,growth_rate,growth_key='mu'):
 	return stoich
 
 def summarize_reactions(model,met_id,only_types=(),ignore_types = ()):
+	"""
+	Returns a summary of reactions and their fluxes in a model
+	"""
 	reactions = get_reactions_of_met(model,met_id,only_types=only_types,
 								 ignore_types=ignore_types,verbose=False)
 	d = {}
@@ -73,6 +84,10 @@ def flux_based_reactions(model,
 						 solution = None,
 						 keffs=False,
 						 verbose=False):
+	"""
+	Returns a summary of the mass balance of a metabolite in a
+	flux distribution.
+	"""
 
 	if not flux_dict:
 		#flux_dict = model.solution.x_dict
@@ -127,45 +142,50 @@ def flux_based_reactions(model,
 	return df#[df['ub'] != 0]
 
 def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbose = False,growth_key='mu'):
+	"""
+	Returns the reactions of a metabolite. If directionality is not set (s=0),
+	the behavior is analogous to met.reactions. However, setting s=1 or s=-1,
+	returns the reactions that produce or consume it, respectively.
+	"""
 
-    met_stoich = 0
-    if only_types:
-        only_reaction_types = tuple([getattr(coralme.core.reaction,i) for i in only_types])
-    elif ignore_types:
-        ignore_reaction_types = tuple([getattr(coralme.core.reaction,i) for i in ignore_types])
-    reactions = []
+	met_stoich = 0
+	if only_types:
+		only_reaction_types = tuple([getattr(coralme.core.reaction,i) for i in only_types])
+	elif ignore_types:
+		ignore_reaction_types = tuple([getattr(coralme.core.reaction,i) for i in ignore_types])
+	reactions = []
 
-    if not hasattr(me.metabolites,met):
-        return reactions
-    for rxn in me.metabolites.get_by_id(met).reactions:
-        if only_types and not isinstance(rxn, only_reaction_types):
-            continue
-        elif ignore_types and isinstance(rxn, ignore_reaction_types):
-            continue
-        try:
-            met_obj = me.metabolites.get_by_id(met)
-            pos = 1 if get_met_coeff(rxn.metabolites[met_obj],0.1,growth_key=growth_key) > 0 else -1
-            rev = 1 if rxn.lower_bound < 0 else 0
-            fwd = 1 if rxn.upper_bound > 0 else 0
-        except:
-            if verbose:
-                print(rxn.id, ' could not parse')
-            else:
-                pass
-        try:
-            if not s:
-                reactions.append(rxn)
-                if verbose:
-                    print('(',rxn.id,rxn.lower_bound,rxn.upper_bound,')', '\t',rxn.reaction)
+	if not hasattr(me.metabolites,met):
+		return reactions
+	for rxn in me.metabolites.get_by_id(met).reactions:
+		if only_types and not isinstance(rxn, only_reaction_types):
+			continue
+		elif ignore_types and isinstance(rxn, ignore_reaction_types):
+			continue
+		try:
+			met_obj = me.metabolites.get_by_id(met)
+			pos = 1 if get_met_coeff(rxn.metabolites[met_obj],0.1,growth_key=growth_key) > 0 else -1
+			rev = 1 if rxn.lower_bound < 0 else 0
+			fwd = 1 if rxn.upper_bound > 0 else 0
+		except:
+			if verbose:
+				print(rxn.id, ' could not parse')
+			else:
+				pass
+		try:
+			if not s:
+				reactions.append(rxn)
+				if verbose:
+					print('(',rxn.id,rxn.lower_bound,rxn.upper_bound,')', '\t',rxn.reaction)
 
-            elif s == pos*fwd or s == -pos*rev:
-                reactions.append(rxn)
-                if verbose:
-                    print('(',rxn.id,rxn.lower_bound,rxn.upper_bound,')', '\t',rxn.reaction)
+			elif s == pos*fwd or s == -pos*rev:
+				reactions.append(rxn)
+				if verbose:
+					print('(',rxn.id,rxn.lower_bound,rxn.upper_bound,')', '\t',rxn.reaction)
 
-        except:
-            if verbose:
-                print(rxn.id, 'no reaction')
-            else:
-                pass
-    return reactions
+		except:
+			if verbose:
+				print(rxn.id, 'no reaction')
+			else:
+				pass
+	return reactions
