@@ -2284,7 +2284,7 @@ class Organism(object):
                 continue
             enz_rxn_assoc_dict[rxn.id] = []
             #rule_list = expand_gpr(listify_gpr(rule)).split(" or ")
-            rule_list = coralme.builder.helper_functions.expand_gpr(rule,threshold=gpr_combination_cutoff)
+            rule_list = coralme.builder.gpr.expand_gpr(rule,threshold=gpr_combination_cutoff)
             if rule_list != "STOP":
                 enz_rxn_assoc = []
                 reaction_cplx_list = []
@@ -2292,7 +2292,7 @@ class Organism(object):
                     identified_genes = [i for i in rule_gene_list if i not in self.skip_genes]
                     if not identified_genes:
                         continue
-                    cplx_id = coralme.builder.helper_functions.find_match(org_complexes_df["genes"].to_dict(),identified_genes)
+                    cplx_id = coralme.builder.gpr.find_match(org_complexes_df["genes"].to_dict(),identified_genes)
                     if not cplx_id:
                         if len(identified_genes) > 1:
                             # New cplx not found in BioCyc files
@@ -2326,13 +2326,13 @@ class Organism(object):
                 enz_rxn_assoc_dict[rxn.id] = " OR ".join(reaction_cplx_list)
             else:
                 logging.warning('{} contains a GPR rule that has more gene combinations than the specified cutoff ({}). Generifying it.'.format(rxn.id,gpr_combination_cutoff))
-                listified_gpr = coralme.builder.helper_functions.listify_gpr(rule)
-                n,rule_dict = coralme.builder.helper_functions.generify_gpr(listified_gpr,rxn.id,d={},generic_gene_dict=new_generics)
+                listified_gpr = coralme.builder.gpr.listify_gpr(rule)
+                n,rule_dict = coralme.builder.gpr.generify_gpr(listified_gpr,rxn.id,d={},generic_gene_dict=new_generics)
                 if not rule_dict: # n in gene_dictionary.index:
                     product = gene_dictionary.loc[n,'Product']
                     rule_dict[product] = n
                     n = product
-                n,rule_dict = coralme.builder.helper_functions.process_rule_dict(n,rule_dict,org_complexes_df["genes"].to_dict(),protein_mod)
+                n,rule_dict = coralme.builder.gpr.process_rule_dict(n,rule_dict,org_complexes_df["genes"].to_dict(),protein_mod)
                 generified_rule = n
                 for cplx,rule in rule_dict.items():
                     if 'mod' in cplx:

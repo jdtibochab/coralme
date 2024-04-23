@@ -7,6 +7,7 @@ import coralme.builder.organism
 import coralme.builder.homology
 import coralme.builder.curation
 import coralme.builder.helper_functions
+import coralme.builder.gpr
 
 # 1st step
 import coralme.builder.flat_files
