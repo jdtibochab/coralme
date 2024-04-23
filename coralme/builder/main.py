@@ -79,7 +79,7 @@ class MEBuilder(object):
 			config.update(kwargs)
 		self.configuration = config
 		self.me_model = coralme.core.model.MEModel(config.get('ME-Model-ID', 'coralME'), config.get('growth_key', 'mu'))
-		self.curation_notes = coralme.builder.helper_functions.load_curation_notes(
+		self.curation_notes = coralme.builder.notes.load_curation_notes(
 			self.configuration['out_directory'] + '/curation_notes.json'
 		)
 		self.logger = {
@@ -296,11 +296,11 @@ class MEBuilder(object):
 
 		# Update notes
 		logging.warning("Generating curation notes")
-		coralme.builder.helper_functions.save_curation_notes(
+		coralme.builder.notes.save_curation_notes(
 				self.curation_notes,
 				self.configuration['out_directory'] + '/curation_notes.json'
 			)
-		coralme.builder.helper_functions.publish_curation_notes(
+		coralme.builder.notes.publish_curation_notes(
 				self.curation_notes,
 				self.configuration['out_directory']+ '/curation_notes.txt'
 			)
@@ -1352,7 +1352,7 @@ class MEBuilder(object):
 		self.update_subreaction_matrix()
 
 	def fill(self, fill_with='CPLX_dummy'):
-		coralme.builder.helper_functions.fill_builder(self,fill_with='CPLX_dummy')
+		coralme.builder.troubleshooting.fill_builder(self,fill_with='CPLX_dummy')
 
 	def check(self):
 		t_pathways = self.org.protein_location['translocase_pathway'].unique()
@@ -1456,11 +1456,11 @@ class MEBuilder(object):
 		"""
 
 		coralme.builder.main.METroubleshooter(self).troubleshoot(growth_key_and_value, skip = skip, guesses = guesses, platform = platform, solver = solver, savefile = savefile,gapfill_cofactors=gapfill_cofactors)
-		coralme.builder.helper_functions.save_curation_notes(
+		coralme.builder.notes.save_curation_notes(
 				self.curation_notes,
 				self.configuration['out_directory'] + '/curation_notes.json'
 			)
-		coralme.builder.helper_functions.publish_curation_notes(
+		coralme.builder.notes.publish_curation_notes(
 				self.curation_notes,
 				self.configuration['out_directory']+ '/curation_notes.txt'
 			)
@@ -2842,8 +2842,8 @@ class METroubleshooter(object):
 		if gapfill_cofactors:
 			# Ensure cofactors can be produced
 			logging.warning('  '*1 + 'Ensuring the ME-model can produce all cofactors')
-			cofactors = coralme.builder.helper_functions.get_cofactors_in_me_model(self.me_model)
-			ts_cofactors = coralme.builder.helper_functions.add_exchange_reactions(self.me_model, cofactors, prefix = 'COFACTOR_TS_')
+			cofactors = coralme.builder.troubleshooting.get_cofactors_in_me_model(self.me_model)
+			ts_cofactors = coralme.builder.troubleshooting.add_exchange_reactions(self.me_model, cofactors, prefix = 'COFACTOR_TS_')
 			for ts in ts_cofactors:
 				ts.bounds = (1e-6,1000)
 
@@ -2873,9 +2873,9 @@ class METroubleshooter(object):
 					self.me_model.relax_bounds()
 					self.me_model.reactions.protein_biomass_to_biomass.lower_bound = growth_value[0]/100 # Needed to enforce protein production
 				if met_type[1] == 'User guesses':
-					history, output = coralme.builder.helper_functions.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history)
 				else:
-					history, output = coralme.builder.helper_functions.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history)
 				bf_gaps, no_gaps, works = output
 				# close sink reactions that are not gaps
 				if no_gaps:

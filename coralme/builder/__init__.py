@@ -8,6 +8,8 @@ import coralme.builder.homology
 import coralme.builder.curation
 import coralme.builder.helper_functions
 import coralme.builder.gpr
+import coralme.builder.troubleshooting
+import coralme.builder.notes
 
 # 1st step
 import coralme.builder.flat_files
