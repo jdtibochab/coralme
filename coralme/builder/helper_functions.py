@@ -654,6 +654,8 @@ def get_partitioning(m, seen = set(),final_fraction=1.0):
         return set()
     if m in seen:
         return set()
+	if final_fraction == 0:
+		return set()
 
     seen.add(m)
 
