@@ -54,31 +54,46 @@ class Organism(object):
 
     def __init__(self, config, is_reference):
         if is_reference:
+            # If Organism is reference, set some default values for future processing
             if bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
+                # If no reference set, use the default iJL1678b E. coli ME-model files as reference
                 self.id = 'iJL1678b'
             elif not bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
+                # If User set a reference, use manually set values
+                # Set ID
                 self.id = config['user_reference']
                 config = config.copy()
+                # Update the configuration using the configuration from the User's defined reference
                 for input_file in [config['user_reference'] + "/organism.json", \
                                     config['user_reference'] + "/input.json"]:
                     with open(input_file, 'r') as infile:
                         config.update(anyconfig.load(infile))
             elif bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
+                # Reference configuration is contradictory. Using default reference instead.
                 logging.warning('The \'dev_reference\' and \'user-reference\' options are mutually exclusive.')
                 self.id = 'iJL1678b'
             else:
+                # In any other case, use the default reference instead
+                warnings.warn("Reference configuration was wrongly set. Using default iJL1678b as reference.")
                 self.id = 'iJL1678b'
         else:
+            # If it is not the reference, use the organism files
             self.id = config['ME-Model-ID']
 
+        # Set initial properties
         self.is_reference = is_reference
         self.curation_notes = defaultdict(list)
         self.config = config
+
         if self.is_reference:
+            # If it is the reference, use the gene ID conventions of the reference
             self.locus_tag = config.get('reference_tag','locus_tag')
         else:
+            # If it is not the reference, use the gene ID conventions of the organism
             self.locus_tag = config.get('locus_tag','locus_tag')
 
+        # Create the protein localization interpreter
+        # TODO: Move this to a more standard location, builder/?
         data = \
             'code,interpretation,gram\n' \
             'CCI-CW-BAC-POS-GP,Cell_Wall,pos\n' \
@@ -88,13 +103,14 @@ class Organism(object):
             'CCI-PM-BAC-POS-GP,Plasma_Membrane,pos\n' \
             'CCI-EXTRACELLULAR-GP,Extracellular_Space,pos\n' \
             'CCO-MEMBRANE,Membrane,'
-
         self.location_interpreter = pandas.read_csv(io.StringIO(data), index_col=0)
+
+        # Initialize the curation fields
         self.manual_curation = coralme.builder.curation.CurationList()
-#         self.get_organism()
 
     @property
     def directory(self):
+        """Working file directory with reconstruction files"""
         if self.is_reference and self.id == 'iJL1678b':
             try:
                 from importlib.resources import files
@@ -107,6 +123,7 @@ class Organism(object):
 
     @property
     def blast_directory(self):
+        """Directory containing the blast files and results"""
         if self.is_reference:
             pass
         else:
@@ -114,6 +131,10 @@ class Organism(object):
 
     @property
     def _complexes_df(self):
+        """
+        Returns the dataframe containing the protein complex information from the file.
+        If the file does not exist, it initializes it.
+        """
         filename = self.directory + "protein_complexes.txt"
         if os.path.isfile(filename):
             return pandas.read_csv(
@@ -124,6 +145,10 @@ class Organism(object):
 
     @property
     def _protein_mod(self):
+        """
+        Returns the dataframe containing the protein complex modifications from the file.
+        If the file does not exist, it initializes it.
+        """
         filename = self.directory + "protein_modification.txt"
         if os.path.isfile(filename):
             return pandas.read_csv(
@@ -141,6 +166,10 @@ class Organism(object):
 
     @property
     def _TU_df(self):
+        """
+        Returns the dataframe containing the TU information from the file.
+        If the file does not exist, it initializes it.
+        """
         if self.is_reference:
             filename = self.directory + "TUs_from_biocyc.txt"
         else:
@@ -155,6 +184,9 @@ class Organism(object):
 
     @property
     def _m_model(self):
+        """
+        Returns the M-model.
+        """
         if self.id == 'iJL1678b':
             model = self.directory + 'm_model.json'
         else:
@@ -169,6 +201,9 @@ class Organism(object):
 
     @property
     def rna_components(self):
+        """
+        Returns the RNAs from the identified products.
+        """
         product_types = self.product_types
         return set(g for g,t in product_types.items() if 'RNA' in t)
 
@@ -214,7 +249,7 @@ class Organism(object):
 
         logging.warning("Integrating manual metabolites")
         self.modify_metabolites()
-        
+
         logging.warning("Integrating manual metabolic reactions")
         self.modify_metabolic_reactions()
 
@@ -412,6 +447,7 @@ class Organism(object):
                          complexes_df = None,
                          RNA_df = None,
                          warn_genes = []):
+        """Gets the product type of a gene (RNA, CDS, ...) from the files"""
         if gene_dictionary is None:
             gene_dictionary = self.gene_dictionary
         if complexes_df is None:
@@ -445,6 +481,10 @@ class Organism(object):
                         gene_name,
                         product_type,
                         gene_dictionary = None):
+        """
+        Product identifier contains wrong characters or is missing critical information
+        and must be corrected for parsing
+        """
         if gene_dictionary is None:
             gene_dictionary = self.gene_dictionary
         ## Correct product. Likely product is a description and not an actual
@@ -456,6 +496,7 @@ class Organism(object):
     def _add_entry_to_df(self,
                          df,
                          tmp):
+        """Append one entry to the end of a dataframe"""
         indexname = df.index.name
         df = pandas.concat([df,
                               pandas.DataFrame.from_dict(tmp).T],
@@ -469,6 +510,7 @@ class Organism(object):
                          product,
                          RNA_df,
                          source):
+        """Append one entry to the RNA dataframe"""
         logging.warning('Adding {} ({}) to RNAs from {}'.format(gene_id,product,source))
         tmp = {product : {"Common-Name": name,
                           "Gene": gene_id}}
@@ -480,6 +522,7 @@ class Organism(object):
                                product,
                                complexes_df,
                                source):
+        """Append one entry to the complexes dataframe"""
         if product in complexes_df.index:
             logging.warning('Could not add {} ({}) to complexes from {}. Already in complexes_df'.format(gene_id,product,source))
             return complexes_df
@@ -505,6 +548,7 @@ class Organism(object):
                                   core_enzyme,
                                   mods,
                                   source):
+        """Append one entry to the protein modification dataframe"""
         logging.warning('Adding {} to protein_mod from {}'.format(mod_complex, source))
         tmp = {mod_complex: {
                 "Core_enzyme": core_enzyme,
@@ -515,7 +559,9 @@ class Organism(object):
 
 
     def sync_files(self):
-        """ Syncs provided files.
+        """
+        Syncs provided files. Cross checks information between
+        optional files and the genome file
         """
         if self.is_reference:
             return
@@ -591,6 +637,7 @@ class Organism(object):
                                name,
                                description,
                                source):
+        """Create a Biopython contig"""
         from Bio.SeqRecord import SeqRecord
         from Bio.SeqFeature import SeqFeature, ExactPosition, SimpleLocation
         new_contig = SeqRecord(seq=seq,
@@ -613,6 +660,7 @@ class Organism(object):
                                 strand,
                                 feature_type,
                                 product_name):
+        """Create a Biopython feature to add to a contig"""
         from Bio.SeqFeature import SeqFeature, ExactPosition, SimpleLocation
         return SeqFeature(SimpleLocation(ExactPosition(0),ExactPosition(len(seq)),strand),
                       type=feature_type,
@@ -630,6 +678,7 @@ class Organism(object):
                              row,
                              contigs,
                              gene_sequences):
+        """Append one entry to the GenBank"""
         if self.duplicated_genes is not None and gene_id in self.duplicated_genes:
             gene_id = '{};{}'.format(gene_id,gene_name)
         logging.warning('Adding {} to genbank file as {}'.format(gene_id,product_type))
@@ -660,6 +709,7 @@ class Organism(object):
                          dfs,
                          warns,
                          columns):
+        """Get the name of a gene product from the files"""
         for qt,df,warn,col in zip(query_types,dfs,warns,columns):
             if qt in product_type:
                 if product not in df.index:
@@ -672,6 +722,7 @@ class Organism(object):
     def _read_product_type(self,
                            gene_id,
                            product_types):
+        """Get the type of a gene product from the files"""
         product_type = product_types[gene_id] \
                         if gene_id in product_types else 'gene'
         if 'MONOMER' in product_type:
@@ -680,8 +731,7 @@ class Organism(object):
             return product_type
 
     def update_genbank_from_files(self):
-        """ Complements GenBank file from optional files.
-        """
+        """ Complements GenBank file from optional files."""
         if self.is_reference:
             return
         contigs = self.contigs
@@ -792,6 +842,7 @@ class Organism(object):
                                 row,
                                 genes,
                                 stoich):
+        """Create an entry to append to the complexes dataframe"""
         return {"name" : row["Common-Name"],
                 "genes" : " AND ".join(
                         [
@@ -802,7 +853,8 @@ class Organism(object):
                 "source" : "BioCyc"}
 
     def generate_complexes_df(self):
-        """ Creates a DataFrame containing complex composition
+        """
+        Creates a DataFrame containing complex composition
         information from the provided files.
         """
         proteins_df = self.proteins_df
@@ -849,8 +901,7 @@ class Organism(object):
         return complexes_df.fillna({"name": ""})
 
     def read_optional_file(self,filetype,filename,columns):
-        """ Method for reading an optional file.
-        """
+        """ Method for reading an optional file."""
         if os.path.isfile(filename):
             file = pandas.read_csv(filename, sep="\t",index_col=0)
         else:
@@ -862,8 +913,7 @@ class Organism(object):
         return file.fillna('')
 
     def read_gene_dictionary(self,filename):
-        """ Loads the genes file.
-        """
+        """ Loads the genes file."""
         gene_dictionary = self.read_optional_file(
             'genes',
             filename,
@@ -905,8 +955,7 @@ class Organism(object):
                         'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
         return gene_dictionary
     def read_proteins_df(self,filename):
-        """ Loads the proteins file.
-        """
+        """ Loads the proteins file."""
         return self.read_optional_file(
             'proteins',
             filename,
@@ -918,8 +967,7 @@ class Organism(object):
             ]
         )
     def read_gene_sequences(self,filename):
-        """ Loads the gene sequences file.
-        """
+        """ Loads the gene sequences file."""
         if os.path.isfile(filename):
             d = {}
             for i in Bio.SeqIO.parse(filename,'fasta'):
@@ -928,8 +976,7 @@ class Organism(object):
             return d
         return {}
     def read_RNA_df(self,filename):
-        """ Loads the RNAs file.
-        """
+        """ Loads the RNAs file."""
         return self.read_optional_file(
             'RNAs',
             filename,
@@ -940,8 +987,7 @@ class Organism(object):
             ]
         )
     def read_TU_df(self,filename):
-        """ Loads the TUs file.
-        """
+        """ Loads the TUs file."""
         return self.read_optional_file(
             'TUs',
             filename,
@@ -953,8 +999,7 @@ class Organism(object):
         )
 
     def check_gene_overlap(self):
-        """ Assesses gene identifier overlap between files.
-        """
+        """ Assesses gene identifier overlap between files."""
         if self.is_reference:
             return
 
@@ -1022,8 +1067,7 @@ class Organism(object):
                 'to_do':'Check if translation tables are correct.'})
 
     def update_ribosome_stoich(self):
-        """ Updated ribosome composition from files.
-        """
+        """ Updated ribosome composition from files."""
         if self.is_reference:
             return
         complexes_df = self.complexes_df
@@ -1084,6 +1128,7 @@ class Organism(object):
                                 feature,
                                 left_end,
                                 right_end):
+        """Append one entry to the gene information dataframe"""
         logging.warning("Adding {} to genes from genbank".format(gene_id))
         feature_type = feature.type
         if feature_type == 'CDS':
@@ -1103,6 +1148,7 @@ class Organism(object):
                                        gene_id,
                                        feature,
                                       ):
+        """Append one entry to the Complexes of RNA dataframe according to its type"""
         name_annotation = feature.qualifiers["product"][0] if 'product' in feature.qualifiers \
                 else gene_name
         if feature.type == 'CDS':
@@ -1132,6 +1178,7 @@ class Organism(object):
                                        feature,
                                        record,
                                        product_types):
+        """Add entries to the optional files from the GenBank"""
 
 #         gene_id = feature.qualifiers[self.locus_tag][0]
         gene_id = self._get_feature_locus_tag(feature)
@@ -1186,8 +1233,7 @@ class Organism(object):
         return gene_dictionary,complexes_df,RNA_df
 
     def update_complexes_genes_with_genbank(self):
-        """ Complements complexes and genes with genome
-        """
+        """ Complements complexes and genes with genome"""
         if self.is_reference:
             return
 
@@ -1226,8 +1272,7 @@ class Organism(object):
                 'to_do':'Check whether these features are necessary, and correct their locus_tag. If they have been completed from other provided files, ignore.'})
 
     def purge_genes_in_model(self):
-        """ Purges problematic genes in the M-model
-        """
+        """ Purges problematic genes in the M-model"""
         m_model = self.m_model
         gene_dictionary = self.gene_dictionary
         RNA_df = self.RNA_df
@@ -1263,24 +1308,29 @@ class Organism(object):
 
     def _get_ligases_from_regex(self,
                                 complexes_df):
+        """Call ligases from provided files using regex"""
         return self._get_slice_from_regex(
             complexes_df,
             "[-]{,2}tRNA (?:synthetase|ligase)(?!.*subunit.*)")
 
     def _get_ligases_subunits_from_regex(self,
                                 complexes_df):
+        """Call ligases subunits from provided files using regex"""
         return self._get_slice_from_regex(
             complexes_df,
             "[-]{,2}tRNA (?:synthetase|ligase)(?=.*subunit.*)")
     def _extract_trna_string(self,
                              trna_string):
+        """Srip the tRNA ligase information to call the amino acid"""
         t = re.findall(".*[-]{,2}tRNA (?:synthetase|ligase)",trna_string)
         return t[0] if t else None
 
     def _is_base_complex_in_list(self,cplx,lst):
+        """Check if a complex (base) is already in a list of complexes"""
         return cplx in set(i.split('_mod_')[0] for i in lst)
 
     def _get_genes_of_cplx(self,cplx):
+        """Get the genes associated with a complex from the files"""
         d = {}
         for i in self.complexes_df.loc[cplx]['genes'].split(' AND '):
             gene = re.findall('.*(?=\(\d*\))',i)[0]
@@ -1291,12 +1341,12 @@ class Organism(object):
 #                 for i in self.complexes_df.loc[cplx]['genes'].split(' AND ')]
 
     def get_trna_synthetase(self):
-        """ Gets tRNA synthetases from files.
-        """
+        """ Gets tRNA synthetases from files."""
         if self.is_reference:
             return
 
         def find_aminoacid(trna_string):
+            """Call the aminoacid from a ligase description string"""
             trna_string = trna_string.lower()
             for aa, rx in dictionaries.amino_acid_regex.items():
                 if re.search(rx, trna_string):
@@ -1389,8 +1439,7 @@ class Organism(object):
                 'to_do':'Fix the definition in generic_dict'})
 
     def get_peptide_release_factors(self):
-        """ Gets peptide release factors from files.
-        """
+        """ Gets peptide release factors from files."""
         if self.is_reference:
             return
 
@@ -1406,8 +1455,7 @@ class Organism(object):
                 peptide_release_factors["UGA"]['enzyme'] = rf[rf.str.contains("2")].index[0]
                 generics["generic_RF"]['enzymes'].append(peptide_release_factors["UGA"]['enzyme'])
     def get_nonmetabolic(self):
-        """ Gets nonmetabolic metabolites in M-model.
-        """
+        """ Gets nonmetabolic metabolites in M-model."""
         m_model = self.m_model
         queries = ['ACP','trna']
         for m in m_model.metabolites.query('|'.join(queries)):
@@ -1424,9 +1472,9 @@ class Organism(object):
         return None
 
     def gb_to_faa(self, org_id, outdir = False, element_types = {"CDS"}):
-        """ Generates a protein FASTA from genome for BLAST
-        """
-        ## Create FASTA file with AA sequences for BLAST
+        """ Generates a protein FASTA from genome for BLAST"""
+
+        # Create FASTA file with AA sequences for BLAST
         contigs = self.contigs
 
         if not outdir:
@@ -1451,6 +1499,7 @@ class Organism(object):
                 file.write("{}\n".format(feature.qualifiers["translation"][0]))
 
     def _process_sigma_name(self,name, row):
+        """Generate a sigma factor identifier from its description"""
         name = name.split("RNA polymerase")[-1]
         replace_list = ["sigma", "factor", "sup"]
         for r in replace_list:
@@ -1460,8 +1509,7 @@ class Organism(object):
             name = "_".join(row["genes"])
         return "RNAP_" + name
     def get_sigma_factors(self):
-        """ Gets sigma factors from files.
-        """
+        """ Gets sigma factors from files."""
         complexes_df = self.complexes_df
 
         sigma_df = complexes_df.loc[
@@ -1494,8 +1542,7 @@ class Organism(object):
 
 
     def get_rpod(self):
-        """ Gets RpoD from files.
-        """
+        """ Gets RpoD from files."""
         sigma_df = self.sigmas
         rpod = sigma_df[sigma_df["name"].str.contains("RpoD")].index.to_list()
         if not rpod:
@@ -1521,12 +1568,13 @@ class Organism(object):
                         df,
                         regex,
                        ):
+        """The a slice of a dataframe from a regex"""
         return df[df["name"].str.contains(regex,regex=True)]
     def _get_complex_from_regex(self,
                                complexes_df,
                                cplx_regex,
                                subunit_regex=None):
-        # Get complex as one entry from complexes
+        """Get complex as one entry from complexes"""
         cplx = self._get_slice_from_regex(complexes_df,cplx_regex)
         if cplx.shape[0] == 1:
             return cplx.iloc[[0],:],'cplx'
@@ -1541,6 +1589,7 @@ class Organism(object):
         return subunits,'subunits'
     def _get_rna_polymerase_from_regex(self,
                                         complexes_df):
+        """Call the RNAP from regex"""
         cplx,flag = self._get_complex_from_regex(
             complexes_df,
             "(?:RNA polymerase.*core enzyme|DNA.*directed.*RNA polymerase)(?!.*subunit.*|.*chain.*)",
@@ -1557,6 +1606,7 @@ class Organism(object):
     def _add_rna_polymerase_to_complexes(self,
                                         complexes_df,
                                         RNAP_genes):
+        """Add the RNAP entry to the complexes dataframe"""
         return complexes_df.append(
             pandas.DataFrame.from_dict(
                 {
@@ -1572,11 +1622,13 @@ class Organism(object):
         )
 
     def _is_beta_prime_in_RNAP(self,RNAP,complexes_df):
+        """Checks if beta prime subunit is in RNAP"""
         genes = [re.findall('.*(?=\(\d*\))',i)[0] for i in complexes_df.loc[RNAP]['genes'].split(' AND ')]
         df = complexes_df[complexes_df['genes'].str.contains('|'.join(genes))]
         return df['name'].str.contains("beta(\'|.*prime)|rpoc|RNA polymerase.*(subunit|chain).*beta",regex=True,case=False).any()
 
     def get_rna_polymerase(self, force_RNAP_as=""):
+        """Call the RNAP from files"""
         # TODO: Allow user to define RNAP, skip inferring?
         complexes_df = self.complexes_df
         protein_mod = self.protein_mod
@@ -1636,8 +1688,7 @@ class Organism(object):
         self.rna_polymerases = list(self.rna_polymerase_id_by_sigma_factor.keys())
 
     def get_TU_genes(self):
-        """ Gets TU composition from files.
-        """
+        """ Gets TU composition from files."""
         TUs = self.TUs
         gene_dictionary = self.gene_dictionary
         genes_to_TU = {}
@@ -1661,8 +1712,7 @@ class Organism(object):
         self.TU_to_genes = TU_to_genes
 
     def get_TU_df(self):
-        """ Generates TUs_from_biocyc.
-        """
+        """ Generates TUs_from_biocyc."""
         TUs = self.TUs
         gene_dictionary = self.gene_dictionary
         rpod = self.rpod
@@ -1742,6 +1792,7 @@ class Organism(object):
         return df
 
     def _is_cytosol_in_locations(self,locs):
+        """Checks if cytosol is in the locations list of a protein"""
         for i in locs:
             if 'CCI-CYTOSOL' in i:
                 return True
@@ -1771,6 +1822,7 @@ class Organism(object):
                                        gene_dictionary,
                                       protein_location,
                                       gene_location):
+        """Append one entry to the protein locations dataframe"""
         gene = re.findall('.*(?=\(\d*\))', gene_string)[0]
         if gene not in gene_dictionary.index:
             return protein_location
@@ -1788,8 +1840,7 @@ class Organism(object):
         return protein_location
 
     def get_protein_location(self):
-        """ Gets protein location from files.
-        """
+        """ Gets protein location from files."""
         complexes_df = self.complexes_df
         proteins_df = self.proteins_df
         gene_dictionary = self.gene_dictionary
@@ -1825,8 +1876,7 @@ class Organism(object):
 
     # TODO: New format of keffs file
     def get_reaction_keffs(self):
-        """ Gets reaction Keffs from files.
-        """
+        """ Gets reaction Keffs from files."""
         if self.is_reference:
             return None
         # Keff estimator from https://pubs.acs.org/doi/10.1021/bi2002289
@@ -1869,15 +1919,13 @@ class Organism(object):
         return self.reaction_median_keffs['keff'].to_dict()
 
     def get_phospholipids(self):
-        """ Gets phospholipids from M-model.
-        """
+        """ Gets phospholipids from M-model."""
         m_model = self.m_model
         return [
             str(m.id) for m in m_model.metabolites.query(re.compile("^pg[0-9]{2,3}_.$"))
         ]
     def get_lipids(self):
-        """ Gets lipids from M-model.
-        """
+        """ Gets lipids from M-model."""
         m_model = self.m_model
         return [
             str(m.id) for m in m_model.metabolites.query(re.compile("^[a-z]*[0-9]{2,3}_.$"))
@@ -1885,6 +1933,7 @@ class Organism(object):
 
     def _get_feature_locus_tag(self,
                                feature):
+        """Get the locus tag identifier from a Biopython feature"""
         lt = feature.qualifiers.get(self.locus_tag,None)
         if lt is not None:
             return lt[0]
@@ -1894,6 +1943,7 @@ class Organism(object):
     def _map_to_a_generic(self,
                           feature,
                           generic_dict):
+        """Associate a Biopython feature to a generic component"""
         gene_id = self._get_feature_locus_tag(feature)
         if gene_id is None:
             logging.warning('Could not get {} of a feature at location {}'.format(feature.location))
@@ -1912,8 +1962,7 @@ class Organism(object):
             generic_dict[cat]['enzymes'].append(gene)
 
     def get_generics_from_genbank(self):
-        """ Gets generics from genome.
-        """
+        """ Gets generics from genome."""
         if self.is_reference:
             return None
         contigs = self.contigs
@@ -1943,6 +1992,7 @@ class Organism(object):
                 'to_do':'Curate and fill generics in generics.txt or directly in me_builder.org.generic_dict'})
 
     def _modify_rna_modification_from_load(self,df):
+        """Read and preprocess the RNA modification file"""
         d = {}
         for idx,row in df.iterrows():
             mods = ['{}_at_{}'.format(idx,i) for i in row['positions'].split(',')]
@@ -1954,6 +2004,7 @@ class Organism(object):
         return d
 
     def _get_rrna_genes(self):
+        """Get the genes associated with rRNAs"""
         rrnas = ['generic_5s_rRNAs','generic_16s_rRNAs','generic_23s_rRNAs']
         generic_dict = self.generic_dict
         d = {}
@@ -1963,8 +2014,7 @@ class Organism(object):
         return d
 
     def process_rna_modifications(self):
-        """ Processes RNA modification information.
-        """
+        """ Processes RNA modification information."""
         rna_mods = self.rna_modification_df
         self.rna_modification = self._modify_rna_modification_from_load(rna_mods)
 
@@ -1990,6 +2040,7 @@ class Organism(object):
 
     def _check_for_duplicates_within_datasets(self,
                                              info):
+        """Checks for duplicates within optinal files"""
         import collections
         warn_dups = {}
         for k,v in tqdm.tqdm(info.items(),
@@ -2013,7 +2064,7 @@ class Organism(object):
 
     def _check_for_duplicates_between_datasets(self,
                                                info):
-        # Duplicates between different datasets
+        """Checks for duplicates between optinal files"""
         cplxs = set(info['complexes_df'])
         rnas = set(info['RNA_df'])
         genes = set(info['gene_dictionary'])
@@ -2038,6 +2089,7 @@ class Organism(object):
 
     def _solve_duplicates_between_datasets(self,
                                            dup_df):
+        """Solves found duplicates according to hierarchy"""
         from coralme.builder.helper_functions import change_reaction_id
         for c,row in tqdm.tqdm(dup_df.iterrows(),
                            'Solving duplicates across datasets...',
@@ -2052,8 +2104,7 @@ class Organism(object):
 
 
     def check_for_duplicates(self):
-        """ Checks for problematic duplicates in provided files.
-        """
+        """ Checks for problematic duplicates in provided files."""
         # Duplicates within datasets
         info = {
             'complexes_df' : list(self.complexes_df.index),
@@ -2069,13 +2120,13 @@ class Organism(object):
     def _is_sequence_divisible_by_three(self,
                                         contig,
                                         f):
+        """Checks whether a gene sequence is divisible by three"""
         if f.type == 'source' or 'RNA' in f.type:
             return True
         return not bool(len(f.extract(contig).seq.replace('-', '')) % 3)
 
     def prune_genbank(self):
-        """ Prunes and cleans genome file
-        """
+        """ Prunes and cleans genome file"""
         if self.is_reference:
             return
         contigs = self.contigs
@@ -2132,8 +2183,7 @@ class Organism(object):
                     'to_do':'Check whether any of these genes are translated in your final ME-model. If so, fix the positions of the gene in genome_modified.gb'})
 
     def modify_metabolic_reactions(self):
-        """ Modifies metabolic reactions from manual input
-        """
+        """ Modifies metabolic reactions from manual input"""
         if self.is_reference:
             return
         m_model = self.m_model
@@ -2162,8 +2212,7 @@ class Organism(object):
                     rxn.name = info["name"]
 
     def modify_metabolites(self):
-        """ Modifies metabolites from manual input
-        """
+        """ Modifies metabolites from manual input"""
         if self.is_reference:
             return
         m_model = self.m_model
@@ -2187,8 +2236,7 @@ class Organism(object):
                     met.formula = info["formula"]
 
     def add_manual_complexes(self):
-        """ Modifies complexes from manual input
-        """
+        """ Modifies complexes from manual input"""
         if self.is_reference:
             return
         manual_complexes = self.manual_complexes
@@ -2259,6 +2307,10 @@ class Organism(object):
                     'to_do':'Check whether the marked modified protein in protein_corrections.txt for replacement is correctly defined.'})
 
     def get_enzyme_reaction_association(self, gpr_combination_cutoff = 100):
+        """
+        Maps the M-model GPRs to the provided files and links reactions
+        to enzymatic complexes
+        """
         if self.is_reference:
             return
         m_model = self.m_model
