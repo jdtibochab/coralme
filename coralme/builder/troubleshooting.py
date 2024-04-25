@@ -13,6 +13,10 @@ import sys
 log = logging.getLogger(__name__)
 
 def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
+	"""
+	Get a dictionary containing information on whether a metabolite has
+	producing or consuming reactions. This is used to find gaps.
+	"""
 	dct = {}
 	for met in model.metabolites:
 		filter1 = type(met) == cobra.core.metabolite.Metabolite or type(met) == coralme.core.component.Metabolite
@@ -49,6 +53,7 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
 	return dct
 
 def add_exchange_reactions(me, metabolites, prefix = 'SK_'):
+	"""Add exchange/sink reaction to the model"""
 	rxns = []
 	for met in metabolites:
 		rxn_id = prefix + met
@@ -64,6 +69,7 @@ def add_exchange_reactions(me, metabolites, prefix = 'SK_'):
 	return rxns
 
 def find_gaps(model, growth_key = sympy.Symbol('mu', positive = True)):
+	"""Find gaps in the model"""
 	g = {}
 	dct = process_model(model, growth_key = growth_key)
 	for met, t in dct.items():
@@ -81,6 +87,7 @@ def find_gaps(model, growth_key = sympy.Symbol('mu', positive = True)):
 	return df
 
 def find_issue(query,d,msg = ''):
+	"""Retrieve any warning message in curation notes associated with an ID"""
 	if isinstance(d,dict):
 		if 'msg' in d:
 			msg = d['msg']
@@ -100,6 +107,7 @@ def find_issue(query,d,msg = ''):
 		raise TypeError("unsupported type  " + type(d))
 
 def fill_builder(b,fill_with='CPLX_dummy',key=None,d=None,fieldname=None,warnings=None):
+	"""Fill empty fields in builder with CPLX dummy"""
 	if isinstance(b,coralme.builder.main.MEBuilder):
 		for i in dir(b.org):
 			if i[0] == '_':
@@ -127,6 +135,7 @@ def fill_builder(b,fill_with='CPLX_dummy',key=None,d=None,fieldname=None,warning
 		pass
 
 def gap_find(me_model,de_type = None):
+	"""Find and classify gaps in the model"""
 
 	logging.warning('  '*5 + 'Finding gaps in the ME-model...')
 	me_gaps = coralme.builder.troubleshooting.find_gaps(me_model, growth_key = me_model.mu)
@@ -153,6 +162,7 @@ def gap_find(me_model,de_type = None):
 	return deadends
 
 def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu', positive = True) : 0.1 }, met_types = 'Metabolite'):
+	"""Add sink reactions of gap metabolites to the model"""
 	if sys.platform in ['win32', 'darwin']:
 		self.me_model.get_solution = self.me_model.optimize_windows
 		self.me_model.get_feasibility = self.me_model.feas_gurobi
@@ -179,6 +189,11 @@ def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu'
 		return False
 
 def brute_force_check(me_model, metabolites_to_add, growth_key_and_value):
+	"""
+	Iteratively search for minimal set of metabolites that are needed as
+	sinks to allow for growth. This function searches by batches of
+	different types of metabolites.
+	"""
 	if sys.platform == 'win32':
 		me_model.get_solution = me_model.opt_gurobi
 		me_model.get_feasibility = me_model.feas_gurobi
@@ -252,6 +267,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value):
 	return bf_gaps, no_gaps, True
 
 def get_mets_from_type(me_model,met_type):
+	"""Get metabolites by type relevant to gap filling the model"""
 	if met_type[1] == 'User guesses':
 		return set(met_type[0])
 	elif met_type == 'ME-Deadends':
@@ -272,9 +288,11 @@ def get_mets_from_type(me_model,met_type):
 		return mets
 
 def _append_metabolites(mets,new_mets):
+	"""Merge metabolite lists"""
 	return mets + [m for m in new_mets if m not in mets]
 
 def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict()):
+	"""Remove metabolites from our heuristics and call the brute force search algorithm"""
 	mets = get_mets_from_type(me_model,met_type)
 	if met_type == 'Metabolite':
 		#remove from the metabolites to test that are fed into the model through transport reactions
@@ -307,6 +325,7 @@ def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history 
 															  growth_key_and_value)
 
 def get_cofactors_in_me_model(me):
+	"""Get metabolites that work as cofactors in the model"""
 	cofactors = set()
 	for i in me.process_data.query('^mod_'):
 		for k,v in i.stoichiometry.items():
