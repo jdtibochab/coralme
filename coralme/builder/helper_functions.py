@@ -5,6 +5,7 @@ import pandas
 import tqdm
 import cobra
 import coralme
+from warnings import warn
 
 
 # from cobrame without changes
@@ -38,8 +39,8 @@ def get_base_complex_data(model, complex_id):
 
 # from cobra with changes
 def parse_composition(tmp_formula) -> dict:
-	element_re = re.compile("([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)")
 	"""Break the chemical formula down by element."""
+	element_re = re.compile("([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)")
 	#tmp_formula = self.formula
 	# commonly occuring characters in incorrectly constructed formulas
 	if "*" in tmp_formula:
@@ -88,12 +89,11 @@ def get_next_from_type(l,t):
 		return set()
 
 def find_complexes(m, seen = set()):
+	"""Find final complexes that are formed from a metabolite"""
 	if not m:
 		return set()
-#	 print(m.id)
 	if m in seen:
 		return set()
-#	 print(type(m))
 
 	seen.add(m)
 
@@ -148,6 +148,13 @@ def find_complexes(m, seen = set()):
 	return set()
 
 def get_functions(cplx):
+	"""Find final functions (Metabolic, Translation, ...) of a Complex."""
+	allowed_types = [
+		coralme.core.component.Complex,
+		coralme.core.component.GenericComponent,
+		coralme.core.component.GenerictRNA
+		]
+	assert any(isinstance(cplx,i) for i in allowed_types), f"Unexpected object of type {type(cplx)}"
 	functions = set()
 	for r in cplx.reactions:
 		if isinstance(r,coralme.core.reaction.MetabolicReaction) and hasattr(r,'subsystem'):
@@ -263,6 +270,7 @@ def close_sink_and_solve(rxn_id):
 		return (rxn_id, True)
 
 def change_reaction_id(model,old_id,new_id):
+	"""Change the ID of a reaction"""
 	old_rxn = model.reactions.get_by_id(old_id)
 	rxn = cobra.Reaction(new_id)
 	model.add_reactions([rxn])
@@ -276,13 +284,11 @@ def change_reaction_id(model,old_id,new_id):
 	model.remove_reactions([old_rxn])
 
 def get_metabolites_from_pattern(model,pattern):
-	met_list = []
-	for met in model.metabolites:
-		if pattern in met.id:
-			met_list.append(met.id)
-	return met_list
+	"""Get metabolites that contain a substring"""
+	return [m.id for m in model.metabolites.query(pattern)]
 
 def evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms):
+	"""Get an LP problem from NLP objects"""
 	lb = [ x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for x in lb ]
 	ub = [ x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for x in ub ]
 	Se = { k:x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for k,x in Se.items() }
@@ -292,6 +298,7 @@ def evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms):
 	return Sf, Se, lb, ub
 
 def is_producible(me,met,growth_key_and_value):
+	"""Check if a metabolite is producible by the network"""
 	if met not in me.metabolites:
 		return False
 	r = add_exchange_reactions(me, [met], prefix = 'DM_')[0]
@@ -305,6 +312,8 @@ def is_producible(me,met,growth_key_and_value):
 
 
 def get_transport_reactions(model,met_id,comps=['e','c']):
+	"""Get transport reactions of a metabolite in a ME-model"""
+	assert isinstance(model,coralme.core.model.MEModel), f"Unexpected model object of type {type(model)}"
 	from_met = re.sub('_[a-z]$','_'+comps[0],met_id)
 	to_met = re.sub('_[a-z]$','_'+comps[1],met_id)
 
@@ -319,6 +328,8 @@ def get_transport_reactions(model,met_id,comps=['e','c']):
 	return [model.reactions.get_by_id(rxn_id) for rxn_id in transport_rxn_ids]
 
 def get_all_transport_of_model(model):
+	"""Get transport reactions in a ME-model"""
+	assert isinstance(model,coralme.core.model.MEModel), f"Unexpected model object of type {type(model)}"
 	transport_reactions = []
 	for r in tqdm.tqdm(model.reactions):
 		comps = r.get_compartments()
@@ -328,7 +339,8 @@ def get_all_transport_of_model(model):
 
 
 def format_kcats_from_DLKcat(df):
-# df = pandas.read_csv("./bacillus/building_data/bacillus_rxn_kcats.tsv",sep='\t',index_col=0).set_index("reaction")
+	"""Formate the output from DLKcat to coralME-compatible"""
+	# df = pandas.read_csv("./bacillus/building_data/bacillus_rxn_kcats.tsv",sep='\t',index_col=0).set_index("reaction")
 
 	df2 = pandas.DataFrame(columns=["direction","complex","mods","keff"])
 	for r,keff in df['Kcat value (1/s)'].items():
@@ -350,22 +362,36 @@ def format_kcats_from_DLKcat(df):
 #	 df2.to_csv("./bacillus/building_data/keffs.txt",sep='\t')
 
 # Flux analysis migration
+# These reactions are being migrated to coralme.util.flux_analysis
 def exchange_single_model(me, flux_dict = 0, solution=0):
+	warn(
+		"exchange_single_model will be removed soon."
+		"Use coralme.util.flux_analysis.exchange_single_model instead",
+		DeprecationWarning,
+	)
 	return coralme.util.flux_analysis.exchange_single_model(me,
 														 flux_dict = flux_dict,
 														 solution=solution)
-
 def get_met_coeff(stoich,growth_rate,growth_key='mu'):
+	warn(
+		"get_met_coeff will be removed soon."
+		"Use coralme.util.flux_analysis.get_met_coeff instead",
+		DeprecationWarning,
+	)
 	return coralme.util.flux_analysis.get_met_coeff(stoich,
 												 growth_rate,
 												 growth_key=growth_key)
 
 def summarize_reactions(model,met_id,only_types=(),ignore_types = ()):
+	warn(
+		"summarize_reactions will be removed soon."
+		"Use coralme.util.flux_analysis.summarize_reactions instead",
+		DeprecationWarning,
+	)
 	return coralme.util.flux_analysis.summarize_reactions(model,
 													   met_id,
 													   only_types=only_types,
 													   ignore_types = ignore_types)
-
 def flux_based_reactions(model,
 						 met_id,
 						 only_types=(),
@@ -375,6 +401,11 @@ def flux_based_reactions(model,
 						 solution = None,
 						 keffs=False,
 						 verbose=False):
+	warn(
+		"flux_based_reactions will be removed soon."
+		"Use coralme.util.flux_analysis.flux_based_reactions instead",
+		DeprecationWarning,
+	)
 	return coralme.util.flux_analysis.flux_based_reactions(model,
 						 met_id,
 						 only_types=only_types,
@@ -384,8 +415,12 @@ def flux_based_reactions(model,
 						 solution = solution,
 						 keffs=keffs,
 						 verbose=verbose)
-
 def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbose = False,growth_key='mu'):
+	warn(
+		"get_reactions_of_met will be removed soon."
+		"Use coralme.util.flux_analysis.get_reactions_of_met instead",
+		DeprecationWarning,
+	)
 	return coralme.util.flux_analysis.get_reactions_of_met(me,
 														met,
 														s = s,
