@@ -5,7 +5,6 @@ import pandas
 import sympy
 import tqdm
 
-
 def exchange_single_model(me, flux_dict = 0, solution=0):
 	"""
 	Returns a summary of exchange reactions and fluxes
@@ -89,16 +88,13 @@ def flux_based_reactions(model,
 	flux distribution.
 	"""
 
-	if not flux_dict:
-		#flux_dict = model.solution.x_dict
-		if not hasattr(model,'solution') or not model.solution:
-			if solution is not None:
-				flux_dict = solution.fluxes
-			else:
-				print('No solution in model object')
-				flux_dict = {r.id:0. for r in model.reactions}
-		else:
-			flux_dict = model.solution.fluxes
+	if solution:
+		flux_dict = solution.fluxes
+	elif hasattr(model,'solution') and model.solution:
+		flux_dict = model.solution.fluxes
+	else:
+		print('No solution in model object')
+		flux_dict = {r.id:0. for r in model.reactions}
 	mu = model.mu if hasattr(model,'mu') else ''
 	reactions = get_reactions_of_met(model,met_id,only_types=only_types,
 									 ignore_types=ignore_types,verbose=False,growth_key=mu)
@@ -189,3 +185,85 @@ def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbos
 			else:
 				pass
 	return reactions
+
+from coralme.builder.helper_functions import substitute_value,get_next_from_type
+def get_immediate_partitioning(p):
+	"""
+	This function calculates the partitioning of a metabolite
+	to its different immediate products across reactions.
+	"""
+	tmp = flux_based_reactions(p._model,p.id)["met_flux"]
+	tmp = tmp[tmp<0]
+	dct = tmp.div(tmp.sum()).to_dict()
+	return {p._model.get(k):v for k,v in dct.items()}
+
+def get_partitioning(m, seen = set(),final_fraction=1.0):
+	"""
+	This is a modified function from find_complexes, which keeps
+	track of the partitioning of proteins according to flux
+	distributions contained in a model object.
+	"""
+	if not m:
+		return set()
+	if m in seen:
+		return set()
+	if final_fraction == 0:
+		return set()
+
+	seen.add(m)
+
+	# Reaction objects
+	if isinstance(m,coralme.core.reaction.PostTranslationReaction):
+		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.ProcessedProtein), seen=seen,final_fraction=final_fraction)
+	if isinstance(m,coralme.core.reaction.ComplexFormation):
+		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction)
+	if isinstance(m,coralme.core.reaction.GenericFormationReaction):
+		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
+	if isinstance(m,coralme.core.reaction.tRNAChargingReaction):
+		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenerictRNA), seen=seen,final_fraction=final_fraction)
+	if isinstance(m,coralme.core.reaction.MetabolicReaction):
+		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction) | \
+				get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
+
+	if isinstance(m,coralme.core.reaction.SummaryVariable):
+		return set()
+
+	partitioning = get_immediate_partitioning(m)
+
+	# Metabolite objects
+	if isinstance(m,coralme.core.component.TranslatedGene):
+		cplxs = set()
+		for r,fraction in partitioning.items():
+			if substitute_value(m,r.metabolites[m] > 0):
+				continue
+			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
+		return cplxs
+	if isinstance(m,coralme.core.component.TranscribedGene):
+		translated_protein = m.id.replace('RNA_','protein_')
+		if translated_protein in m._model.metabolites:
+			return get_partitioning(m._model.metabolites.get_by_id(translated_protein), seen=seen,final_fraction=final_fraction)
+		cplxs = set()
+		for r,fraction in partitioning.items():
+			if substitute_value(m,r.metabolites[m] > 0):
+				continue
+			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
+		return cplxs
+	if isinstance(m,coralme.core.component.ProcessedProtein):
+		cplxs = set()
+		for r,fraction in partitioning.items():
+			if substitute_value(m,r.metabolites[m] > 0):
+				continue
+			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
+		return cplxs
+
+	if isinstance(m,coralme.core.component.Complex) or isinstance(m,coralme.core.component.GenericComponent) or isinstance(m,coralme.core.component.GenerictRNA):
+		other_formations = [(r,fraction) for r,fraction in partitioning.items() if (isinstance(r,coralme.core.reaction.ComplexFormation) or isinstance(r,coralme.core.reaction.GenericFormationReaction)) and substitute_value(m,r.metabolites[m]) < 0]
+		cplxs = set([(m,final_fraction)])
+		if other_formations:
+			cplxs = set()
+			for r,fraction in other_formations:
+				cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
+		# print(3,cplxs)
+		return cplxs
+
+	return set()
