@@ -87,8 +87,9 @@ def flux_based_reactions(model,
 	Returns a summary of the mass balance of a metabolite in a
 	flux distribution.
 	"""
-
-	if solution:
+	if flux_dict:
+		pass
+	elif solution:
 		flux_dict = solution.fluxes
 	elif hasattr(model,'solution') and model.solution:
 		flux_dict = model.solution.fluxes
