@@ -124,10 +124,10 @@ class Organism(object):
     @property
     def blast_directory(self):
         """Directory containing the blast files and results"""
-        if self.is_reference:
-            pass
-        else:
+        if not self.is_reference:
             return self.config.get('out_directory', self.id) + "/blast_files_and_results/"
+        # If reference organism, no blast information
+        return None
 
     @property
     def _complexes_df(self):
@@ -137,11 +137,13 @@ class Organism(object):
         """
         filename = self.directory + "protein_complexes.txt"
         if os.path.isfile(filename):
+            # If protein_complexes.txt exists in the files directory,
+            # use it as the final complexes dataframe.
             return pandas.read_csv(
                 filename, index_col=0, sep="\t",comment='#'
             ).fillna('')
-        else:
-            return self.generate_complexes_df()
+        # If it does not exist, generate it from raw files
+        return self.generate_complexes_df()
 
     @property
     def _protein_mod(self):
@@ -151,11 +153,13 @@ class Organism(object):
         """
         filename = self.directory + "protein_modification.txt"
         if os.path.isfile(filename):
+            # If protein_modification.txt exists in the files directory,
+            # use it as the final protein modification dataframe.
             return pandas.read_csv(
                 filename, index_col=0, sep="\t",comment='#'
             )
-        else:
-            return pandas.DataFrame.from_dict(
+        # If it does not exist, generate it from raw files
+        return pandas.DataFrame.from_dict(
                 {
                     "Modified_enzyme": {},
                     "Core_enzyme": {},
@@ -171,15 +175,19 @@ class Organism(object):
         If the file does not exist, it initializes it.
         """
         if self.is_reference:
+            # Reference file should contain TUs_from_biocyc.txt
             filename = self.directory + "TUs_from_biocyc.txt"
         else:
+            # Use TUs dataframe file path as defined
             filename = self.config.get('df_TranscriptionalUnits', self.directory + "TUs_from_biocyc.txt")
-
-        if os.path.isfile(filename): #(not self.config.get('overwrite', True) or self.is_reference):
+        
+        if os.path.isfile(filename):
+            # If TUs dataframe exists, read it
             tmp = pandas.read_csv(filename, index_col = 0, sep = "\t")
             tmp = tmp.dropna(subset=['start', 'stop', 'genes'], how = 'any')
             return tmp
         else:
+            # If it does not exist, generate it from raw files
             return self.get_TU_df()
 
     @property
@@ -188,13 +196,17 @@ class Organism(object):
         Returns the M-model.
         """
         if self.id == 'iJL1678b':
+            # If reference organism is iJL1678b, read it from m_model.json
             model = self.directory + 'm_model.json'
         else:
+            # Read M-model from the configuration file path
             model = self.config['m-model-path']
-
+        
         if model.endswith('.json'):
+            # Read from JSON model
             return cobra.io.load_json_model(model)
         elif model.endswith('.xml'):
+            # Read from SBML model
             return cobra.io.read_sbml_model(model)
         else:
             raise ValueError('M-model input file must be json or xml format.')
@@ -205,6 +217,7 @@ class Organism(object):
         Returns the RNAs from the identified products.
         """
         product_types = self.product_types
+        # Return all products whose type is RNA
         return set(g for g,t in product_types.items() if 'RNA' in t)
 
     def get_organism(self):
@@ -295,8 +308,10 @@ class Organism(object):
         """ Reads GenBank file as a list of contigs.
         """
         if self.id == 'iJL1678b':
+            # If default reference iJL1678b, read from genome.gb
             gb_it = Bio.SeqIO.parse(self.directory + "genome.gb", "gb")
         else:
+            # Read from configuration file path
             gb_it = Bio.SeqIO.parse(self.config['genbank-path'], "gb")
         self.contigs = [ i for i in gb_it ]
 
