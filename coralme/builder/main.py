@@ -907,6 +907,8 @@ class MEBuilder(object):
 			ref_cplx = v["enzyme"]
 			if ref_cplx in ref_cplx_homolog:
 				org_cplx = ref_cplx_homolog[v["enzyme"]]
+				if k not in org_ribosome_subreactions:
+					org_ribosome_subreactions[k] = {"enzyme":""}
 				defined_cplx = org_ribosome_subreactions[k]["enzyme"]
 				if defined_cplx: continue
 # 				if not defined_cplx or defined_cplx in org_cplx or 'CPLX_dummy' in defined_cplx:
