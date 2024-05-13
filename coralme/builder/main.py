@@ -52,7 +52,7 @@ class ListHandler(logging.Handler): # Inherit from logging.Handler
 		except:
 			pass
 	def print_and_log(msg):
-		#print(msg)
+		print(msg)
 		logging.warning(msg)
 
 class MEBuilder(object):
