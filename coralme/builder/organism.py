@@ -1889,6 +1889,8 @@ class Organism(object):
                                                     gene_location)
         self.protein_location = protein_location
 
+        #TODO: Add warnings for empty location
+
     # TODO: New format of keffs file
     def get_reaction_keffs(self):
         """ Gets reaction Keffs from files."""

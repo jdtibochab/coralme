@@ -52,7 +52,7 @@ class ListHandler(logging.Handler): # Inherit from logging.Handler
 		except:
 			pass
 	def print_and_log(msg):
-		print(msg)
+		#print(msg)
 		logging.warning(msg)
 
 class MEBuilder(object):
@@ -1777,6 +1777,8 @@ class MEReconstruction(MEBuilder):
 		# Read user inputs
 		tmp1, tmp2 = coralme.builder.main.MEReconstruction.input_data(self, me.gem, overwrite)
 		(df_tus, df_rmsc, df_subs, df_mets, df_keffs), (df_data, df_rxns, df_cplxs, df_ptms, df_enz2rxn, df_rna_mods, df_protloc, df_transpaths) = tmp1, tmp2
+
+		#TODO: Iterate tmp1 and tmp2 and warn empty dataframes
 
 		me.internal_data = {}
 		for key in ['df_tus', 'df_rmsc', 'df_subs', 'df_mets', 'df_keffs', 'df_data', 'df_rxns', 'df_cplxs', 'df_ptms', 'df_enz2rxn', 'df_rna_mods', 'df_protloc', 'df_transpaths']:
