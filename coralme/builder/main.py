@@ -55,6 +55,9 @@ class ListHandler(logging.Handler): # Inherit from logging.Handler
 		print(msg)
 		logging.warning(msg)
 
+	def log(msg):
+		logging.warning(msg)
+
 class MEBuilder(object):
 	"""
 	MEBuilder class to coordinate the reconstruction of ME-models.
