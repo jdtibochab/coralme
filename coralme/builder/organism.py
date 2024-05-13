@@ -85,12 +85,12 @@ class Organism(object):
         self.curation_notes = defaultdict(list)
         self.config = config
 
-        if self.is_reference:
-            # If it is the reference, use the gene ID conventions of the reference
-            self.locus_tag = config.get('reference_tag','locus_tag')
-        else:
+        #if self.is_reference:
+            ## If it is the reference, use the gene ID conventions of the reference
+            #self.locus_tag = config.get('reference_tag','locus_tag')
+        #else:
             # If it is not the reference, use the gene ID conventions of the organism
-            self.locus_tag = config.get('locus_tag','locus_tag')
+        self.locus_tag = config.get('locus_tag','locus_tag')
 
         # Create the protein localization interpreter
         # TODO: Move this to a more standard location, builder/?
