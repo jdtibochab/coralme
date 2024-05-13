@@ -888,7 +888,8 @@ def get_df_protloc(df, filter_in = set(), generics = False):
 
 		return tmp
 	else:
-		return pandas.DataFrame(columns = ['Complex ID', 'Complex Location', 'Gene Locus ID', 'Subunit Location', 'Translocation Pathway'])
+		#return pandas.DataFrame(columns = ['Complex ID', 'Complex Location', 'Gene Locus ID', 'Subunit Location', 'Translocation Pathway'])
+		return pandas.DataFrame(columns = ['Complex', 'Complex_compartment', 'Protein', 'Protein_compartment', 'translocase_pathway'])
 
 def get_df_transpaths(df, filter_in = set(), generics = False):
 	tmp = df[~df['MetaComplex ID'].isnull()]
