@@ -268,3 +268,15 @@ def get_partitioning(m, seen = set(),final_fraction=1.0):
 		return cplxs
 
 	return set()
+
+def get_reduced_costs(nlp,muopt,rxn_idx,basis=None,precision=1e-6):
+	# Adapted from Maxwell Neal, 2024
+	# Open biomass dilution bounds
+	nlp.xl[rxn_idx["biomass_dilution"]] = lambda mu : 0
+	nlp.xu[rxn_idx["biomass_dilution"]] = lambda mu : 1000
+	# Set new objective coefficient
+	nlp.c = [1.0 if r=="biomass_dilution" else 0.0 for r in rxn_idx]
+	# Solve at muopt
+	_xopt, yopt, zopt, _stat, _basis = nlp.solvelp(muf = muopt, basis = basis, precision = precision)
+	return _xopt, yopt, zopt, _stat, _basis
+

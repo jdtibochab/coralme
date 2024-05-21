@@ -1295,15 +1295,8 @@ class MEModel(cobra.core.model.Model):
 			x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
 			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
 			if get_reduced_costs:
-				# Adapted from Maxwell Neal, 2024
 				rxn_idx =  {rxn.id : idx for idx, rxn in enumerate(self.reactions)}
-				# Open biomass dilution bounds
-				me_nlp.xl[rxn_idx["biomass_dilution"]] = lambda mu : 0
-				me_nlp.xu[rxn_idx["biomass_dilution"]] = lambda mu : 1000
-				# Set new objective coefficient
-				me_nlp.c = [1.0 if r=="biomass_dilution" else 0.0 for r in rxn_idx]
-				# Solve at muopt
-				_xopt, yopt, zopt, _stat, _basis = me_nlp.solvelp(muf = muopt, basis = basis, precision = precision)
+				_xopt, yopt, zopt, _stat, _basis = coralme.util.flux_analysis.get_reduced_costs(me_nlp,muopt,rxn_idx,basis=basis,precision=precision)
 			#y = pi
 			# J = [S; c]
 			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
