@@ -614,3 +614,6 @@ CPLX0-246_CPLX0-1342_mod_pydx5p(1)	CPLX0-246_CPLX0-1342	pydx5p(1)	M_protein_reco
 IscS_mod_pydx5p(2)	IscS	pydx5p(2)	M_protein_recon
 CPLX0-7617_mod_2fe2s(1)	CPLX0-7617	2fe2s(1)	Manual
 CPLX0-7617_mod_4fe4s(1)	CPLX0-7617	4fe4s(1)	Manual
+CPLX0-7908_mod_2fe2s(1)	CPLX0-7908	2fe2s(1)	Manual
+CPLX0-7908_mod_4fe4s(1)	CPLX0-7908	4fe4s(1)	Manual
+
