@@ -6,7 +6,7 @@ pyranges
 xlsxwriter
 openpyxl
 numpy==1.23.5
-scipy
+scipy==1.11.0
 sympy
 pandas==1.5.1
 jsonschema
