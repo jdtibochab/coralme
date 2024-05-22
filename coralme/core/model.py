@@ -281,7 +281,22 @@ class MEModel(cobra.core.model.Model):
 	# WARNING: MODIFIED FUNCTIONS FROM COBRAPY
 	def merge(self, right, prefix_existing=None, inplace=True, objective='left'):
 		return NotImplemented
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	@property
+	def objective(self):
+		return [ x for x in self.reactions if x.objective_coefficient != 0 ]
 
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	@objective.setter
+	def objective(self, dct = { 'dummy_reaction_FWD_SPONT' : +1. } ):
+		for rxn in self.reactions:
+			rxn.objective_coefficient = 0.
+
+		for rxn, coeff in dct.items():
+			if self.reactions.has_id(rxn):
+				self.reactions.get_by_id(rxn).objective_coefficient = coeff
+			else:
+				raise ValueError('Reaction \'{:s}\' does not exist in the ME-model'.format(rxn))
 	def add_metabolites(self, metabolite_list):
 		"""Will add a list of metabolites to the model object and add new
 		constraints accordingly.
@@ -1615,3 +1630,42 @@ class MEModel(cobra.core.model.Model):
 				rxn.lower_bound = 0
 			elif rxn.lower_bound < 0:
 				rxn.lower_bound = -1000
+
+	# Modified from COBRApy
+	def _repr_html_(self) -> str:
+		"""Get HTML represenation of the model.
+
+		Returns
+		-------
+		str
+			Model representation as HTML string.
+		"""
+		return f"""
+		<table>
+			<tr>
+				<td><strong>Name</strong></td>
+				<td>{self.id}</td>
+			</tr><tr>
+				<td><strong>Memory address</strong></td>
+				<td>{f"{id(self):x}"}</td>
+			</tr><tr>
+				<td><strong>Number of metabolites</strong></td>
+				<td>{len(self.metabolites)}</td>
+			</tr><tr>
+				<td><strong>Number of reactions</strong></td>
+				<td>{len(self.reactions)}</td>
+			</tr><tr>
+				<td><strong>Number of genes</strong></td>
+				<td>{len(self.genes)}</td>
+			</tr><tr>
+				<td><strong>Number of groups</strong></td>
+				<td>{len(self.groups)}</td>
+			</tr><tr>
+				<td><strong>Objective expression</strong></td>
+				<td>{cobra.util.util.format_long_string(",".join([r.id for r in self.objective]), 100)}</td>
+			</tr><tr>
+				<td><strong>Compartments</strong></td>
+				<td>{", ".join(v if v else k for k, v in
+								self.compartments.items())}</td>
+			</tr>
+			</table>"""
