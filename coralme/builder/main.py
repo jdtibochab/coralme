@@ -382,7 +382,6 @@ class MEBuilder(object):
 			biomass_rxn = None
 			logging.warning('Could not identify biomass reaction')
 
-
 		self.org.GAM = self.configuration.get('gam',None)
 		# Get GAM
 		if self.org.GAM is None:
@@ -2194,7 +2193,6 @@ class MEReconstruction(MEBuilder):
 				transcription_data.RNA_polymerase = most_common
 
 		# ### 7) Add Transcription Metacomplexes: Degradosome (both for RNA degradation and RNA splicing)
-
 		degradosome_id = me.global_info['degradosome_id']
 
 		me.add_metabolites([coralme.core.component.Complex(degradosome_id)])
@@ -2208,7 +2206,7 @@ class MEReconstruction(MEBuilder):
 
 		# Used for RNA splicing
 		data = coralme.core.processdata.SubreactionData('RNA_degradation_machine', me)
-		data.enzyme = me.global_info['degradosome_id']
+		data.enzyme = [me.global_info['degradosome_id']]
 
 		# .25 water equivalent for ATP hydrolysis per nucleotide
 		data = coralme.core.processdata.SubreactionData('RNA_degradation_atp_requirement', me)
@@ -2314,7 +2312,7 @@ class MEReconstruction(MEBuilder):
 		for data in tqdm.tqdm(list(me.translation_data), 'Adding SubReactions into TranslationReactions...', bar_format = bar_format):
 			for process in protein_processing:
 				if data.id in protein_processing[process]:
-					data.subreactions['Protein_processing_' + process] = 1
+					data.subreactions['Protein_processing_' + process] = 1.
 
 			# This block was run above, but it should be run again to incorporate any subreactions not added previously
 			data.add_initiation_subreactions(start_codons = me.global_info['start_codons'], start_subreactions = initiation_subreactions)
@@ -2323,22 +2321,21 @@ class MEReconstruction(MEBuilder):
 
 			# Add organism specific subreactions associated with peptide processing
 			for subrxn in me.global_info['peptide_processing_subreactions']:
-				data.subreactions[subrxn] = 1
+				data.subreactions[subrxn] = 1.
 
 		# ### 2) Add transcription related subreactions
-
 		transcription_subreactions = coralme.builder.preprocess_inputs.get_subreactions(df_data, 'Transcription')
 		coralme.builder.transcription.add_subreactions_to_model(me, [transcription_subreactions])
 
 		for transcription_data in tqdm.tqdm(list(me.transcription_data), 'Adding Transcription SubReactions...', bar_format = bar_format):
 			# Assume false if not in tu_df
-			rho_dependent = df_tus.rho_dependent.get(transcription_data.id, 'False')
-			rho = 'dependent' if rho_dependent in ['1', 'TRUE', 'True', 'true'] else 'independent'
+			is_rho_dependent = df_tus.rho_dependent.get(transcription_data.id, 'False')
+			rho_dependency = 'dependent' if is_rho_dependent in ['1', 'TRUE', 'True', 'true'] else 'independent'
 			stable = 'stable' if transcription_data.codes_stable_rna else 'normal'
-			if 'Transcription_{:s}_rho_{:s}'.format(stable, rho) in me.global_info['transcription_subreactions']:
-				transcription_data._subreactions['Transcription_{:s}_rho_{:s}'.format(stable, rho)] = 1
+			if 'Transcription_{:s}_rho_{:s}'.format(stable, rho_dependency) in me.global_info['transcription_subreactions']:
+				transcription_data._subreactions['Transcription_{:s}_rho_{:s}'.format(stable, rho_dependency)] = 1.
 			else:
-				logging.warning('The SubReaction \'Transcription_{:s}_rho_{:s}\' is not defined in the organism-specific matrix.'.format(stable, rho))
+				logging.warning('The SubReaction \'Transcription_{:s}_rho_{:s}\' is not defined in the organism-specific matrix.'.format(stable, rho_dependency))
 
 		# ## Part 5: Add in Translocation reactions
 
@@ -2417,8 +2414,8 @@ class MEReconstruction(MEBuilder):
 			# Some have multiple alternative modifications so must loop through these
 			for complex_data in me.process_data.query('^{:s}_mod_'.format(cplx)):
 				# WARNING: FeFe and NiFe cofactors reform the formation reactions as follow:
-				# requires a formation -> base_complex + FeFe/NiFe => base_complex_mod_FeFe/NiFe <- should not have a formation reaction
-				# base_complex_mod_FeFe/NiFe + other cofactors => final modified complex
+				# requires a formation -> base_complex + FeFe/NiFe => base_complex_mod_FeFe/_mod_NiFe <- should not have a formation reaction
+				# base_complex_mod_FeFe/_mod_NiFe + other cofactors => final modified complex
 				lst = [ type(me.metabolites.get_by_id(x)) for x in complex_data.stoichiometry.keys() ]
 				if coralme.core.component.Complex in lst:
 					continue
@@ -2514,7 +2511,6 @@ class MEReconstruction(MEBuilder):
 
 		# ### 2. Add enzymatic coupling for "carriers"
 		# These are enzyme complexes that act as metabolites in a metabolic reaction.
-
 		for data in tqdm.tqdm(list(me.stoichiometric_data), 'Processing StoichiometricData in ME-model...', bar_format = bar_format):
 			if data.id == 'dummy_reaction':
 				continue
@@ -2527,7 +2523,7 @@ class MEReconstruction(MEBuilder):
 				subreaction_id = met + '_carrier_activity'
 				if subreaction_id not in me.process_data:
 					sub = coralme.core.processdata.SubreactionData(subreaction_id, me)
-					sub.enzyme = met
+					sub.enzyme = [met]
 
 				data.subreactions[subreaction_id] = abs(value)
 
@@ -2568,7 +2564,7 @@ class MEReconstruction(MEBuilder):
 				elif me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is not None:
 					mod_elements = me.metabolites.get_by_id(mod_name + '_c').elements
 
-				# WARNING: flavodoxin homologs might have a different base_complex ID compared to the ecolime model
+				# WARNING: flavodoxin homologs might have a different base_complex ID compared to ecolime
 				# WARNING: Negative elemental contributions cannot be set in the metabolites.txt input file
 				elif 'Oxidized(1)' == mod and 'FLAVODOXIN' not in base_complex:
 					mod_elements = {'H': -2}
@@ -2633,10 +2629,7 @@ class MEReconstruction(MEBuilder):
 			me.global_info['sasa_estimation'] = sasa_dct
 
 			# Step 2: Estimate keff for all the reactions in the model
-			mapped_keffs = {}
 			#if "complex" not in df_keffs.columns: #df_keffs.empty: # The if True avoids the estimation if the user uses an "incomplete" input
-			# dictionary of reaction IDs : coralme.core.reaction objects
-			rxns_to_map = { x.id:x for x in me.reactions + me.subreaction_data if hasattr(x, 'keff') }
 			reaction_ids = [
 				rxn for rxn in me.reactions if isinstance(rxn, coralme.core.reaction.MetabolicReaction)
 				if rxn.id not in [ 'dummy_reaction_FWD_SPONT', 'dummy_reaction_REV_SPONT' ]
@@ -2647,6 +2640,7 @@ class MEReconstruction(MEBuilder):
 			with open('{:s}/building_data/reaction_median_keffs.txt'.format(me.global_info['out_directory']), 'r') as infile:
 				reaction_median_keffs = pandas.read_csv(infile, sep = '\t').set_index('reaction')
 
+			mapped_keffs = {}
 			for rxn in tqdm.tqdm(reaction_ids, 'Estimating effective turnover rates for reactions using the SASA method...', bar_format = bar_format):
 				logging.warning('Estimating effective turnover rates for reaction \'{:s}\''.format(rxn.id))
 
@@ -2659,8 +2653,10 @@ class MEReconstruction(MEBuilder):
 				median_keff = reaction_median_keffs.T[base_id]['keff']
 				sasa = sasa_dct[cplx_id][0]
 				keff = sasa * median_keff / median_sasa
-				mapped_keffs[rxn] = 3000 if keff > 3000 else 0.01 if keff < 0.01 else keff
+				mapped_keffs[rxn] = 3000. if keff > 3000. else 0.01 if keff < 0.01 else keff
 
+			# dictionary of reaction IDs : coralme.core.reaction objects
+			rxns_to_map = { x.id:x for x in me.reactions + me.subreaction_data if hasattr(x, 'keff') }
 			# Step 3: Replace user values if they match
 			for idx, row in tqdm.tqdm(list(df_keffs.iterrows()), 'Mapping effective turnover rates from user input...', bar_format = bar_format):
 				if row['direction'] == '' and row['complex'] == '' and row['mods'] == '':
@@ -2673,7 +2669,7 @@ class MEReconstruction(MEBuilder):
 						idx = '{:s}_mod_{:s}'.format(idx, '_mod_'.join(row['mods'].split(' AND ')))
 
 				if idx in rxns_to_map.keys():
-					mapped_keffs[rxns_to_map[idx]] = 3000 if float(row['keff']) > 3000 else 0.01 if float(row['keff']) < 0.01 else row['keff']
+					mapped_keffs[rxns_to_map[idx]] = 3000. if float(row['keff']) > 3000. else 0.01 if float(row['keff']) < 0.01 else row['keff']
 					logging.warning('Mapping of the effective turnover rate for \'{:}\' with a user provided value.'.format(idx))
 				else:
 					logging.warning('Mapping of the effective turnover rate for \'{:}\' reaction failed. Please check if the reaction or subreaction is in the ME-model.'.format(idx))
@@ -2783,8 +2779,8 @@ class METroubleshooter(object):
 			Solver to use. Values: 'gurobi' (default) or 'cplex'
 		"""
 		types = {
-			'M-matrix' : ['ME-Deadends', 'Cofactors', 'All-Deadends', 'Metabolite' ],
-			'E-matrix' : ['GenerictRNA', 'Complex', 'TranscribedGene', 'TranslatedGene', 'ProcessedProtein', 'GenericComponent' ]
+			'M-matrix' : [ 'ME-Deadends', 'Cofactors', 'All-Deadends', 'Metabolite' ],
+			'E-matrix' : [ 'GenerictRNA', 'Complex', 'TranscribedGene', 'TranslatedGene', 'ProcessedProtein', 'GenericComponent' ]
 			}
 
 		if len(met_types) > 0:
