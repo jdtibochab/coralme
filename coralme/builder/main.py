@@ -1439,7 +1439,7 @@ class MEBuilder(object):
 	def build_me_model(self, update = True, prune = True, overwrite = False, skip = None):
 		coralme.builder.main.MEReconstruction(self).build_me_model(update = update, prune = prune, overwrite = overwrite, skip = skip)
 
-	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors=False):
+	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors=False):
 		"""
 		growth_key_and_value:
 			dictionary of Sympy.Symbol and value to replace
