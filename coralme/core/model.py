@@ -210,7 +210,28 @@ class MEModel(cobra.core.model.Model):
 			'braun\'s_lipid_mod' : 'murein5px4p_p',
 			'braun\'s_lpp_flux' : -0.0,
 			'braun\'s_murein_flux' : -0.0,
+
+			'default_parameters' : {
+				sympy.Symbol('k_t', positive = True) : 4.5,
+				sympy.Symbol('r_0', positive = True) : 0.087,
+				sympy.Symbol('k^mRNA_deg', positive = True) : 12.0,
+				sympy.Symbol('m_rr', positive = True) : 1453.0,
+				sympy.Symbol('m_aa', positive = True) : 0.109,
+				sympy.Symbol('m_nt', positive = True) : 0.324,
+				sympy.Symbol('f_rRNA', positive = True) : 0.86,
+				sympy.Symbol('f_mRNA', positive = True) : 0.02,
+				sympy.Symbol('f_tRNA', positive = True) : 0.12,
+				sympy.Symbol('m_tRNA', positive = True) : 25.0,
+				sympy.Symbol('k^default_cat', positive = True) : 65.0,
+				sympy.Symbol('temperature', positive = True) : 37.0,
+				sympy.Symbol('propensity_scaling', positive = True) : 0.45
+				}
 			}
+
+		# model parameters as symbols
+		self.symbols = {}
+		for var in ['k_t', 'r_0', 'k^mRNA_deg', 'm_rr', 'm_aa', 'm_nt', 'f_rRNA', 'f_mRNA', 'f_tRNA', 'm_tRNA', 'k^default_cat', 'temperature', 'propensity_scaling']:
+			self.symbols[var] = sympy.Symbol(var, positive = True)
 
 		self.process_data = cobra.core.dictlist.DictList()
 		self.metabolites = cobra.core.dictlist.DictList()
@@ -219,6 +240,44 @@ class MEModel(cobra.core.model.Model):
 		self._mu = sympy.Symbol(mu, positive = True)
 		# allows the change of symbolic variables through the ME-model object
 		self._mu_old = self.mu
+
+		# derived parameters that are common throughout the ME-model
+		# WARNING: The equation are written following O'Brien 2013 paper, no COBRAme documentation
+		# Empirical relationship between measured ratio of RNA (R) to Protein (P)
+		# https://cobrame.readthedocs.io/en/master/coupling_constraint_derivation.html#Parameters
+		self.symbols['R/P'] = (self._mu / self.symbols['k_t']) + self.symbols['r_0'] # eq 1, page 15
+
+		# 70S ribosomes (page 16)
+		self.symbols['c_ribo'] = self.symbols['m_rr'] / (self.symbols['m_aa'] * self.symbols['f_rRNA']) # eq 2, page 16
+		# Hyperbolic ribosome catalytic rate
+		self.symbols['k_ribo'] = self.symbols['c_ribo'] * self._mu / self.symbols['R/P']
+		# WARNING: the ribosome coupling coefficient in translation reactions is 'v_ribo' times protein length
+		self.symbols['v_ribo'] = 1. / (1. * self.symbols['k_ribo'] / self._mu) # page 17
+
+		# RNA Polymerase
+		# WARNING: the RNAP coupling coefficient in transcription reactions is 'v_rnap' times RNA length
+		self.symbols['v_rnap'] = 1. / (3. * self.symbols['k_ribo'] / self._mu) # page 17
+
+		# mRNA coupling
+		self.symbols['c_mRNA'] = self.symbols['m_nt'] / (self.symbols['f_mRNA'] * self.symbols['m_aa']) # page 19
+		# Hyperbolic mRNA catalytic rate
+		self.symbols['k_mRNA'] = self.symbols['c_mRNA'] * self._mu / self.symbols['R/P']
+
+		# mRNA dilution, degradation, and translation
+		self.symbols['alpha_1'] = self._mu / self.symbols['k^mRNA_deg']
+		# WARNING: There is an error in O'Brien 2013; corrected in COBRAme docs
+		self.symbols['alpha_2'] = self.symbols['R/P'] / (3 * self.symbols['alpha_1'] * self.symbols['c_mRNA'])
+		# mRNA dilution, degradation, and translation
+		self.symbols['rna_amount'] = self._mu / self.symbols['k_mRNA'] # == 3 * alpha_1 * alpha_2
+		self.symbols['deg_amount'] = self.symbols['k^mRNA_deg'] / self.symbols['k_mRNA'] # == 3 * alpha_2
+
+		# tRNA coupling
+		self.symbols['c_tRNA'] = self.symbols['m_tRNA'] / (self.symbols['f_tRNA'] * self.symbols['m_aa']) # page 20
+		# Hyperbolic tRNA efficiency
+		self.symbols['k_tRNA'] = self.symbols['c_tRNA'] * self._mu / self.symbols['R/P']
+
+		# Remaining Macromolecular Synthesis Machinery
+		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'] / 3600.) / self._mu) # page 20, k^default_cat in 1/s
 
 		# Create the biomass dilution constraint
 		self._biomass = coralme.core.component.Constraint('biomass')
@@ -1118,10 +1177,34 @@ class MEModel(cobra.core.model.Model):
 
 		return res
 
-	def construct_lp_problem(self, lambdify = False):
+	def construct_lp_problem(self, parameters : dict = {}, lambdify = False) -> tuple:
+		"""
+		lambdify
+		    Returns lambda functions for each symbolic stoichiometric coefficient
+
+		Output:
+		    A tuple of 9 elements:
+		        Dictionary with numeric stoichiometric coefficients
+		        Dictionary with symbolic stoichiometric coefficients
+		        List of lower bounds (numeric and symbolic)
+		        List of upper bounds (numeric and symbolic)
+		        List of metabolic bounds (see metabolites._bound property)
+		        List of objectives (see reaction.objective_coefficient property)
+		        List of constraint senses (always 'E')
+		        Set of atoms (i.e., free symbols in symbolic stoichiometric coefficients)
+		        Dictionary of lambda functions for each symbolic stoichiometry coefficient
+		"""
+
 		# populate empty dictionaries with stoichiometry
 		Sf = dict() # floats
 		Se = dict() # expressions
+		Lr = [ x.id for x in self.reactions ] # reaction identifiers
+		Lm = [ x.id for x in self.metabolites ] # reaction identifiers
+
+		# override default parameters
+		if hasattr(self, 'global_info'):
+			default = self.global_info['default_parameters']
+			default.update(parameters)
 
 		# check how many variables are in the ME-model
 		atoms = set()
@@ -1130,8 +1213,9 @@ class MEModel(cobra.core.model.Model):
 			for met, value in rxn.metabolites.items():
 				met_index = self.metabolites.index(met)
 				if hasattr(value, 'subs'):
-					atoms.add(list(value.free_symbols)[0])
-					Se[met_index, idx] = value
+					#atoms.add(list(value.free_symbols)[0])
+					atoms.update(list(value.free_symbols))
+					Se[met_index, idx] = value.xreplace(default)
 				else:
 					Sf[met_index, idx] = value
 
@@ -1149,10 +1233,10 @@ class MEModel(cobra.core.model.Model):
 		else:
 			lambdas = None
 
-		return Sf, Se, list(lb), list(ub), b, c, cs, atoms, lambdas
+		return Sf, Se, list(lb), list(ub), b, c, cs, atoms, lambdas, Lr, Lm
 
 	def rank(self, mu = 0.001):
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = self.construct_lp_problem()
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem()
 		Sp = scipy.sparse.dok_matrix((len(b), len(c)))
 
 		for idx, idj in Sf.keys():
@@ -1225,12 +1309,12 @@ class MEModel(cobra.core.model.Model):
 			mu_fixed = self.solution.fluxes.get(objective, mu_fixed) * fraction_of_optimum
 
 			# get mathematical representation
-			Sf, Se, lb, ub, b, c, cs, atoms, lambdas = self.construct_lp_problem(lambdify = lambdify)
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
 		else:
 			# not a ME-model, and objective bounds usually are (0, 1000)
 			if self.reactions.has_id(objective):
 				self.reactions.get_by_id(objective).lower_bound = mu_fixed * fraction_of_optimum
-				self.reactions.get_by_id(objective).upper_bound = mu_fixed * fraction_of_optimum
+				self.reactions.get_by_id(objective).upper_bound = mu_fixed
 			else:
 				raise ValueError('Objective reaction \'{:s}\' not in the M-model.'.format(objective))
 
