@@ -64,7 +64,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		stop_enzyme = translation_stop_dict.get(stop_codon, 'CPLX_dummy')
 		me_model.add_metabolites([coralme.core.component.Complex(stop_enzyme)])
 		subreaction_data = coralme.core.processdata.SubreactionData(stop_codon + '_' + stop_enzyme + '_mediated_termination_' + organelle, me_model)
-		subreaction_data.enzyme = stop_enzyme
+		subreaction_data.enzyme = [stop_enzyme]
 		subreaction_data.stoichiometry = {}
 		#else:
 
@@ -99,7 +99,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		subreaction_data = coralme.core.processdata.SubreactionData(subreaction_id, me_model)
 		trna = 'generic_tRNA_' + codon.replace('T', 'U') + '_' + full_aa + '_' + organelle
 		# Default AA loader enzyme
-		subreaction_data.enzyme = me_model.global_info['amino_acid_loader']
+		subreaction_data.enzyme = [me_model.global_info['amino_acid_loader']]
 		# Accounts for GTP hydrolyzed by EF-TU and the ATP hydrolysis to AMP required to add the amino acid to the tRNA
 		#subreaction_data.stoichiometry = reduce(
 			#reducer, [{trna : -1}, me_model.global_info['atp_trna_loading'], me_model.global_info['gtp_hydrolysis']], {})
@@ -111,6 +111,6 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 	# Add subreactions for selenocysteine
 	if me_model.metabolites.has_id('generic_tRNA_UGA_ser__L_c'):
 		subreaction_data = coralme.core.processdata.SubreactionData('sec_addition_at_UGA', me_model)
-		subreaction_data.enzyme = selenocysteine_enzymes
+		subreaction_data.enzyme = [selenocysteine_enzymes]
 		subreaction_data.stoichiometry = { 'generic_tRNA_UGA_ser__L_c': -1.0, 'selnp_c': -1.0, 'h_c': +1.0, 'pi_c': +1.0 }
 		subreaction_data._element_contribution = subreaction_data.calculate_element_contribution()
