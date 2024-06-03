@@ -55,7 +55,7 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 			functions = functions | coralme.builder.helper_functions.get_functions(c)
 		return functions
 
-	def molecular_weight(self, unit = True):
+	def molecular_weight(self, numeric = True):
 		res = self.formula_weight
 		if numeric:
 			return res
