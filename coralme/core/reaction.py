@@ -1,34 +1,15 @@
-import numpy
+import collections
+import operator
 import sympy
+import typing
 
 import logging
 log = logging.getLogger(__name__)
 
-from typing import (
-	TYPE_CHECKING,
-	AnyStr,
-	Dict,
-	FrozenSet,
-	Iterable,
-	Iterator,
-	List,
-	Optional,
-	Sequence,
-	Set,
-	Tuple,
-	Union,
-)
-
 import cobra
-from cobra.util.context import get_context, resettable
-
 import coralme
 # use this because recursive import leads to a partial import and an error
 from coralme.core.component import Metabolite as Metabolite
-
-from collections import defaultdict, Counter
-from operator import attrgetter
-import re
 
 def _get_genes_of_complex(c,genes = set()):
 	if isinstance(c,coralme.core.component.Complex):
@@ -66,7 +47,6 @@ def _get_genes_from_reaction_metabolites(r):
 	return [cobra.core.Gene(i) for i in genes]
 
 class MEReaction(cobra.core.reaction.Reaction):
-	# TODO set _upper and _lower bounds as a property
 	"""
 	MEReaction is a general reaction class from which all ME-model reactions
 	will inherit.
@@ -81,9 +61,17 @@ class MEReaction(cobra.core.reaction.Reaction):
 		class
 
 	"""
-	def __init__(self, id = None, name = ''):
+	def __init__(self, id = None, name = '', lower_bound = 0.0, upper_bound = None):
 		cobra.core.reaction.Reaction.__init__(self, id, name)
 		self._objective_coefficient = 0.
+
+	@property
+	def symbolic_stoichiometry(self):
+		return { k.id:v for k,v in self._metabolites.items() }
+
+	@property
+	def metabolites(self):
+		return { k:v.xreplace(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in self._metabolites.items() }
 
 	@property
 	def objective_coefficient(self):
@@ -122,10 +110,10 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 		#return {met: value for met, value in mass_balance.items() if abs(value) > 1e-11}
 
-		mass_balance = Counter()
+		mass_balance = collections.Counter()
 		for met, value in self.metabolites.items():
 			value = value if isinstance(value, float) else float(value.subs(self._model.mu, 0))
-			mass_balance.update({ k:(v*value) for k,v in Counter(met.elements).items() })
+			mass_balance.update({ k:(v*value) for k,v in collections.Counter(met.elements).items() })
 		mass_balance = { k:mass_balance[k] for k in sorted(mass_balance) if mass_balance[k] != 0 }
 		return mass_balance
 
@@ -157,30 +145,43 @@ class MEReaction(cobra.core.reaction.Reaction):
 		"""
 		process_info = self._model.process_data.get_by_id(process_data_id)
 		for subreaction_id, count in process_info.subreactions.items():
+			# subreactions are associated to reactions before they are created
 			if not self._model.process_data.has_id(subreaction_id):
 				continue
 
+			# process metabolites in subreaction
 			subreaction_data = self._model.process_data.get_by_id(subreaction_id)
+			for met, stoich in subreaction_data.stoichiometry.items():
+				stoichiometry[met] += stoich * count * scale
 
-			if isinstance(subreaction_data.enzyme, str):
-				subreaction_data.enzyme = [subreaction_data.enzyme]
+			# subreaction_data.enzyme can be None
+			if subreaction_data.enzyme is None:
+				continue
 
-			if isinstance(subreaction_data.enzyme, list) or isinstance(subreaction_data.enzyme, set):
-				for enzyme in subreaction_data.enzyme:
+			#if isinstance(subreaction_data.enzyme, str):
+				#subreaction_data.enzyme = [subreaction_data.enzyme]
+
+			# subreaction_data.enzyme can be None
+			#if isinstance(subreaction_data.enzyme, (list, set)):
+			for enzyme in subreaction_data.enzyme:
+				# pull the constant from SubreactionData
+				if count == 1. and scale == 1. and old_stoich == {}:
+					stoichiometry[enzyme] -= subreaction_data.coupling_coefficient_subreaction
+				else:
 					if old_stoich:
 						coeff = old_stoich[enzyme]
 						if hasattr(coeff,'subs'):
 							coeff = coeff.subs([(self._model.mu, 1e-6)])
 						# WARNING: Applies only to MetabolicReaction
-						stoichiometry[enzyme] -= self._model.mu / subreaction_data.keff / 3600. * count * scale if coeff < 0 else 0
+						# previously self._model.mu / subreaction_data.keff / 3600. * count * scale
+						# coupling_coefficient_subreaction == self._model.mu / subreaction_data.keff / 3600.
+						stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False) if coeff < 0 else 0
 					else:
-						stoichiometry[enzyme] -= self._model.mu / subreaction_data.keff / 3600. * count * scale
+						stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False)
 
+			# str to list in line 152
 			#elif isinstance(subreaction_data.enzyme, str):
 				#stoichiometry[subreaction_data.enzyme] -= self._model.mu / subreaction_data.keff / 3600. * count * scale
-
-			for met, stoich in subreaction_data.stoichiometry.items():
-				stoichiometry[met] += count * stoich * scale
 
 		return stoichiometry
 
@@ -324,7 +325,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 	def add_metabolites(
 		self,
-		metabolites_to_add: Dict[Metabolite, float],
+		metabolites_to_add: typing.Dict[Metabolite, float],
 		combine: bool = True,
 		reversibly: bool = True,
 	) -> None:
@@ -390,7 +391,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 					try:
 						metabolite = self._model.metabolites.get_by_id(met_id)
 					except KeyError as e:
-						if isinstance(metabolite, Metabolite) or isinstance(metabolite, coralme.core.component.Constraint):
+						if isinstance(metabolite, (Metabolite, coralme.core.component.Constraint)):
 							new_metabolites.append(metabolite)
 						else:
 							# do we want to handle creation here?
@@ -432,30 +433,30 @@ class MEReaction(cobra.core.reaction.Reaction):
 			return
 
 		# sympy.core.symbol.Symbol > 0 = True
-		if isinstance(self.lower_bound, sympy.core.symbol.Symbol) or isinstance(self.lower_bound, sympy.core.mul.Mul) or isinstance(self.lower_bound, sympy.core.add.Add):
+		if isinstance(self.lower_bound, (sympy.core.symbol.Symbol, sympy.core.mul.Mul, sympy.core.add.Add)):
 			lb = self.lower_bound
-		elif isinstance(self.upper_bound, sympy.core.symbol.Symbol) or isinstance(self.upper_bound, sympy.core.mul.Mul) or isinstance(self.upper_bound, sympy.core.add.Add):
+		elif isinstance(self.upper_bound, (sympy.core.symbol.Symbol, sympy.core.mul.Mul, sympy.core.add.Add)):
 			ub = self.upper_bound
 		else:
 			pass
 
 		# We know that `lb <= ub`.
-		if isinstance(self.lower_bound, float) and isinstance(self.upper_bound, float):
-			if self.lower_bound > 0:
-				self.forward_variable.set_bounds(
-					lb = None if numpy.isinf(self._lower_bound) else self.lower_bound,
-					ub = None if numpy.isinf(self._upper_bound) else self.upper_bound,
-					)
-				self.reverse_variable.set_bounds(lb = 0, ub = 0)
-			elif self.upper_bound < 0:
-				self.forward_variable.set_bounds(lb = 0, ub = 0)
-				self.reverse_variable.set_bounds(
-					lb = None if numpy.isinf(self.upper_bound) else -self.upper_bound,
-					ub = None if numpy.isinf(self.lower_bound) else -self.lower_bound,
-					)
-			else:
-				self.forward_variable.set_bounds(lb = 0, ub = None if numpy.isinf(self.upper_bound) else +self.upper_bound)
-				self.reverse_variable.set_bounds(lb = 0, ub = None if numpy.isinf(self.lower_bound) else -self.lower_bound)
+		#if isinstance(self.lower_bound, float) and isinstance(self.upper_bound, float):
+			#if self.lower_bound > 0:
+				#self.forward_variable.set_bounds(
+					#lb = None if numpy.isinf(self._lower_bound) else self.lower_bound,
+					#ub = None if numpy.isinf(self._upper_bound) else self.upper_bound,
+					#)
+				#self.reverse_variable.set_bounds(lb = 0, ub = 0)
+			#elif self.upper_bound < 0:
+				#self.forward_variable.set_bounds(lb = 0, ub = 0)
+				#self.reverse_variable.set_bounds(
+					#lb = None if numpy.isinf(self.upper_bound) else -self.upper_bound,
+					#ub = None if numpy.isinf(self.lower_bound) else -self.lower_bound,
+					#)
+			#else:
+				#self.forward_variable.set_bounds(lb = 0, ub = None if numpy.isinf(self.upper_bound) else +self.upper_bound)
+				#self.reverse_variable.set_bounds(lb = 0, ub = None if numpy.isinf(self.lower_bound) else -self.lower_bound)
 
 	@property
 	def flux(self) -> float:
@@ -643,7 +644,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 		#self.update_variable_bounds()
 
 	@property
-	def bounds(self) -> Tuple[float, float]:
+	def bounds(self) -> typing.Tuple[float, float]:
 		"""Get or the bounds.
 
 		Returns
@@ -655,7 +656,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 	@bounds.setter
 	#@resettable
-	def bounds(self, value: Union[Tuple[float, float], Sequence[float]]) -> None:
+	def bounds(self, value: typing.Union[typing.Tuple[float, float], typing.Sequence[float]]) -> None:
 		"""Set the bounds directly, using a tuple or list.
 
 		Parameters
@@ -678,36 +679,6 @@ class MEReaction(cobra.core.reaction.Reaction):
 		self._lower_bound = lower
 		self._upper_bound = upper
 		#self.update_variable_bounds()
-
-	@property
-	def forward_variable(self) -> Optional["Variable"]:
-		"""Get an optlang variable representing the forward flux.
-
-		Returns
-		-------
-		optlang.interface.Variable, optional
-			An optlang variable for the forward flux or None if reaction is
-			not associated with a model.
-		"""
-		if self.model is not None:
-			return self.model.variables[self.id]
-		else:
-			return None
-
-	@property
-	def reverse_variable(self) -> Optional["Variable"]:
-		"""Get an optlang variable representing the reverse flux.
-
-		Returns
-		-------
-		optlang.interface.Variable, optional
-			An optlang variable for the reverse flux or None if reaction is
-			not associated with a model.
-		"""
-		if self.model is not None:
-			return self.model.variables[self.reverse_id]
-		else:
-			return None
 
 	def build_reaction_string(self, use_metabolite_names: bool = False) -> str:
 		"""Generate a human readable reaction str.
@@ -732,7 +703,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			id_type = "name"
 		reactant_bits = []
 		product_bits = []
-		for met in sorted(self.metabolites, key = attrgetter("id")):
+		for met in sorted(self.metabolites, key = operator.attrgetter("id")):
 			coefficient = self.metabolites[met]
 			name = str(getattr(met, id_type)) if str(getattr(met, id_type)) != '' else met.id
 			if isinstance(coefficient, sympy.core.symbol.Symbol) or isinstance(coefficient, sympy.core.mul.Mul) or isinstance(coefficient, sympy.core.add.Add):
@@ -847,7 +818,7 @@ class MetabolicReaction(MEReaction):
 	Attributes
 	----------
 	keff : float
-		The turnover rete (keff) couples enzymatic dilution to metabolic flux
+		The turnover rate (keff) couples enzymatic dilution to metabolic flux
 	reverse : boolean
 		If True, the reaction corresponds to the reverse direction of the
 		reaction. This is necessary since all reversible enzymatic reactions
@@ -859,8 +830,20 @@ class MetabolicReaction(MEReaction):
 		MEReaction.__init__(self, id)
 		self._complex_data = None
 		self._stoichiometric_data = None
-		self.keff = 65.  # in per second
+		#self.keff = 65.  # in per second
 		self.reverse = False
+		self._coupling_coefficient_enzyme = None
+
+	@property
+	def coupling_coefficient_enzyme(self):
+		return self._coupling_coefficient_enzyme
+
+	@coupling_coefficient_enzyme.setter
+	def coupling_coefficient_enzyme(self, value):
+		"""
+		value is the keff in per second, not the final value in per hour
+		"""
+		self._coupling_coefficient_enzyme = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
 
 	@property
 	def complex_data(self):
@@ -934,29 +917,29 @@ class MetabolicReaction(MEReaction):
 		# WARNING: To write correctly dilution coefficient in the side of the substrates
 		old_stoich = { k.id:v for k,v in self.metabolites.items() }
 
+		# remove all metabolites
 		self.clear_metabolites()
-		new_stoichiometry = defaultdict(float)
-		stoichiometric_data = self.stoichiometric_data
+		# and recreate stoichiometry again
+		stoichiometry = collections.defaultdict(int)
 
-		# Add complex if enzyme catalyzed
+		# 1) Complex w/ coupling coefficients defined in self.complex_data.id and self.keff
 		if self.complex_data:
-			new_stoichiometry[self.complex_data.complex.id] = -self._model.mu / self.keff / 3600.  # s-1 / (3600 s/h)
+			#stoichiometry[self.complex_data.complex.id] = -self._model.mu / self.keff / 3600.  # s-1 / (3600 s/h)
+			stoichiometry[self.complex_data.complex.id] = -self.coupling_coefficient_enzyme
 
-		# Update new stoichiometry values
-		sign = -1 if self.reverse else 1
-		for component, value in stoichiometric_data.stoichiometry.items():
-			new_stoichiometry[component] += value * sign
+		# 2) Metabolite stoichiometry defined in data.stoichiometry. Sign is flipped if self.reverse == True
+		sign = -1 if self.reverse else +1
+		for component, value in self.stoichiometric_data.stoichiometry.items():
+			stoichiometry[component] += value * sign
 
-		new_stoichiometry = self.add_subreactions(stoichiometric_data.id, new_stoichiometry, old_stoich = old_stoich)
+		# 3) Metabolites and enzymes w/ coupling coefficients defined in data.subreactions
+		stoichiometry = self.add_subreactions(self.stoichiometric_data.id, stoichiometry, old_stoich = old_stoich)
 
-		# Convert component ids to cobra metabolites
-		object_stoichiometry = self.get_components_from_ids(new_stoichiometry, verbose = verbose)
+		# convert string stoichiometry representations to coralme metabolites
+		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
 
 		# Replace old stoichiometry with new one
-		try:
-			self.add_metabolites(object_stoichiometry)
-		except:
-			print('core/reaction.py:809 ' + str(object_stoichiometry))
+		self.add_metabolites(new_stoich)
 
 		# Set the bounds
 		if self.reverse:
@@ -1029,7 +1012,7 @@ class ComplexFormation(MEReaction):
 			Metabolite of complex being formed in the reaction
 
 		"""
-		elements = defaultdict(int)
+		elements = collections.defaultdict(int)
 		for component, count in complex_data.stoichiometry.items():
 			component_obj = self._model.metabolites.get_by_id(component)
 			for e, n in component_obj.elements.items():
@@ -1066,41 +1049,44 @@ class ComplexFormation(MEReaction):
 			Prints when new metabolites are added to the model when executing
 			update()
 		"""
+		# remove all metabolites
 		self.clear_metabolites()
-		stoichiometry = defaultdict(float)
-		metabolites = self._model.metabolites
-		complex_info = self._model.process_data.get_by_id(self.complex_data_id)
+		# and recreate stoichiometry again
+		stoichiometry = collections.defaultdict(int)
 
-		# Find or create complex product and add it to stoichiometry dict
-		try:
-			complex_met = metabolites.get_by_id(self._complex_id)
-		except KeyError:
+		metabolites = self._model.metabolites
+
+		# 1) Complex product defined in self._complex_id == self.complex_data_id
+		if self.complex_data_id not in metabolites:
 			complex_met = coralme.core.component.create_component(self._complex_id, default_type = coralme.core.component.Complex)
 			self._model.add_metabolites([complex_met])
-		stoichiometry[complex_met.id] = 1
 
-		# build the complex itself
+		complex_info = self._model.process_data.get_by_id(self.complex_data_id)
+		stoichiometry[complex_info.id] = 1
+
+		# 2) Protein subunits with stoichiometry defined in data.stoichiometry
 		for component_id, value in complex_info.stoichiometry.items():
 			stoichiometry[component_id] -= value
 
-		# add in the subreactions and modifications
+		# 3) Metabolites and enzymes w/ coupling coefficients defined in data.subreactions
 		stoichiometry = self.add_subreactions(complex_info.id, stoichiometry)
 
 		# convert string stoichiometry representations to coralme metabolites
-		object_stoichiometry = self.get_components_from_ids(stoichiometry, default_type = coralme.core.component.Complex, verbose = verbose)
+		new_stoich = self.get_components_from_ids(stoichiometry, default_type = coralme.core.component.Complex, verbose = verbose)
 
 		# Add formula to complex
-		self._add_formula_to_complex(complex_info, complex_met)
+		self._add_formula_to_complex(complex_info, self._model.metabolites.get_by_id(self.complex_data_id))
 
+		# 4) Biomass corresponding to modifications detailed in data.subreactions
 		# Biomass accounting of protein subunits is handled in translation
 		# reactions. Handle cofactors and prosthetic groups here
-		biomass = 0.
-		biomass = self.add_biomass_from_subreactions(complex_info, biomass)
+		biomass = self.add_biomass_from_subreactions(complex_info)
 		if biomass > 0:
 			self.add_metabolites({metabolites.prosthetic_group_biomass: biomass})
 
-		self.add_metabolites(object_stoichiometry, combine = False)
+		self.add_metabolites(new_stoich, combine = False)
 
+# TODO: Review and modify processdata accordingly to hold coupling coefficients
 class PostTranslationReaction(MEReaction):
 	"""
 	Reaction class that includes all posttranslational modification reactions
@@ -1167,7 +1153,7 @@ class PostTranslationReaction(MEReaction):
 			Stoichiometry dictionary with updated entries from translocation
 		"""
 		if not stoichiometry:
-			stoichiometry = defaultdict(float)
+			stoichiometry = collections.defaultdict(int)
 
 		process_info = self._model.process_data.get_by_id(process_data_id)
 		protein = self._model.metabolites.get_by_id(protein_id)
@@ -1232,7 +1218,7 @@ class PostTranslationReaction(MEReaction):
 
 		"""
 		self.clear_metabolites()
-		stoichiometry = defaultdict(float)
+		stoichiometry = collections.defaultdict(int)
 		metabolites = self._model.metabolites
 		posttranslation_data = self.posttranslation_data
 		unprocessed_protein = posttranslation_data.unprocessed_protein_id
@@ -1294,7 +1280,7 @@ class PostTranslationReaction(MEReaction):
 		object_stoichiometry = self.get_components_from_ids(stoichiometry, verbose = verbose)
 
 		# Add formula as sum of unprocessed protein and modification components
-		elements = defaultdict(int)
+		elements = collections.defaultdict(int)
 		elements.update(metabolites.get_by_id(unprocessed_protein).elements)
 		elements = coralme.util.massbalance.get_elements_from_process_data(self, posttranslation_data, elements)
 
@@ -1369,7 +1355,8 @@ class TranscriptionReaction(MEReaction):
 
 		"""
 
-		elements = defaultdict(int)
+		elements = collections.defaultdict(int)
+		transcript = self._model.metabolites.get_by_id(transcript)
 
 		for nuc, value in transcript.nucleotide_count.items():
 			nuc_obj = self._model.metabolites.get_by_id(nuc)
@@ -1427,12 +1414,12 @@ class TranscriptionReaction(MEReaction):
 		stoichiometry (using 'data' as shorthand for
 		:class:`coralme.core.processdata.TranscriptionData`):
 
-		1) RNA_polymerase from data.RNA_polymerase w/ coupling
-		   coefficient (if present)
+		1) RNA_polymerase from data.RNA_polymerase w/ coupling coefficient (if
+		   present)
 
 		2) RNA products defined in data.RNA_products
 
-		3) Nucleotide reactants defined in data.nucleotide_counts
+		3) Nucleotide reactants defined in data.nucleotide_count
 
 		4) If tRNA or rRNA contained in data.RNA_types, excised base products
 
@@ -1451,58 +1438,40 @@ class TranscriptionReaction(MEReaction):
 			update()
 
 		"""
+		# remove all metabolites
 		self.clear_metabolites()
-
-		metabolites = self._model.metabolites
-		stoichiometry = defaultdict(int)
+		# and recreate stoichiometry again
+		stoichiometry = collections.defaultdict(int)
 
 		tu_id = self.transcription_data.id
-		tu_length = len(self.transcription_data.nucleotide_sequence)
+		metabolites = self._model.metabolites
+
+		# 1) RNA_polymerase from data.RNA_polymerase w/ coupling coefficient (if present)
 		rna_polymerase = self.transcription_data.RNA_polymerase
-
-		# Set Parameters
-		kt = self._model.global_info['kt']
-		r0 = self._model.global_info['r0']
-		m_rr = self._model.global_info['m_rr']
-		f_rrna = self._model.global_info['f_rRNA']
-		m_aa = self._model.global_info['m_aa']
-
-		c_ribo = m_rr / f_rrna / m_aa
-
-		try:
-			rnap = self._model.metabolites.get_by_id(rna_polymerase)
-		except KeyError:
-			if verbose:
-				logging.warning('The \'RNA_polymerase\' component was not found for {:s}.'.format(tu_id))
+		if rna_polymerase is not None and rna_polymerase in metabolites:
+			stoichiometry[rna_polymerase] = -self.transcription_data.coupling_coefficient_rnapol
+		elif rna_polymerase is not None:
+			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(rna_polymerase, tu_id))
 		else:
-			num = self._model.mu * c_ribo * kt
-			den = self._model.mu + kt * r0
-			k_rnap = (num / (den)) * 3  # (3*k_ribo) hr-1
-			coupling = -tu_length * self._model.mu / k_rnap
-			stoichiometry[rnap.id] = coupling
+			logging.warning('The \'{:s}\' component has no RNA Polymerase.'.format(tu_id, tu_id))
 
-		# All genes in TU must be added to model prior to creating
-		# transcription reaction
+		# 2) RNA products defined in data.RNA_products
+		# WARNING: All genes in TU must be added to the model prior to creating transcription reactions
 		for transcript_id in self.transcription_data.RNA_products:
-			if transcript_id not in metabolites:
-				raise UserWarning('The transcript \'{:s}\' was not found in the ME-model.'.format(transcript_id))
+			if transcript_id in metabolites:
+				stoichiometry[transcript_id] += 1
+				self._add_formula_to_transcript(transcript_id)
 			else:
-				transcript = self._model.metabolites.get_by_id(transcript_id)
+				raise UserWarning('The transcript \'{:s}\' was not found in the ME-model.'.format(transcript_id))
 
-			stoichiometry[transcript.id] += 1
-
-			try:
-				self._add_formula_to_transcript(transcript)
-			except:
-				logging.warning('Problem adding formula to transcript \'{:s}\'.'.format(transcript.id))
-
-		# Add modifications and subreactions to reaction stoichiometry
+		# Add modifications and subreactions to reaction stoichiometry (e.g., Transcription_normal_rho_independent)
 		stoichiometry = self.add_subreactions(tu_id, stoichiometry)
 
-		base_counts = self.transcription_data.nucleotide_count
-		for base, count in base_counts.items():
+		# 3) Nucleotide reactants defined in data.nucleotide_count
+		for base, count in self.transcription_data.nucleotide_count.items():
 			stoichiometry[base] -= count
 
+		# 4) If tRNA or rRNA contained in data.RNA_types, excised base products
 		# allows RNA transcription from nucleus, mitochondria, and plastids
 		compartment_suffix = list(set([ k[-2:] for k,v in stoichiometry.items() if k[:-2] in ['atp', 'ctp', 'gtp', 'utp'] ]))
 		assert len(compartment_suffix) == 1
@@ -1512,12 +1481,16 @@ class TranscriptionReaction(MEReaction):
 			stoichiometry['h2o' + compartment_suffix[0]] -= count
 			stoichiometry['h' + compartment_suffix[0]] += count
 
-		stoichiometry['ppi' + compartment_suffix[0]] += tu_length
+		# This is a remainder from step 3
+		stoichiometry['ppi' + compartment_suffix[0]] += len(self.transcription_data.nucleotide_sequence)
 
+		# 5) Metabolites + enzymes w/ coupling coefficients defined in data.subreactions (if present)
+		# convert metabolite ids to coralme metabolites
 		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose, default_type = coralme.core.component.TranscribedGene)
+		# add metabolites to reaction
 		self.add_metabolites(new_stoich, combine = False)
 
-		# add biomass constraints for RNA products
+		# 6) Biomass constraints corresponding to data.RNA_products and their associated masses
 		trna_mass = rrna_mass = ncrna_mass = mrna_mass = tmrna_mass = 0.
 
 		for met, v in new_stoich.items():
@@ -1534,7 +1507,7 @@ class TranscriptionReaction(MEReaction):
 			if met.RNA_type == 'tmRNA':
 				tmrna_mass += met.formula_weight / 1000.  # kDa
 
-			# Add demand of each transcript
+			# 7) Demand reactions for each transcript product of this reaction
 			self._add_or_update_demand_reaction(met)
 
 		# Add the appropriate biomass constraints for each RNA contained in
@@ -1571,8 +1544,8 @@ class GenericFormationReaction(MEReaction):
 	def __init__(self, id = None):
 		MEReaction.__init__(self, id)
 
-	# TODO GenericFormation should have update function to account for changes
-	# in component_list of GenericData
+	def update(self, verbose = True):
+		return NotImplemented
 
 class TranslationReaction(MEReaction):
 	"""Reaction class for the translation of a TranscribedGene to a
@@ -1632,7 +1605,7 @@ class TranslationReaction(MEReaction):
 			Protein product that needs a chemical formula
 
 		"""
-		elements = defaultdict(int)
+		elements = collections.defaultdict(int)
 		aa_count = self.translation_data.amino_acid_count
 		for aa_name, value in aa_count.items():
 			aa_obj = self._model.metabolites.get_by_id(aa_name)
@@ -1706,20 +1679,16 @@ class TranslationReaction(MEReaction):
 			update()
 
 		"""
+		# remove all metabolites
 		self.clear_metabolites()
+		# and recreate stoichiometry again
+		stoichiometry = collections.defaultdict(int)
 
-		model = self._model
+		protein_id = self.translation_data.protein
+		transcript = self._model.metabolites.get_by_id(self.translation_data.mRNA)
 		metabolites = self._model.metabolites
-		new_stoichiometry = defaultdict(int)
 
-		translation_data = self.translation_data
-		protein_id = translation_data.protein
-		mrna_id = translation_data.mRNA
-		protein_length = len(translation_data.amino_acid_sequence)
-		nucleotide_sequence = translation_data.nucleotide_sequence
-		transl_table = translation_data.transl_table
-
-		organelle = translation_data.organelle
+		organelle = self.translation_data.organelle
 		if organelle is None:
 			if self._model.global_info['domain'].lower() in ['bacteria', 'prokaryote']:
 				organelle = 'c'
@@ -1730,146 +1699,103 @@ class TranslationReaction(MEReaction):
 		elif organelle.lower() in ['chloroplast', 'plastid']:
 			organelle = 'h'
 
-		# Set Parameters
-		kt = self._model.global_info['kt']
-		k_deg = self._model.global_info['k_deg']
-		r0 = self._model.global_info['r0']
-		m_rr = self._model.global_info['m_rr']
-		f_rrna = self._model.global_info['f_rRNA']
-		m_aa = self._model.global_info['m_aa']
-
-		m_nt = self._model.global_info['m_nt']
-		f_mrna = self._model.global_info['f_mRNA']
-
-		c_ribo = m_rr / f_rrna / m_aa
-		c_mrna = m_nt / f_mrna / m_aa
-
 		ribosome_id = self._model.global_info['ribosome_id']
 		degradosome_id = self._model.global_info['degradosome_id']
 		trna_misacylation = self._model.global_info['trna_misacylation']
 
-		# -----------------Add Amino Acids----------------------------------
+		# 1) Amino acids defined in data.amino_acid_sequence
+		# Subtracting water to account for condensation reactions during polymerization
 		# Correct count of amino acids in translation reactions to account for misacylation of tRNAs
-		for aa, value in translation_data.amino_acid_count.items():
+		for aa, value in self.translation_data.amino_acid_count.items():
 			if aa.replace('__L_' + organelle, '') in [ x.lower() for x in trna_misacylation.keys() ]:
-				new_stoichiometry[aa] = 0
+				stoichiometry[aa] = 0
 				aa = trna_misacylation[aa.replace('__L_' + organelle, '').capitalize()] + '__L_' + organelle
 				aa = aa[0].lower() + aa[1:]
-				new_stoichiometry[aa] -= value
-				new_stoichiometry['h2o_' + organelle] += value
+				stoichiometry[aa] -= value
+				stoichiometry['h2o_' + organelle] += value
 				continue
 
-			new_stoichiometry[aa] -= value
-			new_stoichiometry['h2o_' + organelle] += value
+			stoichiometry[aa] -= value
+			stoichiometry['h2o_' + organelle] += value
 
 		# Length protein - 1 dehydration reactions
-		new_stoichiometry['h2o_' + organelle] -= 1.
+		stoichiometry['h2o_' + organelle] -= 1.
 
-		# -----------------Add Ribosome Coupling----------------------------
-		try:
-			ribosome = metabolites.get_by_id(ribosome_id)
-		except KeyError:
-			if verbose:
-				logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(ribosome_id, protein_id))
+		# 2) Ribosome w/ translation coupling coefficient (if present)
+		if ribosome_id in metabolites:
+			stoichiometry[ribosome_id] = -self.translation_data.coupling_coefficient_ribosome
 		else:
-			num = self._model.mu * c_ribo * kt
-			den = self._model.mu + kt * r0
-			k_ribo = num / (den)  # in hr-1
-			coupling = -protein_length * self._model.mu / k_ribo
-			new_stoichiometry[ribosome.id] = coupling
+			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(ribosome_id, protein_id))
 
-		# -------------------Add mRNA Coupling------------------------------
-		try:
-			transcript = metabolites.get_by_id(mrna_id)
-		except KeyError:
+		# 3) mRNA defined in data.mRNA w/ translation coupling coefficient
+		if transcript in metabolites:
+			#stoichiometry[transcript.id] = -(self._model.symbols['rna_amount'] + self._model.symbols['deg_amount'])
+			stoichiometry[transcript.id] = -self.translation_data._coupling_coefficient_rna_synthesis
+		else:
+			# WARNING: If transcript is not in the model, something really bad happened
 			# If transcript not found add to the model as the mRNA_id
-			transcript = coralme.core.component.TranscribedGene(mrna_id, mrna_id, nucleotide_sequence)
-			model.add_metabolites(transcript)
-			logging.warning('Transcript \'{:s}\' not found in ME-model. Added into the ME-model.'.format(mrna_id))
+			#transcript = coralme.core.component.TranscribedGene(mrna_id, mrna_id, nucleotide_sequence)
+			#model.add_metabolites(transcript)
+			logging.warning('Transcript \'{:s}\' was not found in ME-model. Please check name of the RNA.'.format(mrna_id))
 
-		# Calculate coupling constraints for mRNA and degradation
-		num = self._model.mu * c_mrna * kt
-		den = self._model.mu + kt * r0
-		k_mrna = num / (den) * 3.  # 3 nucleotides per AA
-		rna_amount = self._model.mu / k_mrna
-		deg_amount = k_deg / k_mrna
-
-		# Add mRNA coupling to stoichiometry
-		new_stoichiometry[transcript.id] = -(rna_amount + deg_amount)
-
-		# ---------------Add Degradation Requirements -------------------------
+		# 4) mRNA + nucleotides + hydrolysis ATP cost w/ degradation coupling coefficient (if kdeg (defined in model.global_info) > 0)
 		# Add degraded nucleotides to stoichiometry
 		for nucleotide, count in transcript.nucleotide_count.items():
-			# correct organelle
-			nucleotide = nucleotide.replace('_c', '_' + organelle)
-			new_stoichiometry[nucleotide] += count * deg_amount
+			nucleotide = nucleotide.replace('_c', '_' + organelle) # correct organelle
+			stoichiometry[nucleotide] += count * self._model.symbols['deg_amount'] #deg_amount
 
 		# ATP hydrolysis required for cleaving
-		nucleotide_length = len(transcript.nucleotide_sequence)
+		#nucleotide_length = len(transcript.nucleotide_sequence)
 
 		# .25 ATP required per nucleotide hydrolysis
-		hydrolysis_amount = (nucleotide_length - 1) / 4. * deg_amount
+		#hydrolysis_amount = (nucleotide_length - 1) / 4. * self._model.symbols['deg_amount'] # deg_amount
 		# old code; now set as a global_info and a subreaction
 		#atp_hydrolysis = {'atp_c': -1, 'h2o_c': -1, 'adp_c': 1, 'pi_c': 1, 'h_c': 1}
 		if not self._model.process_data.has_id('atp_hydrolysis'):
-			stoichiometry = {'atp_c': -1.0, 'h2o_c': -1.0, 'adp_c': +1.0, 'h_c': +1.0, 'pi_c': +1.0}
-			coralme.util.building.add_subreaction_data(self._model, modification_id = 'atp_hydrolysis', modification_stoichiometry = stoichiometry, modification_enzyme = None)
+			stoich = {'atp_c': -1.0, 'h2o_c': -1.0, 'adp_c': +1.0, 'h_c': +1.0, 'pi_c': +1.0}
+			coralme.util.building.add_subreaction_data(self._model, modification_id = 'atp_hydrolysis', modification_stoichiometry = stoich, modification_enzyme = None)
 
 		atp_hydrolysis = self._model.process_data.get_by_id('atp_hydrolysis').stoichiometry
-
+		hydrolysis_amount = self.translation_data._coupling_coefficient_hydrolysis
 		for metabolite, value in atp_hydrolysis.items():
-			# correct organelle
-			metabolite = metabolite.replace('_c', '_' + organelle)
-			new_stoichiometry[metabolite] += hydrolysis_amount * value
+			metabolite = metabolite.replace('_c', '_' + organelle) # correct organelle
+			stoichiometry[metabolite] += hydrolysis_amount * value
 
-		# Add degradosome coupling, if known
-		try:
-			rna_degradosome = metabolites.get_by_id(degradosome_id)
-		except KeyError:
-			if verbose:
-				logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(degradosome_id, protein_id))
+		# 5) RNA_degradosome w/ degradation coupling coefficient (if present and kdeg > 0)
+		if degradosome_id in metabolites:
+			stoichiometry[degradosome_id] = -self._model.process_data.get_by_id('RNA_degradation_machine').coupling_coefficient_subreaction
 		else:
-			deg_coupling = -deg_amount * self._model.mu / 65. / 3600  # keff of degradosome
-			new_stoichiometry[rna_degradosome.id] = deg_coupling
+			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(degradosome_id, protein_id))
 
-		# --------------- Add Protein to Stoichiometry ------------------------
+		# 6) Protein product defined in data.protein
 		# Add protein to model if not already included. Replace protein if it is not of the correct type
-		# OLD CODE
-		#try:
-			#protein = metabolites.get_by_id(protein_id)
-		#except KeyError:
-			#protein = coralme.core.component.TranslatedGene(protein_id)
-
 		protein = coralme.core.component.TranslatedGene(protein_id)
 		if metabolites.has_id(protein_id):
 			if isinstance(metabolites.get_by_id(protein_id), coralme.core.component.Metabolite):
 				metabolites._replace_on_id(protein)
 		else:
-			model.add_metabolites(protein)
+			self._model.add_metabolites(protein)
 
 		protein = metabolites.get_by_id(protein_id)
-		new_stoichiometry[protein.id] = 1
+		stoichiometry[protein.id] = 1.
 
-		# ------- Convert ids to metabolites and add to model -----------------
-		# add subreactions to stoichiometry
-		new_stoichiometry = self.add_subreactions(self.translation_data.id, new_stoichiometry)
+		# 7) Subreactions defined in data.subreactions
+		stoichiometry = self.add_subreactions(self.translation_data.id, stoichiometry)
 
-		# convert metabolite ids to cobra metabolites
-		object_stoichiometry = self.get_components_from_ids(new_stoichiometry, verbose = verbose)
+		# convert metabolite ids to coralme metabolites
+		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
 		# add metabolites to reaction
-		self.add_metabolites(object_stoichiometry, combine = False)
+		self.add_metabolites(new_stoich, combine = False)
+		# update element dictionary and formula
+		self._add_formula_to_protein(self.translation_data, protein)
 
-		# -------------Update Element Dictionary and Formula-------------------
-		self._add_formula_to_protein(translation_data, protein)
-
-		# ------------------ Add biomass constraints --------------------------
-		# add biomass constraint for protein translated
+		# 8) protein_biomass corresponding to the protein product's mass
 		protein_mass = protein.formula_weight / 1000.  # kDa
 		self.add_metabolites({metabolites.protein_biomass: protein_mass}, combine = False)
 
-		# RNA biomass consumed due to degradation
+		# 9) Subtract mRNA_biomass defined by mRNA degradation coupling coefficinet (if kdeg > 0)
 		mrna_mass = transcript.formula_weight / 1000.  # kDa
-		self.add_metabolites({metabolites.mRNA_biomass: (-mrna_mass * deg_amount)}, combine = False)
+		self.add_metabolites({metabolites.mRNA_biomass: (-mrna_mass * self._model.symbols['deg_amount'])}, combine = False)
 
 	@property
 	def genes(self):
@@ -1928,10 +1854,10 @@ class tRNAChargingReaction(MEReaction):
 		3) Charged amino acid (defined in data.amino_acid) w/ charging
 		   coupling coefficient
 
-		5) Synthetase (defined in data.synthetase) w/ synthetase coupling
-		   coefficient found, in part, using data.synthetase_keff
+		4) Synthetase (defined in data.synthetase) w/ synthetase coupling
+		   coefficient
 
-		6) Post transcriptional modifications defined in data.subreactions
+		5) Post transcriptional modifications defined in data.subreactions
 
 		Parameters
 		----------
@@ -1940,44 +1866,32 @@ class tRNAChargingReaction(MEReaction):
 			update()
 
 		"""
+		# remove all metabolites
 		self.clear_metabolites()
-		new_stoichiometry = defaultdict(float)
+		# and recreate stoichiometry again
+		stoichiometry = collections.defaultdict(int)
 		data = self.tRNA_data
 
-		# set tRNA coupling parameters
-		m_trna = self._model.global_info['m_tRNA']
-		m_aa = self._model.global_info['m_aa']
-		f_trna = self._model.global_info['f_tRNA']
-		kt = self._model.global_info['kt']  # hr-1
-		r0 = self._model.global_info['r0']
-		c_trna = m_trna / m_aa / f_trna
-
-		# The meaning of a generic tRNA is described in the
-		# TranslationReaction comments
+		# 1) Charged tRNA product following template:
+		# 'generic_tRNA + _ + <data.codon> + _ + <data.amino_acid>'
 		generic_trna = 'generic_tRNA_' + data.codon + '_' + data.amino_acid
-		new_stoichiometry[generic_trna] = 1
+		stoichiometry[generic_trna] = 1
 
-		# Compute tRNA (and amino acid) coupling and add to stoichiometry
-		num = c_trna * kt * self._model.mu
-		den = self._model.mu + r0 * kt
-		trna_keff = num / (den)  # per hr
-		trna_amount = self._model.mu / trna_keff
-		new_stoichiometry[data.RNA] = -trna_amount
-		new_stoichiometry[data.amino_acid] = -trna_amount
+		# 2) tRNA metabolite (defined in data.RNA) w/ charging coupling coefficient
+		stoichiometry[data.RNA] = -data.coupling_coefficient_trna_amount
 
-		# Add synthetase coupling and enzyme, if known
-		synthetase_amount = self._model.mu / data.synthetase_keff / 3600. * (1 + trna_amount)
+		# 3) Charged amino acid (defined in data.amino_acid) w/ charging coupling coefficient
+		stoichiometry[data.amino_acid] = -data.coupling_coefficient_trna_amount
+
+		# 4) Synthetase (defined in data.synthetase) w/ synthetase coupling coefficient
 		if data.synthetase is not None:
-			new_stoichiometry[data.synthetase] = -synthetase_amount
+			stoichiometry[data.synthetase] = -data.coupling_coefficient_synthetase
 
-		# Add tRNA modifications to stoichiometry
-		new_stoichiometry = self.add_subreactions(self.tRNA_data.id, new_stoichiometry, scale = trna_amount)
+		# 5) Post transcriptional modifications defined in data.subreactions
+		stoichiometry = self.add_subreactions(self.tRNA_data.id, stoichiometry, scale = data.coupling_coefficient_trna_amount)
 
-		# Convert component ids to cobra metabolites
-		object_stoichiometry = self.get_components_from_ids(new_stoichiometry, verbose = verbose)
-
-		# Replace reaction stoichiometry with updated stoichiometry
-		self.add_metabolites(object_stoichiometry)
+		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
+		self.add_metabolites(new_stoich)
 
 	@property
 	def genes(self):
@@ -2003,28 +1917,29 @@ class SummaryVariable(MEReaction):
 
 	# WARNING: included to add the DNAPol into the DNA_replication SummaryVariable
 	def update(self, verbose = True):
-		if self.id == 'DNA_replication':
-			model = self._model
-			metabolites = self._model.metabolites
-			new_stoichiometry = defaultdict(int)
+		return NotImplemented
+		#if self.id == 'DNA_replication':
+			#model = self._model
+			#metabolites = self._model.metabolites
+			#new_stoichiometry = collections.defaultdict(int)
 
-			dnapol_id = self._model.global_info['dnapol_id']
+			#dnapol_id = self._model.global_info['dnapol_id']
 
-			# -----------------Add DNAP Coupling----------------------------
-			try:
-				dnap = metabolites.get_by_id(dnapol_id)
-			except KeyError:
-				if verbose:
-					logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(dnapol_id, self.id))
-			else:
-				#num = self._model.mu * c_ribo * kt
-				#den = self._model.mu + kt * r0
-				#k_ribo = num / (den)  # in hr-1
-				#coupling = -protein_length * self._model.mu / k_ribo
-				new_stoichiometry[dnap.id] = -1e-6 # must be low
+			## -----------------Add DNAP Coupling----------------------------
+			#try:
+				#dnap = metabolites.get_by_id(dnapol_id)
+			#except KeyError:
+				#if verbose:
+					#logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(dnapol_id, self.id))
+			#else:
+				##num = self._model.mu * c_ribo * kt
+				##den = self._model.mu + kt * r0
+				##k_ribo = num / (den)  # in hr-1
+				##coupling = -protein_length * self._model.mu / k_ribo
+				#new_stoichiometry[dnap.id] = -1e-6 # must be low
 
-			# Convert component ids to cobra metabolites
-			object_stoichiometry = self.get_components_from_ids(new_stoichiometry, verbose = verbose)
+			## Convert component ids to coralme metabolites
+			#object_stoichiometry = self.get_components_from_ids(new_stoichiometry, verbose = verbose)
 
-			# Replace reaction stoichiometry with updated stoichiometry
-			self.add_metabolites(object_stoichiometry, combine = True)
+			## Replace reaction stoichiometry with updated stoichiometry
+			#self.add_metabolites(object_stoichiometry, combine = True)
