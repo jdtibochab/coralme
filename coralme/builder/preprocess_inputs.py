@@ -924,7 +924,7 @@ def get_df_input_from_excel(df, df_rxns):
 	df = pandas.concat([tmp1, tmp2], axis = 0).drop_duplicates()
 	df = df.fillna({
 		'Gene Locus ID' : '',
-		'Reversibility' : 'False',
+		'Reversibility' : numpy.nan,
 		#'Spontaneous' : 'False', # see reactions.txt input file
 		'GroEL_dependent_folding' : 'False',
 		'DnaK_dependent_folding' : 'False',
@@ -935,7 +935,7 @@ def get_df_input_from_excel(df, df_rxns):
 	tmp = get_df_rxns(df)
 	for idx, x in df_rxns[df_rxns.index.isin(tmp.index)].iterrows():
 		logging.warning('The reaction \'{:s}\' appears in the M-model and in the \'df_metadata_orphan_rxns\' input (default value)'.format(idx))
-		logging.warning('If you want to use the M-model information, delete the ID from \'df_metadata_orphan_rxns\'. Otherwise, add the ID to \'defer_to_rxn_matrix\'.')
+		logging.warning('If you want to use the M-model \'{:s}\' reaction, delete the ID from \'df_metadata_orphan_rxns\'. Otherwise, add the ID to \'defer_to_rxn_matrix\'.'.format(idx))
 
 	# remove entries that are in df_rxns (user input overrides m-model info)
 	tmp = tmp[~tmp.index.isin(df_rxns.index)]
