@@ -315,18 +315,10 @@ class MEModel(cobra.core.model.Model):
 				if hasattr(coeff, 'subs'):
 					rxn._metabolites[met] = coeff.subs({ self._mu_old : self.mu })
 
-	#TODO: set me.genes with [ x.id.split('RNA_')[1] for x in builder.me_model.metabolites.query(re.compile('^RNA_(?!biomass|dummy|degradosome)')) ]
-	#@property
-	#def me_genes(self):
-		#return self._me_genes
-
-	#@me_genes.setter
-	#def me_genes(self, values):
-		#self._me_genes = values
-
-	# WARNING: MODIFIED FUNCTIONS FROM COBRAPY
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def merge(self, right, prefix_existing=None, inplace=True, objective='left'):
 		return NotImplemented
+
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	@property
 	def objective(self):
@@ -343,15 +335,22 @@ class MEModel(cobra.core.model.Model):
 				self.reactions.get_by_id(rxn).objective_coefficient = coeff
 			else:
 				raise ValueError('Reaction \'{:s}\' does not exist in the ME-model'.format(rxn))
-	def add_metabolites(self, metabolite_list):
-		"""Will add a list of metabolites to the model object and add new
-		constraints accordingly.
 
-		The change is reverted upon exit when using the model as a context.
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def add_metabolites(self, metabolite_list):
+		"""Add new metabolites to a model.
+
+		Will add a list of metabolites to the model object.
+
+		This function is different from COBRApy and it won't:
+			Add new constraints accordingly.
+			Revert changes upon exit when using the model as a context.
 
 		Parameters
 		----------
-		metabolite_list : A list of `cobra.core.Metabolite` objects
+		metabolite_list : list or Metabolite.
+			A list of `cobra.core.Metabolite` objects. If it isn't an iterable
+			container, the metabolite will be placed into a list.
 
 		"""
 		if not hasattr(metabolite_list, "__iter__"):
@@ -372,21 +371,23 @@ class MEModel(cobra.core.model.Model):
 			x._model = self
 		self.metabolites += metabolite_list
 
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def remove_metabolites(self, metabolite_list, destructive=False):
 		"""Remove a list of metabolites from the the object.
 
-		The change is reverted upon exit when using the model as a context.
+		This function is different from COBRApy and it won't:
+			Revert changes upon exit when using the model as a context.
 
 		Parameters
 		----------
-		metabolite_list : list
-			A list with `cobra.Metabolite` objects as elements.
+		metabolite_list : list or Metaoblite
+			A list of `cobra.core.Metabolite` objects. If it isn't an iterable
+			container, the metabolite will be placed into a list.
 
-		destructive : bool
+		destructive : bool, optional
 			If False then the metabolite is removed from all
 			associated reactions.  If True then all associated
-			reactions are removed from the Model.
-
+			reactions are removed from the Model (default False).
 		"""
 		if not hasattr(metabolite_list, "__iter__"):
 			metabolite_list = [metabolite_list]
@@ -396,37 +397,36 @@ class MEModel(cobra.core.model.Model):
 			x._model = None
 
 			# remove reference to the metabolite in all groups
-			associated_groups = self.get_associated_groups(x)
-			for group in associated_groups:
-				group.remove_members(x)
+			#associated_groups = self.get_associated_groups(x)
+			#for group in associated_groups:
+				#group.remove_members(x)
 
 			if not destructive:
-				for the_reaction in list(x._reaction):
-					the_coefficient = the_reaction._metabolites[x]
+				for the_reaction in list(x._reaction):  # noqa W0212
+					the_coefficient = the_reaction._metabolites[x]  # noqa W0212
 					the_reaction.subtract_metabolites({x: the_coefficient})
 
 			else:
-				for x in list(x._reaction):
-					x.remove_from_model()
+				for x2 in list(x._reaction):  # noqa W0212
+					x2.remove_from_model()
 
 		self.metabolites -= metabolite_list
 
-	# This function comes from cobrapy, modified to NOT create variables in the solver
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def add_reactions(self, reaction_list):
 		"""Add reactions to the model.
 
 		Reactions with identifiers identical to a reaction already in the
 		model are ignored.
 
-		This method was modified from the original cobrapy to not populate
-		the solver interface, effectively speeding up the reconstruction.
+		This function is different from COBRApy and it won't:
+			Revert changes upon exit when using the model as a context.
 
 		Parameters
 		----------
 		reaction_list : list
 			A list of `cobra.Reaction` objects
 		"""
-
 		def existing_filter(rxn):
 			if rxn.id in self.reactions:
 				return False
@@ -438,9 +438,10 @@ class MEModel(cobra.core.model.Model):
 		# Add reactions. Also take care of genes and metabolites in the loop.
 		for reaction in pruned:
 			reaction._model = self
-
 			# Build a `list()` because the dict will be modified in the loop.
 			for metabolite in list(reaction.metabolites):
+				# TODO: Maybe this can happen with
+				#  Reaction.add_metabolites(combine=False)
 				# TODO: Should we add a copy of the metabolite instead?
 				if metabolite not in self.metabolites:
 					self.add_metabolites(metabolite)
@@ -453,35 +454,25 @@ class MEModel(cobra.core.model.Model):
 					reaction._metabolites[model_metabolite] = stoichiometry
 					model_metabolite._reaction.add(reaction)
 
-			for gene in list(reaction._genes):
-				# If the gene is not in the model, add it
-				if not self.genes.has_id(gene.id):
-					self.genes += [gene]
-					gene._model = self
-				# Otherwise, make the gene point to the one in the model
-				else:
-					model_gene = self.genes.get_by_id(gene.id)
-					if model_gene is not gene:
-						reaction._dissociate_gene(gene)
-						reaction._associate_gene(model_gene)
-
 		self.reactions += pruned
 
-		# from cameo ...
-		#self._populate_solver(pruned)
-
-	# This function comes from cobrapy, modified to NOT get variables from the solver
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def remove_reactions(self, reactions, remove_orphans=False):
 		"""Remove reactions from the model.
 
+		This function is different from COBRApy and it won't:
+			Revert changes upon exit when using the model as a context.
+			Remove orphaned genes
+
 		Parameters
 		----------
-		reactions : list
-			A list with reactions (`cobra.Reaction`), or their id's, to remove
-
-		remove_orphans : bool
-			Remove orphaned genes and metabolites from the model as well
-
+		reactions : list or reaction or str
+			A list with reactions (`cobra.Reaction`), or their id's, to remove.
+			Reaction will be placed in a list. Str will be placed in a list and used to
+			find the reaction in the model.
+		remove_orphans : bool, optional
+			Remove orphaned genes and metabolites from the model as
+			well (default False).
 		"""
 		if isinstance(reactions, str) or hasattr(reactions, "id"):
 			reactions = [reactions]
@@ -491,13 +482,8 @@ class MEModel(cobra.core.model.Model):
 			try:
 				reaction = self.reactions[self.reactions.index(reaction)]
 			except ValueError:
-				logging.warning("%s not in %s" % (reaction, self))
-
+				warn(f"{reaction} not in {self}")
 			else:
-				#forward = reaction.forward_variable
-				#reverse = reaction.reverse_variable
-
-				#self.remove_cons_vars([forward, reverse])
 				self.reactions.remove(reaction)
 				reaction._model = None
 
@@ -507,17 +493,13 @@ class MEModel(cobra.core.model.Model):
 						if remove_orphans and len(met._reaction) == 0:
 							self.remove_metabolites(met)
 
-				for gene in reaction._genes:
-					if reaction in gene._reaction:
-						gene._reaction.remove(reaction)
-						if remove_orphans and len(gene._reaction) == 0:
-							self.genes.remove(gene)
+				#for gene in reaction._genes:
+					#if reaction in gene._reaction:
+						#gene._reaction.remove(reaction)
+						#if remove_orphans and len(gene._reaction) == 0:
+							#self.genes.remove(gene)
 
-				# remove reference to the reaction in all groups
-				associated_groups = self.get_associated_groups(reaction)
-				for group in associated_groups:
-					group.remove_members(reaction)
-
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def add_boundary(
 		self,
 		metabolite: Metabolite,
@@ -618,9 +600,11 @@ class MEModel(cobra.core.model.Model):
 				"identifier. Please set the `reaction_id`."
 			)
 		if reaction_id in self.reactions:
-			raise ValueError(f"Boundary reaction '{reaction_id}' already exists.")
+			return None
+			#raise ValueError(f"Boundary reaction '{reaction_id}' already exists.")
 		name = f"{metabolite.name} {type}"
 		rxn = MEReaction(id=reaction_id, name=name)
+		# WARNING: setting lb and ub through MEReaction definition is not working
 		rxn.lower_bound = lb
 		rxn.upper_bound = ub
 		rxn.add_metabolites({metabolite: -1})
@@ -680,7 +664,7 @@ class MEModel(cobra.core.model.Model):
 		if 0 <= value < 1.:
 			amount = value / (1 - value)
 		else:
-			raise('ValueError: The unmodeled protein fraction cannot be exactly 1 or greater.')
+			raise ValueError('The unmodeled protein fraction cannot be exactly 1 or greater.')
 
 		self.reactions.protein_biomass_to_biomass.add_metabolites({self.unmodeled_protein_biomass: -amount}, combine = False)
 		self.reactions.protein_biomass_to_biomass.add_metabolites({self._biomass: 1 + amount}, combine = False)
@@ -961,7 +945,7 @@ class MEModel(cobra.core.model.Model):
 							logging.warning('Removing unnecessary FoldedProtein reactions for \'{:s}\''.format(p.id))
 							self.process_data.remove(data.id)
 
-		for p in tqdm.tqdm(self.metabolites.query(re.compile('^protein_')), 'Pruning unnecessary ProcessedProtein reactions...', bar_format = bar_format):
+		for p in tqdm.tqdm(self.metabolites.query('^protein_'), 'Pruning unnecessary ProcessedProtein reactions...', bar_format = bar_format):
 			if isinstance(p, coralme.core.component.ProcessedProtein) and p.id not in skip:
 				delete = True
 				for rxn in p.reactions:
@@ -974,7 +958,7 @@ class MEModel(cobra.core.model.Model):
 						self.process_data.remove(rxn.posttranslation_data.id)
 						rxn.delete(remove_orphans = True)
 
-		for p in tqdm.tqdm(self.metabolites.query(re.compile('^protein_')), 'Pruning unnecessary TranslatedGene reactions...', bar_format = bar_format):
+		for p in tqdm.tqdm(self.metabolites.query('^protein_'), 'Pruning unnecessary TranslatedGene reactions...', bar_format = bar_format):
 			if isinstance(p, coralme.core.component.TranslatedGene) and p.id not in skip:
 				delete = True
 				for rxn in p.reactions:
@@ -990,7 +974,7 @@ class MEModel(cobra.core.model.Model):
 						rxn.delete(remove_orphans = True)
 
 		removed_rna = set()
-		for m in tqdm.tqdm(list(self.metabolites.query(re.compile('^RNA_'))), 'Pruning unnecessary TranscribedGene reactions...', bar_format = bar_format):
+		for m in tqdm.tqdm(self.metabolites.query('^RNA_'), 'Pruning unnecessary TranscribedGene reactions...', bar_format = bar_format):
 			delete = False if m.id in skip else True
 			for rxn in m.reactions:
 				if rxn.metabolites[m] < 0 and not rxn.id.startswith('DM_'):
@@ -1038,8 +1022,6 @@ class MEModel(cobra.core.model.Model):
 			if not delete:
 				t.update()
 
-		return None
-
 	def remove_genes_from_model(self, gene_list):
 		for gene in tqdm.tqdm(gene_list, 'Removing gene(s) from ME-model...', bar_format = bar_format):
 			# defaults to subtractive when removing model
@@ -1067,8 +1049,6 @@ class MEModel(cobra.core.model.Model):
 				t_process_id = tu.id.replace('transcription_', '')
 				self.process_data.remove(t_process_id)
 
-		return None
-
 	def set_sasa_keffs(self, median_keff):
 		# Get median SASA value considering all complexes in model
 		sasa_list = []
@@ -1076,7 +1056,7 @@ class MEModel(cobra.core.model.Model):
 			cplx_sasa = 0.
 			if not isinstance(met, coralme.core.component.Complex):
 				continue
-			cplx_sasa += met.formula_weight ** (3. / 4)
+			cplx_sasa += met.formula_weight ** (3. / 4.)
 			sasa_list.append(cplx_sasa)
 		median_sasa = numpy.median(numpy.array(sasa_list))
 
@@ -1095,14 +1075,12 @@ class MEModel(cobra.core.model.Model):
 			if hasattr(data, 'keff') and hasattr(data, 'formula_weight') and data.enzyme is not None:
 				cplxs = [data.enzyme] if type(data.enzyme) == str else data.enzyme
 				for cplx in cplxs:
-					sasa += self.metabolites.get_by_id(cplx).formula_weight ** (3. / 4)
+					sasa += self.metabolites.get_by_id(cplx).formula_weight ** (3. / 4.)
 				if sasa == 0:
 					raise UserWarning('No SASA for reaction \'{:s}\'.'.format(data.id))
 				data.keff = sasa * median_keff / median_sasa
 
 		self.update()
-
-		return None
 
 	def update(self):
 		new = []
@@ -1111,9 +1089,8 @@ class MEModel(cobra.core.model.Model):
 				new.append(r)
 		for r in tqdm.tqdm(new, 'Updating ME-model Reactions...', bar_format = bar_format):
 			_update(r)
-		return None
 
-	# me.update() cannot be paralelized without considering new constraints being added into the model.
+	# me.update() cannot be parallelized without considering new constraints being added into the model.
 	# New constraints must have a different name, so me.update() fails if two reactions are changed to add the same constraint:
 	# ContainerAlreadyContains: Container '<optlang.container.Container object at 0x...>' already contains an object with name 'Name'.
 	def _parallel_update(self):
@@ -1500,7 +1477,6 @@ class MEModel(cobra.core.model.Model):
 			self.check_feasibility = self.feas_cplex
 		else:
 			print('The \'solver\' must be \'gurobi\' or \'cplex\'.')
-			return None
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for multiple evaluations of the LP problem, replacement in lambdify'ed Se is faster overall
