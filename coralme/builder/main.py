@@ -2677,7 +2677,7 @@ class MEReconstruction(MEBuilder):
 			# Step 4: Set keffs
 			if mapped_keffs:
 				for rxn, keff in tqdm.tqdm(sorted(mapped_keffs.items(), key = lambda x: x[0].id), 'Setting the effective turnover rates using user input...', bar_format = bar_format):
-					rxn.keff = float(keff)
+					rxn.coupling_coefficient_enzyme = float(keff)
 					if hasattr(rxn, 'update'): # subreactions has no update attribute
 						rxn.update()
 					logging.warning('Setting the effective turnover rate for \'{:s}\' in {:f} successfully.'.format(rxn.id, float(keff)))
