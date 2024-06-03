@@ -2580,7 +2580,7 @@ class MEReconstruction(MEBuilder):
 
 				if mod_elements:
 					mod_elements = collections.Counter(mod_elements)
-					mod_elements = { k:v * int(mod.rstrip(')').split('(')[1]) for k,v in mod_elements.items() }
+					mod_elements = { k:v * int(re.findall('\((\d+)\)', mod)[0]) for k,v in mod_elements.items() }
 					base_complex_elements.update(mod_elements)
 				else:
 					logging.warning('Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
