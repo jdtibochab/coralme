@@ -33,19 +33,6 @@ class MEModel(cobra.core.model.Model):
 		self.global_info = {
 			'domain' : 'Prokaryote',
 
-			'kt' : 4.5,
-			'r0' : 0.087,
-			'k_deg' : 12.0,
-			'm_rr' : 1453.0,
-			'm_aa' : 0.109,
-			'm_nt' : 0.324,
-			'f_rRNA' : 0.86,
-			'f_mRNA' : 0.02,
-			'f_tRNA' : 0.12,
-			'm_tRNA' : 25.0,
-			'temperature' : 37,
-			'propensity_scaling' : 0.45,
-
 			'dnapol_id' : 'DNAP',
 			'ribosome_id' : 'ribosome',
 			'dummy_rxn_id' : 'dummy_reaction',
