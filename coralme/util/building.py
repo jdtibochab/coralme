@@ -43,18 +43,20 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, organelle
 		TranscriptionReaction for the TU
 	"""
 
+	# 1) Create TranscriptionReaction
 	transcription = coralme.core.reaction.TranscriptionReaction('transcription_' + tu_name)
-	transcription.transcription_data = coralme.core.processdata.TranscriptionData(tu_name, me_model)
-	transcription.transcription_data.nucleotide_sequence = sequence
-	transcription.transcription_data.RNA_products = {'RNA_' + i for i in locus_ids}
-	transcription.transcription_data.original_RNA_products = {'RNA_' + i for i in locus_ids}
-	# Necessary for eukaryotes because transcription can occur in the nucleus, mitochondria or chloroplasts
-	transcription.transcription_data.organelle = organelle
 
+	# 2) add TranscriptionData into TranscriptionReaction
+	transcription.transcription_data = coralme.core.processdata.TranscriptionData(
+		id = tu_name, model = me_model, nucleotide_sequence = sequence, rnap = None,
+		rna_products = {'RNA_' + i for i in locus_ids}, organelle = organelle
+		)
+
+	# 3) and add TranscriptionReaction into ME-Model
 	me_model.add_reactions([transcription])
+
 	if update:
 		transcription.update()
-	return transcription
 
 def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, right_pos = None, strand = None):
 	"""
@@ -106,8 +108,6 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 
 	me_model.add_metabolites([gene])
 
-	return None
-
 def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, update = False):
 	"""
 	Creates and adds a TranslationReaction to the ME-model as well as the
@@ -135,29 +135,27 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 		add reaction stoichiometry
 
 	"""
-
-	# Create TranslationData
-	translation_data = coralme.core.processdata.TranslationData(locus_id, me_model, 'RNA_' + locus_id, 'protein_' + locus_id)
-	translation_data.nucleotide_sequence = dna_sequence
-	translation_data.organelle = organelle
-	translation_data.translation = prot_sequence
-	translation_data.transl_table = Bio.Data.CodonTable.generic_by_id[transl_table]
-
 	# Add RNA to model if it doesn't exist
 	if 'RNA_' + locus_id not in me_model.metabolites:
 		rna = coralme.core.component.TranscribedGene('RNA_' + locus_id, 'mRNA', dna_sequence)
 		logging.warning('The \'RNA_{:s}\' component was not present in ME-model and it was created.'.format(locus_id))
 		me_model.add_metabolites(rna)
 
-	# Create and add TranslationReaction with TranslationData
+	# 1) Create TranslationReaction
 	translation_reaction = coralme.core.reaction.TranslationReaction('translation_' + locus_id)
+
+	# 2) add TranslationData into TranslationReaction
+	translation_reaction.translation_data = coralme.core.processdata.TranslationData(
+		id = locus_id, model = me_model, mrna = 'RNA_' + locus_id, protein = 'protein_' + locus_id,
+		nucleotide_sequence = dna_sequence, organelle = organelle, translation = prot_sequence,
+		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table],
+		)
+
+	# 3) and add TranslationReaction into ME-Model
 	me_model.add_reactions([translation_reaction])
-	translation_reaction.translation_data = translation_data
 
 	if update:
 		translation_reaction.update()
-
-	return None
 
 def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organelle, verbose = True):
 	"""
@@ -230,8 +228,6 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 
 			me_model.add_reactions([charging_reaction])
 			charging_reaction.update(verbose = verbose)
-
-	return None
 
 def build_reactions_from_genbank(
 	me_model, gb_filename, tu_frame = pandas.DataFrame(columns = ['genes']), genes_to_add = list(),
@@ -353,7 +349,7 @@ def build_reactions_from_genbank(
 
 	# Create transcription reactions for each TU and DNA sequence.
 	# RNA_products will be added so no need to update now
-	for tu_id in tqdm.tqdm(tu_frame.index, 'Adding Transcriptional Units into the ME-model...', bar_format = bar_format):
+	for tu_id in tqdm.tqdm(tu_frame.index, 'Adding Transcriptional Units into the ME-model from user input...', bar_format = bar_format):
 		# in rare cases, transcription units have no genes associated to them
 		if tu_frame.genes[tu_id] == '': # we read df_tus as strings
 			logging.warning('The transcription unit \'{:s}\' has no genes associated to it. Please check if it is the correct behavior.'.format(tu_id))
@@ -744,14 +740,10 @@ def build_reactions_from_genbank(
 			if isinstance(r, coralme.core.reaction.TranslationReaction):
 				r.update(verbose = verbose)
 
-	return None
-
 def update_genbank_reactions(me_model, verbose = True):
 	for r in me_model.reactions:
 		if isinstance(r, (coralme.core.reaction.TranscriptionReaction, coralme.core.reaction.TranslationReaction)):
 			r.update(verbose = verbose)
-
-	return None
 
 def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 	"""
@@ -814,8 +806,6 @@ def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 			reaction_data.upper_bound = reaction.upper_bound
 			reaction_data._stoichiometry = { k.id:v for k,v in reaction.metabolites.items() }
 
-	return None
-
 def add_dummy_reactions(me_model, transl_table, update = True):
 	"""
 	Add all reactions necessary to produce a dummy reaction catalyzed by
@@ -875,8 +865,6 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	if update:
 		complex_data.create_complex_formation()
 
-	return None
-
 def add_complex_to_model(me_model, complex_id, complex_stoichiometry, complex_modifications = None):
 	"""
 	Adds ComplexData to the model for a given complex.
@@ -905,8 +893,6 @@ def add_complex_to_model(me_model, complex_id, complex_stoichiometry, complex_mo
 		complex_data.stoichiometry[metabolite] += value
 	for modification, value in complex_modifications.items():
 		complex_data.subreactions[modification] = value
-
-	return None
 
 def add_subreaction_data(me_model, modification_id, modification_stoichiometry, modification_enzyme = None, verbose = True):
 	"""
@@ -940,8 +926,6 @@ def add_subreaction_data(me_model, modification_id, modification_stoichiometry, 
 		except:
 			modification_data._element_contribution = {}
 		logging.warning('SubReaction \'{:s}\' was created in the ME-model.'.format(modification_id))
-
-	return None
 
 def add_model_complexes(me_model, complex_stoichiometry_dict, complex_modification_dict, verbose = True):
 	"""
@@ -983,16 +967,14 @@ def add_model_complexes(me_model, complex_stoichiometry_dict, complex_modificati
 			else:
 				modification_id = 'mod_' + metabolite
 				# add modification as a SubReaction
-				add_subreaction_data(me_model, modification_id, {metabolite: -1}, verbose = verbose)
+				add_subreaction_data(me_model, modification_id, {metabolite: -1.}, verbose = verbose)
 				# stoichiometry of modification determined in modification_data.stoichiometry
-				modification_dict[modification_id] = abs(number)
+				modification_dict[modification_id] = float(abs(number))
 
 		core_enzyme = complex_modification_dict[modified_complex_id]['core_enzyme']
 		stoichiometry = complex_stoichiometry_dict[core_enzyme]
 
 		add_complex_to_model(me_model, modified_complex_id, stoichiometry, complex_modifications = modification_dict)
-
-	return None
 
 def add_metabolic_reaction_to_model(me_model, stoichiometric_data_id, directionality, complex_id = None, spontaneous = False, update = False, keff = 65.):
 	"""
@@ -1058,7 +1040,8 @@ def add_metabolic_reaction_to_model(me_model, stoichiometric_data_id, directiona
 
 	r = coralme.core.reaction.MetabolicReaction(''.join([stoichiometric_data_id, direction, complex_id]))
 	me_model.add_reactions([r])
-	r.keff = keff
+	#r.keff = keff
+	r.coupling_coefficient_enzyme = keff # This will set mu/keff in per hour
 	r.stoichiometric_data = stoichiometric_data
 	r.reverse = reverse_flag
 
@@ -1066,8 +1049,6 @@ def add_metabolic_reaction_to_model(me_model, stoichiometric_data_id, directiona
 		r.complex_data = complex_data
 	if update:
 		r.update(verbose = True)
-
-	return None
 
 def add_reactions_from_stoichiometric_data(
 	me_model, rxn_to_cplx_dict,
@@ -1140,4 +1121,3 @@ def add_reactions_from_stoichiometric_data(
 					keff = keff
 					)
 
-	return None
