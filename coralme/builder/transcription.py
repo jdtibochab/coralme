@@ -25,8 +25,8 @@ def add_rna_polymerase_complexes(me_model, rna_polymerase_id_by_sigma_factor, ve
 			polymerase = components['polymerase']
 
 			rnap_components = rnap_complex.stoichiometry
-			rnap_components[sigma_factor] = 1
-			rnap_components[polymerase] = 1
+			rnap_components[sigma_factor] = 1.
+			rnap_components[polymerase] = 1.
 
 			rnap_complex.create_complex_formation(verbose = verbose)
 
@@ -40,7 +40,7 @@ def add_rna_excision_machinery(me_model, excision_type, stoichiometry):
 
 	complex_data.create_complex_formation()
 	modification = coralme.core.processdata.SubreactionData(excision_type + '_excision', me_model)
-	modification.enzyme = complex_data.id
+	modification.enzyme = [complex_data.id]
 
 def add_rna_splicing(me_model):
 	# Loop through transcription reactions and add appropriate splicing
