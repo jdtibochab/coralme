@@ -1649,7 +1649,7 @@ class MEModel(cobra.core.model.Model):
 
 	# Modified from COBRApy
 	def _repr_html_(self) -> str:
-		"""Get HTML represenation of the model.
+		"""Get HTML representation of the model.
 
 		Returns
 		-------
@@ -1672,7 +1672,7 @@ class MEModel(cobra.core.model.Model):
 				<td>{len(self.reactions)}</td>
 			</tr><tr>
 				<td><strong>Number of genes</strong></td>
-				<td>{len(self.genes)}</td>
+				<td>{len(self.all_genes)-1}</td>
 			</tr><tr>
 				<td><strong>Number of groups</strong></td>
 				<td>{len(self.groups)}</td>
