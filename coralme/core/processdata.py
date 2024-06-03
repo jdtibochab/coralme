@@ -1,5 +1,7 @@
 import Bio
 import pandas
+import sympy
+
 import cobra
 import coralme
 
@@ -179,8 +181,16 @@ class SubreactionData(ProcessData):
 		ProcessData.__init__(self, id, model)
 		self.stoichiometry = {}
 		self.enzyme = None
-		self.keff = 65.
+		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, evaluate = False)
 		self._element_contribution = {}
+
+	@property
+	def coupling_coefficient_subreaction(self):
+		return self._coupling_coefficient_subreaction
+
+	@coupling_coefficient_subreaction.setter
+	def coupling_coefficient_subreaction(self, value):
+		self._coupling_coefficient_subreaction = value
 
 	@property
 	def element_contribution(self):
@@ -333,7 +343,7 @@ class ComplexData(ProcessData):
 	def __init__(self, id, model):
 		ProcessData.__init__(self, id, model)
 		# {Component.id: stoichiometry}
-		self.stoichiometry = collections.defaultdict(float)
+		self.stoichiometry = collections.defaultdict(int)
 		# {SubreactionData.id : number}
 		# Forming some metacomplexes occur in multiple steps
 		self.subreactions = {}
@@ -442,19 +452,29 @@ class TranscriptionData(ProcessData):
 		required for the transcription unit to be transcribed
 
 	"""
-	def __init__(self, id, model, rna_products = set()):
+	def __init__(self, id, model, nucleotide_sequence, rnap, rna_products, organelle):
 		ProcessData.__init__(self, id, model)
-		self.nucleotide_sequence = ''
+		self.nucleotide_sequence = nucleotide_sequence
 		self.RNA_products = rna_products
 		self.original_RNA_products = rna_products
-		self.RNA_polymerase = ''
-		# {SubreactionData.id : number}
+		self.RNA_polymerase = rnap
+		self.organelle = organelle
+
 		self._subreactions = collections.defaultdict(int)
+		self._coupling_coefficient_rnapol = sympy.Mul(len(nucleotide_sequence), model.symbols['v_rnap'], evaluate = False)
+
+	@property
+	def coupling_coefficient_rnapol(self):
+		return self._coupling_coefficient_rnapol
+
+	@coupling_coefficient_rnapol.setter
+	def coupling_coefficient_rnapol(self, value):
+		self._coupling_coefficient_rnapol = value
 
 	@property
 	def n_cuts(self):
 		# Number of cuts depends on the type of the RNAs in the TU
-		return len([ x for x in self.RNA_types if x in ['rRNA', 'tRNA']]) * 2
+		return len([ x for x in self.RNA_types if x in ['rRNA', 'tRNA']]) * 2.
 
 	@property
 	def n_excised(self):
@@ -537,7 +557,7 @@ class TranscriptionData(ProcessData):
 		Returns
 		-------
 		dict
-			{nuclotide_id: number_of_occurances}
+			{nucleotide_id: number_of_occurences}
 
 		"""
 		#return { coralme.util.dogma.transcription_table[i]: self.nucleotide_sequence.count(i) for i in ['A', 'T', 'G', 'C'] }
@@ -772,12 +792,27 @@ class TranslationData(ProcessData):
 		being translated
 
 	"""
-	def __init__(self, id, model, mrna, protein):
+	def __init__(self, id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table):
 		ProcessData.__init__(self, id, model)
 		self.mRNA = mrna
 		self.protein = protein
+		self.nucleotide_sequence = nucleotide_sequence
+		self.organelle = organelle
+		self.translation = translation
+		self.transl_table = transl_table
+
 		self.subreactions = collections.defaultdict(int)
-		self.nucleotide_sequence = ''
+		self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
+		self._coupling_coefficient_rna_synthesis = self._model.symbols['rna_amount'] + self._model.symbols['deg_amount']
+		self._coupling_coefficient_hydrolysis = sympy.Mul((len(nucleotide_sequence) - 1) / 4., self._model.symbols['deg_amount'], evaluate = False) # deg_amount
+
+	@property
+	def coupling_coefficient_ribosome(self):
+		return self._coupling_coefficient_ribosome
+
+	@coupling_coefficient_ribosome.setter
+	def coupling_coefficient_ribosome(self, value):
+		self._coupling_coefficient_ribosome = value
 
 	@property
 	def amino_acid_sequence(self):
@@ -1000,10 +1035,9 @@ class TranslationData(ProcessData):
 			except KeyError:
 				logging.warning('Initiation SubReaction \'{:s}\' is not in the ME-model. However, it can be added later.'.format(subreaction_id))
 			else:
-				self.subreactions[subreaction_id] = 1
+				self.subreactions[subreaction_id] = 1.
 
 	def add_termination_subreactions(self, translation_terminator_dict=None):
-
 		"""
 		Add all subreactions involved in translation termination.
 
@@ -1024,7 +1058,7 @@ class TranslationData(ProcessData):
 			except KeyError:
 				logging.warning('Termination SubReaction \'{:s}\' is not in ME-model. However, it can be added later.'.format(termination_subreaction_id))
 			else:
-				self.subreactions[termination_subreaction_id] = 1
+				self.subreactions[termination_subreaction_id] = 1.
 		else:
 			logging.warning('No termination enzyme for \'{:s}\'.'.format(self.mRNA))
 
@@ -1072,8 +1106,30 @@ class tRNAData(ProcessData):
 		self.RNA = rna
 		self.subreactions = collections.defaultdict(int)
 		self.synthetase = None
-		self.synthetase_keff = 65.
+
+		self.synthetase_keff = self._model.symbols['k^default_cat']
+
+		self._coupling_coefficient_trna_keff = self._model.symbols['k_tRNA']
+		self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._model.symbols['k_tRNA']**-1, evaluate = False)
+		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+
 		self.organelle = None
+
+	@property
+	def coupling_coefficient_trna_amount(self):
+		return self._coupling_coefficient_trna_amount
+
+	@coupling_coefficient_trna_amount.setter
+	def coupling_coefficient_trna_amount(self, value):
+		self._coupling_coefficient_trna_amount = value
+
+	@property
+	def coupling_coefficient_synthetase(self):
+		return self._coupling_coefficient_synthetase
+
+	@coupling_coefficient_synthetase.setter
+	def coupling_coefficient_synthetase(self, value):
+		self._coupling_coefficient_synthetase = value
 
 class TranslocationData(ProcessData):
 	"""
@@ -1150,7 +1206,7 @@ class PostTranslationData(ProcessData):
 
 		Dictionary of {SA_+<inner_membrane or outer_membrane>: float}
 
-	subreactions : :class:`collections.DefaultDict(float)`
+	subreactions : :class:`collections.DefaultDict(int)`
 		If a protein is modified following translation, this is accounted for
 		here
 
@@ -1194,7 +1250,7 @@ class PostTranslationData(ProcessData):
 		self.surface_area = {}
 
 		# For post translation modifications
-		self.subreactions = collections.defaultdict(float)
+		self.subreactions = collections.defaultdict(int)
 		self.biomass_type = ''
 
 		# For protein folding reactions (FoldME)
