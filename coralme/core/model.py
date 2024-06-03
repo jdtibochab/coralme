@@ -1148,13 +1148,18 @@ class MEModel(cobra.core.model.Model):
 		else:
 			queries = [queries]
 
-		x = queries[0].replace('(', '\(').replace(')', '\)').replace('[', '\[').replace(']', '\]')
-		res.append(self.metabolites.query(x))
-		if filter_out_blocked_reactions:
-			res.append([ x for x in self.reactions.query(x) if x.bounds != (0, 0) ])
-		else:
-			res.append(self.reactions.query(x))
-		res.append(self.process_data.query(x))
+		# correct queries
+		queries = [ x.replace('(', '\(').replace(')', '\)').replace('[', '\[').replace(']', '\]') for x in queries ]
+
+		for query in queries:
+			res.append(self.metabolites.query(query))
+			if filter_out_blocked_reactions:
+				res.append([ x for x in self.reactions.query(query) if x.bounds != (0, 0) ])
+			else:
+				res.append(self.reactions.query(query))
+			res.append(self.process_data.query(query))
+
+		# compress
 		res = [ x for y in res for x in y ]
 
 		if len(queries) > 1:
