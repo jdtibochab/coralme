@@ -240,7 +240,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value):
 # 	ridx = { k:v for k,v in me_model.reactions._dict.items() if k in rxns }
 
 	# populate with stoichiometry
-	Sf, Se, lb, ub, b, c, cs, atoms, lambdas = me_model.construct_lp_problem()
+	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = me_model.construct_lp_problem()
 
 	if lambdas is None:
 		Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, growth_key_and_value, atoms)
@@ -252,7 +252,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value):
 	for idx, (rxn, pos) in enumerate(ridx):
 		lb[pos] = 0
 		ub[pos] = 0
-		if me_model.get_feasibility(keys = growth_key_and_value, **{'lp' : [Sf, dict(), lb, ub, b, c, cs, set(), lambdas]}):
+		if me_model.get_feasibility(keys = growth_key_and_value, **{'lp' : [Sf, dict(), lb, ub, b, c, cs, set(), lambdas, Lr, Lm]}):
 			res.append(False)
 			logging.warning('{:s} {:s}'.format('  '*6, msg.format(str(idx+1).rjust(len(str(len(ridx)))), len(ridx), len([ x for x in res if x ]), '', rxn)))
 		else:
