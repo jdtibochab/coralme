@@ -583,7 +583,23 @@ class MEModel(cobra.core.model.Model):
 		self.add_reactions([rxn])
 		return rxn
 
-	# WARNING: (modified) functions from cobrame again
+	# WARNING: Modified functions from COBRAme and new functions
+	@property
+	def get_exchange_reactions(self):
+		return self.reactions.query('^EX_')
+
+	@property
+	def get_sink_reactions(self):
+		return self.reactions.query('^SK_')
+
+	@property
+	def get_demand_reactions(self):
+		return self.reactions.query('^DM_')
+
+	@property
+	def get_troubleshooted_reactions(self):
+		return self.reactions.query('^TS_')
+
 	def add_biomass_constraints_to_model(self, biomass_types):
 		for biomass_type in tqdm.tqdm(biomass_types, 'Adding biomass constraint(s) into the ME-model...', bar_format = bar_format):
 			if '_biomass' not in biomass_type:
