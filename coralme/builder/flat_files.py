@@ -342,7 +342,7 @@ def get_trna_modification_targets(trna_mod) -> dict:
 	trna_mod_dict = defaultdict(dict)
 	for idx, mod in trna_mod.iterrows():
 		mod_loc = '{:s}_at_{:s}'.format(mod['modification'], mod['positions'])
-		trna_mod_dict[mod['bnum']][mod_loc] = 1
+		trna_mod_dict[mod['bnum']][mod_loc] = 1.
 
 	return trna_mod_dict
 
