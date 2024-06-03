@@ -1266,9 +1266,36 @@ class MEModel(cobra.core.model.Model):
 
 		return pandas.DataFrame(fva_result).T
 
+	def _solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat, solver = 'qminos'):
+		if solver == 'qminos':
+			#f = sum([ rxn.objective_coefficient * xopt[idx] for idx, rxn in enumerate(self.reactions) ])
+			#x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
+			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
+			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
+			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
+		if solver == 'cplex':
+			#x_primal =
+			x_dict = { rxn.id: xopt[rxn.id].solution_value for idx, rxn in enumerate(self.reactions) }
+			y_dict = { met.id: yopt[met.id].dual_value for idx, met in enumerate(self.metabolites) }
+			z_dict = { rxn.id: zopt[rxn.id].reduced_cost for idx, rxn in enumerate(self.reactions) }
+		if solver == 'gurobi':
+			#x_primal = gpModel.x[ 0:len(self.reactions) ]
+			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
+			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
+			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
+
+		#self.me.solution = Solution(f, x_primal, x_dict, y, y_dict, 'qminos', time_elapsed, status)
+		return cobra.core.Solution(
+			objective_value = muopt,
+			status = stat,
+			fluxes = x_dict, # x_primal is a numpy.array with only fluxes info
+			reduced_costs = z_dict,
+			shadow_prices = y_dict,
+			)
+
 	def optimize(self,
-		max_mu = 2.8100561374051836, min_mu = 0., maxIter = 100, lambdify = True,
-		tolerance = 1e-6, precision = 'quad', verbose = True,get_reduced_costs=False):
+		max_mu = 2.8100561374051836, min_mu = 0., maxIter = 100, lambdify = True, basis = None,
+		tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False):
 
 		"""Solves the NLP problem to obtain reaction fluxes for a ME-model.
 
@@ -1289,6 +1316,9 @@ class MEModel(cobra.core.model.Model):
 			Precision (quad or double precision) for the GRBS
 		verbose : bool
 			If True, allow printing.
+		get_reduced_costs : bool
+			If True, re-optimize but changing the objective function to 'biomass_dilution'
+			and its bounds. New reduced costs and shadow prices will be returned.
 		"""
 
 		# max_mu is constrained by the fastest-growing bacterium (14.8 min, doubling time)
@@ -1304,47 +1334,56 @@ class MEModel(cobra.core.model.Model):
 			print('The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n')
 
 		# populate with stoichiometry, no replacement of mu's
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = self.construct_lp_problem(lambdify = lambdify)
+		if hasattr(self, 'construct_lp_problem'):
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
+		else:
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = coralme.core.model.MEModel.construct_lp_problem(self)
+			me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
+			xopt, yopt, zopt, stat, basis = me_nlp.solvelp(.1, None, 'quad', probname = 'lp')
+
+			if stat == 'optimal':
+				muopt = [ x for x,c in zip(xopt, c) if c != 0 ][0]
+				self.solution = self._solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat)
+				return True
+			else:
+				if hasattr(self, 'solution'):
+					del self.solution
+				return False
 
 		if len(atoms) > 1:
 			print('Use `me_model.map_feasibility()` to obtain the boundary of feasible solutions.')
 			print('Optimization will proceed replacing all growth keys with the same value.')
 
-		from coralme.solver.solver import ME_NLP
-		me_nlp = ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
-
+		me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
 		muopt, xopt, yopt, zopt, basis, stat = me_nlp.bisectmu(
 				mumax = max_mu,
 				mumin = min_mu,
 				maxIter = maxIter,
+				basis = basis,
 				tolerance = tolerance,
 				precision = precision,
 				verbose = verbose)
 
 		if stat == 'optimal':
-			#f = sum([ rxn.objective_coefficient * xopt[idx] for idx, rxn in enumerate(self.reactions) ])
-			x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
-			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
+			# Adapted from Maxwell Neal, 2024
 			if get_reduced_costs:
 				rxn_idx =  {rxn.id : idx for idx, rxn in enumerate(self.reactions)}
-				_xopt, yopt, zopt, _stat, _basis = coralme.util.flux_analysis.get_reduced_costs(me_nlp,muopt,rxn_idx,basis=basis,precision=precision)
-			#y = pi
-			# J = [S; c]
-			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
-			#y_dict['linear_objective'] = y[len(y)-1]
-			#self.me.solution = Solution(f, x_primal, x_dict, y, y_dict, 'qminos', time_elapsed, status)
-			self.solution = cobra.core.Solution(
-				objective_value = muopt,
-				status = stat,
-				fluxes = x_dict, # x_primal is a numpy.array with only fluxes info
-				reduced_costs = z_dict,
-				shadow_prices = y_dict,
-				)
+				# Open biomass dilution bounds
+				me_nlp.xl[rxn_idx["biomass_dilution"]] =  lambda mu : 0
+				me_nlp.xu[rxn_idx["biomass_dilution"]] = lambda mu : 1000
+				# Set new objective coefficient
+				me_nlp.c = [1.0 if r=="biomass_dilution" else 0.0 for r in rxn_idx]
+				# Solve at muopt
+				_xopt, yopt, zopt, _stat, _basis = me_nlp.solvelp(muf = muopt, basis = basis, precision = precision)
+
+			self.solution = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat)
+			self.basis = basis
 			return True
 		else:
 			if hasattr(self, 'solution'):
 				del self.solution
+			if hasattr(self, 'basis'):
+				self.basis = None
 			return False
 
 	# WARNING: Experimental. We could not compile qminos under WinOS, and qminos has a licence restriction for its source code
@@ -1470,18 +1509,7 @@ class MEModel(cobra.core.model.Model):
 
 		# output solution
 		if mpModel.solve_details.status == 'optimal':
-			#x_primal = gpModel.x[ 0:len(self.reactions) ]
-			x_dict = { rxn.id:mpModel.get_var_by_name(rxn.id).solution_value for idx,rxn in enumerate(self.reactions) }
-			y_dict = { met.id:mpModel.get_constraint_by_name(met.id).dual_value for idx,met in enumerate(self.metabolites) }
-			z_dict = { rxn.id:mpModel.get_var_by_name(rxn.id).reduced_cost for idx,rxn in enumerate(self.reactions) }
-
-			self.solution = cobra.core.Solution(
-				objective_value = list(keys.values())[0],
-				status = 'optimal',
-				fluxes = x_dict,
-				shadow_prices = y_dict,
-				reduced_costs = z_dict,
-				)
+			self.solution = self._solver_solution_to_cobrapy_solution(muopt, mpModel._vars_by_name, mpModel._cts_by_name, mpModel._vars_by_name, stat = 'optimal', solver = 'cplex')
 			return True
 		else:
 			if hasattr(self, 'solution'):
@@ -1552,18 +1580,7 @@ class MEModel(cobra.core.model.Model):
 
 		# output solution
 		if gpModel.status == gp.GRB.OPTIMAL:
-			x_primal = gpModel.x[ 0:len(self.reactions) ]
-			x_dict = { rxn.id : gpModel.x[idx] for idx, rxn in enumerate(self.reactions) }
-			y_dict = { met.id : gpModel.pi[idx] for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id : gpModel.RC[idx] for idx, rxn in enumerate(self.reactions) }
-
-			self.solution = cobra.core.Solution(
-				objective_value = list(keys.values())[0],
-				status = 'optimal',
-				fluxes = x_dict,
-				reduced_costs = z_dict,
-				shadow_prices = y_dict,
-				)
+			self.solution = self._solver_solution_to_cobrapy_solution(muopt, gpModel.x, gpModel.pi, gpModel.RC, stat = 'optimal', solver = 'gurobi')
 			return True
 		else:
 			if hasattr(self, 'solution'):
@@ -1583,7 +1600,7 @@ class MEModel(cobra.core.model.Model):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for single evaluations of the LP problem, direct replacement is faster than lambdify
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
 
 		if lambdas is None:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
@@ -1603,23 +1620,21 @@ class MEModel(cobra.core.model.Model):
 				verbose = False)
 
 		if stat == 'optimal':
-			#f = sum([ rxn.objective_coefficient * xopt[idx] for idx, rxn in enumerate(self.reactions) ])
-			x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
-			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
-			#y = pi
-			# J = [S; c]
-			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
-			#y_dict['linear_objective'] = y[len(y)-1]
+			if len(self.reactions) > 1 and len(self.metabolites) > 1:
+				self.solution = self._solver_solution_to_cobrapy_solution(list(keys.values())[0], xopt, yopt, zopt, stat)
+			else:
+				x_primal = xopt[ 0:len(Lr) ]   # The remainder are the slacks
+				x_dict = { rxn : xopt[idx] for idx, rxn in enumerate(Lr) }
+				y_dict = { met : yopt[idx] for idx, met in enumerate(Lm) }
+				z_dict = { rxn : zopt[idx] for idx, rxn in enumerate(Lr) }
+				self.solution = cobra.core.Solution(
+					objective_value = muopt,
+					status = stat,
+					fluxes = x_dict, # x_primal is a numpy.array with only fluxes info
+					reduced_costs = z_dict,
+					shadow_prices = y_dict,
+					)
 
-			#self.me.solution = Solution(f, x_primal, x_dict, y, y_dict, 'qminos', time_elapsed, status)
-			self.solution = cobra.core.Solution(
-				objective_value = list(keys.values())[0],
-				status = stat,
-				fluxes = x_dict, # x_primal is a numpy.array with only fluxes info
-				reduced_costs = z_dict,
-				shadow_prices = y_dict,
-				)
 			self.basis = basis
 			return True
 		else:
