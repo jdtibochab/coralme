@@ -30,7 +30,7 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 					#if stoich < 0:
 						#rrna_mod.enzyme += [carrier]
 					#rrna_mod.stoichiometry[carrier] = stoich
-			ribosome_complex.subreactions[rrna_mod.id] = 1
+			ribosome_complex.subreactions[rrna_mod.id] = 1.
 
 	for subreaction_id in ribosome_subreactions:
 		if not me_model.process_data.has_id('gtp_hydrolysis_era'):
@@ -54,7 +54,7 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 
 		subreaction.enzyme = ribosome_subreactions[subreaction_id]['enzymes']
 		# account for subreactions in complex data. num_mods is always 1
-		ribosome_complex.subreactions[subreaction.id] = 1
+		ribosome_complex.subreactions[subreaction.id] = 1.
 
 	# Ribosomes in iOL1650 contain 171 mg2 ions
 	ribosome_complex.subreactions['mod_mg2_c'] = me_model.global_info['mg2_per_ribosome']
@@ -64,5 +64,3 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 			ribosome_components[protein] += amount
 
 	ribosome_complex.create_complex_formation(verbose = verbose)
-
-	return None
