@@ -18,6 +18,9 @@ def add_iron_sulfur_modifications(me_model):
 				# we need to remove subreactions from process_data
 				to_modify = [ x for x in query if isinstance(x, coralme.core.reaction.ComplexFormation)][0]
 				me_model.process_data.get_by_id(to_modify.id.replace('formation_', '')).subreactions.pop('mod_{:s}_c'.format(fes))
+				# and remove the formation reaction of the modified complex only
+				me_model.process_data.remove(to_modify.id.replace('formation_', ''))
+				me_model.remove_reactions([to_modify])
 
 	for fes in ['2fe2s', '4fe4s']:
 		name = 'generic_{:s}_transfer_complex'.format(fes)
@@ -42,19 +45,19 @@ def add_iron_sulfur_modifications(me_model):
 	# add fes transfer enzymes to proper modification data
 	if me_model.process_data.has_id('mod_2fe2s_c'):
 		mod_2fe2s = me_model.process_data.mod_2fe2s_c
-		mod_2fe2s.enzyme = 'generic_2fe2s_transfer_complex'
+		mod_2fe2s.enzyme = ['generic_2fe2s_transfer_complex']
 		mod_2fe2s.stoichiometry = { '2fe2s_c': -1 }
 		mod_2fe2s._element_contribution = { 'Fe': 2, 'S': 2 }
 
 	if me_model.process_data.has_id('mod_4fe4s_c'):
 		mod_4fe4s = me_model.process_data.mod_4fe4s_c
-		mod_4fe4s.enzyme = 'generic_4fe4s_transfer_complex'
+		mod_4fe4s.enzyme = ['generic_4fe4s_transfer_complex']
 		mod_4fe4s.stoichiometry = { '4fe4s_c': -1 }
 		mod_4fe4s._element_contribution = { 'Fe': 4, 'S': 4 }
 
 	if me_model.process_data.has_id('mod_3fe4s_c'):
 		mod_3fe4s = me_model.process_data.mod_3fe4s_c
-		mod_3fe4s.enzyme = 'generic_4fe4s_transfer_complex'
+		mod_3fe4s.enzyme = ['generic_4fe4s_transfer_complex']
 		mod_3fe4s.stoichiometry = { '4fe4s_c': -1, 'fe2_c': 1 }
 		mod_3fe4s._element_contribution = { 'Fe': 3, 'S': 4 }
 
@@ -69,8 +72,6 @@ def add_iron_sulfur_modifications(me_model):
 			cplx_id = cplx_data.id.split('_mod')[0]
 			if cplx_id in fes_chaperones:
 				cplx_data.subreactions[ 'mod_2fe2s_c_' + fes_chaperones[cplx_id] ] = cplx_data.subreactions.pop('mod_2fe2s_c')
-
-	return None
 
 def _replace_modification(dct, me_model):
 	modification = list(dct.keys())[0] # current modification ID in me.process_data
@@ -150,8 +151,6 @@ def add_FeFe_and_NiFe_modifications(me_model):
 			else:
 				logging.warning('The ID \'{:s}\' in the configuration file does not exist in the ME-model.'.format(mod))
 
-	return None
-
 #def add_lipoate_modifications(me_model, lipoate_modifications):
 def add_lipoyl_modifications(me_model):
 	# Two different reactions can add a lipoate modification.
@@ -202,21 +201,17 @@ def add_lipoyl_modifications(me_model):
 	me_model.remove_reactions(lst)
 	#me_model.process_data.remove('mod_lipoyl_c')
 
-	return None
-
 def add_bmocogdp_chaperones(me_model):
 	bmocogdp_chaperones = me_model.global_info['complex_cofactors']['bmocogdp_chaperones']
 	for chaperone in set(bmocogdp_chaperones.values()):
 		new_mod = coralme.core.processdata.SubreactionData('mod_bmocogdp_c_' + chaperone, me_model)
-		new_mod.enzyme = chaperone
+		new_mod.enzyme = [chaperone]
 		new_mod.stoichiometry = {'bmocogdp_c': -1}
 
 	for cplx_data in me_model.process_data.get_by_id('mod_bmocogdp_c').get_complex_data():
 		cplx_id = cplx_data.id.split('_mod')[0]
 		if cplx_id in bmocogdp_chaperones:
 			cplx_data.subreactions['mod_bmocogdp_c_' + bmocogdp_chaperones[cplx_id]] = cplx_data.subreactions.pop('mod_bmocogdp_c')
-
-	return None
 
 # OLD CODE not used anymore
 def add_modification_procedures(me_model):
@@ -229,4 +224,4 @@ def add_modification_procedures(me_model):
 	# bmocogdp modifications have multiple selective chaperones that transfer
 	# the metabolite to the target complexes
 	add_bmocogdp_modifications(me_model)
-	return None
+
