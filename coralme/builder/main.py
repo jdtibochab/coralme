@@ -2101,6 +2101,7 @@ class MEReconstruction(MEBuilder):
 
 		# Correct 'translation_stop_dict' if PrfA and/or PrfB homologs were not identified
 		PrfA_mono = me.global_info['peptide_release_factors']['UAG']
+		# TODO: In Trans Table 4, UGA encodes Trp, not a stop codon -> Check if it is relevant for the reconstruction
 		PrfB_mono = me.global_info['peptide_release_factors']['UGA']
 		generic_RF = me.global_info['peptide_release_factors']['UAA']
 
