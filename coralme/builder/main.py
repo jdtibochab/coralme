@@ -2100,10 +2100,10 @@ class MEReconstruction(MEBuilder):
 			data.synthetase = str(aa_synthetase_dict.get(data.amino_acid, 'CPLX_dummy'))
 
 		# Correct 'translation_stop_dict' if PrfA and/or PrfB homologs were not identified
-		PrfA_mono = me.global_info['peptide_release_factors']['UAG']
-		# TODO: In Trans Table 4, UGA encodes Trp, not a stop codon -> Check if it is relevant for the reconstruction
-		PrfB_mono = me.global_info['peptide_release_factors']['UGA']
-		generic_RF = me.global_info['peptide_release_factors']['UAA']
+		PrfA_mono = me.global_info['peptide_release_factors'].get('UAG', 'PrfA_mono')
+		# In Trans Table 4, UGA encodes Trp, not a stop codon. User might choose not to add 'UGA' in peptide_release_factors in organism.json
+		PrfB_mono = me.global_info['peptide_release_factors'].get('UGA', 'PrfB_mono')
+		generic_RF = me.global_info['peptide_release_factors'].get('UAA', 'generic_RF')
 
 		if     me.metabolites.has_id(PrfA_mono) and not me.metabolites.has_id(PrfB_mono):
 			me.global_info['peptide_release_factors']['UGA'] = PrfA_mono # originally assigned to PrfB_mono
