@@ -1488,6 +1488,8 @@ class MEReconstruction(MEBuilder):
 		# only if builder.generate_files() was run before builder.build_me_model()
 		if hasattr(builder, 'org'):
 			self.org = builder.org
+		if hasattr(builder, 'ref'):
+			self.ref = builder.ref
 		if hasattr(builder, 'homology'):
 			self.homology = builder.homology
 		if hasattr(builder, 'df_data'):

@@ -24,7 +24,7 @@ def _save_to_excel(data, output):
 
 	with open(output, 'wb') as outfile:
 		writer = pandas.ExcelWriter(outfile, engine = 'xlsxwriter')
-		data.to_excel(writer, index = False, freeze_panes = (1, 7))
+		data.to_excel(writer, index = False, freeze_panes = (1, 8))
 		(max_row, max_col) = data.shape
 
 		# Get the xlsxwriter workbook and worksheet objects.
@@ -53,11 +53,12 @@ def generate_organism_specific_matrix(genbank, locus_tag, model):
 	# create a pandas DataFrame with organism-specific information to be completed with the builder data
 	df = pandas.DataFrame(columns = [
 		'Gene Locus ID',
+		'Definition',
 		'Gene Names',
 		'Old Locus Tag',
 		'BioCyc',
 		'Reference BBH',
-		'Definition',
+		'Reference Definition',
 		'Feature Type',
 		'Complex Name',
 		'Complex ID',
@@ -145,9 +146,17 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 		if len(lst) != 0:
 			return lst[0]
 
+	def get_definition(contigs, locus_tag):
+		for contig in contigs:
+			for feat in contig.features:
+				if feat.type == 'CDS' and feat.qualifiers.get('locus_tag', [None])[0] == locus_tag:
+					return ', '.join(feat.qualifiers.get('product', [None]))
+
 	if hasattr(builder, 'homology'):
 		dct = builder.homology.mutual_hits
 		data['Reference BBH'] = data.apply(lambda x: bbh(x, dct, keys = ['Gene Locus ID', 'Old Locus Tag', 'BioCyc']), axis = 1)
+		ref = builder.ref.contigs
+		data['Reference Definition'] = data.apply(lambda x: get_definition(ref, x['Reference BBH']), axis = 1)
 
 	if builder.configuration.get('biocyc.genes', False):
 		# We reuse the bbh function, but changed the dictionary of relationships between IDs
