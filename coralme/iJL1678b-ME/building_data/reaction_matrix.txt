@@ -1134,7 +1134,7 @@ acp_lipoate_synthase	EG50003-MONOMER_mod_pan4p(1)_mod_oc(1)	-1.0
 acp_lipoate_synthase	EG50003-MONOMER_mod_pan4p(1)_mod_lipo(1)	1.0
 acp_lipoate_synthase	amet_c	-2.0
 acp_lipoate_synthase	met__L_c	2.0
-acp_lipoate_synthase	dad__5_c	2.0
+acp_lipoate_synthase	dad_5_c	2.0
 acp_lipoate_synthase	CPLX0-782_mod_4fe4s(2)	-1.0
 acp_lipoate_synthase	CPLX0-782_mod_2fe2s(1)_mod_4fe4s(1)	1.0
 acp_lipoate_synthase	fe2_c	2.0

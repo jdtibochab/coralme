@@ -680,8 +680,8 @@ frulys	fructoselysine	C12H25N2O7	Periplasm AND Cytosol AND Extra-organism	iJO136
 melib	Melibiose	C12H22O11	Periplasm AND Cytosol AND Extra-organism	iJO1366
 n2o	Nitrous oxide	N2O	Periplasm AND Cytosol AND Extra-organism	iJO1366
 kdo2lipid4L	KDO(2)-lipid IV(A) with laurate	C96H170N2O38P2	Cytosol	iJO1366
-dad__5	5_prime_-Deoxyadenosine	C10H13N5O3	Cytosol	iJO1366
-dad__2	Deoxyadenosine	C10H13N5O3	Periplasm AND Extra-organism AND Cytosol	iJO1366
+dad_5	5_prime_-Deoxyadenosine	C10H13N5O3	Cytosol	iJO1366
+dad_2	Deoxyadenosine	C10H13N5O3	Periplasm AND Extra-organism AND Cytosol	iJO1366
 23camp	2_prime_,3_prime_-Cyclic AMP	C10H11N5O6P	Periplasm AND Extra-organism	iJO1366
 thrp	L-Threonine O-3-phosphate	C4H8NO6P	Periplasm AND Extra-organism	iJO1366
 citr__L	L-Citrulline	C6H13N3O3	Cytosol	iJO1366

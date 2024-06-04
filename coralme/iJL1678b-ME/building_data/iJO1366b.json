@@ -2402,14 +2402,14 @@
 "formula":"C9H13N3O5"
 },
 {
-"id":"dad__2_c",
+"id":"dad_2_c",
 "name":"Deoxyadenosine",
 "compartment":"c",
 "charge":0,
 "formula":"C10H13N5O3"
 },
 {
-"id":"dad__5_c",
+"id":"dad_5_c",
 "name":"5'-Deoxyadenosine",
 "compartment":"c",
 "charge":0,
@@ -6931,7 +6931,7 @@
 "formula":"C9H13N3O5"
 },
 {
-"id":"dad__2_e",
+"id":"dad_2_e",
 "name":"Deoxyadenosine",
 "compartment":"e",
 "charge":0,
@@ -9605,7 +9605,7 @@
 "formula":"C9H13N3O5"
 },
 {
-"id":"dad__2_p",
+"id":"dad_2_p",
 "name":"Deoxyadenosine",
 "compartment":"p",
 "charge":0,
@@ -12599,10 +12599,10 @@
 "gene_reaction_rule":""
 },
 {
-"id":"EX_dad__2_e",
+"id":"EX_dad_2_e",
 "name":"Deoxyadenosine exchange",
 "metabolites":{
-"dad__2_e":-1.0
+"dad_2_e":-1.0
 },
 "lower_bound":0.0,
 "upper_bound":1000.0,
@@ -16167,7 +16167,7 @@
 "metabolites":{
 "5drib_c":1.0,
 "ade_c":1.0,
-"dad__5_c":-1.0,
+"dad_5_c":-1.0,
 "h2o_c":-1.0
 },
 "lower_bound":0.0,
@@ -21381,7 +21381,7 @@
 "amet_c":-2.0,
 "co2_c":2.0,
 "cpppg3_c":-1.0,
-"dad__5_c":2.0,
+"dad_5_c":2.0,
 "met__L_c":2.0,
 "pppg9_c":1.0
 },
@@ -22297,7 +22297,7 @@
 "id":"DADA",
 "name":"Deoxyadenosine deaminase",
 "metabolites":{
-"dad__2_c":-1.0,
+"dad_2_c":-1.0,
 "din_c":1.0,
 "h2o_c":-1.0,
 "h_c":-1.0,
@@ -22326,8 +22326,8 @@
 "id":"DADNt2pp",
 "name":"deoxyadenosine transport in via proton symport (periplasm)",
 "metabolites":{
-"dad__2_c":1.0,
-"dad__2_p":-1.0,
+"dad_2_c":1.0,
+"dad_2_p":-1.0,
 "h_c":1.0,
 "h_p":-1.0
 },
@@ -22340,8 +22340,8 @@
 "id":"DADNtex",
 "name":"deoxyadenosine transport via diffusion (extracellular to periplasm)",
 "metabolites":{
-"dad__2_e":-1.0,
-"dad__2_p":1.0
+"dad_2_e":-1.0,
+"dad_2_p":1.0
 },
 "lower_bound":-1000.0,
 "upper_bound":1000.0,
@@ -35369,7 +35369,7 @@
 "id":"NTD6",
 "name":"5'-nucleotidase (dAMP)",
 "metabolites":{
-"dad__2_c":1.0,
+"dad_2_c":1.0,
 "damp_c":-1.0,
 "h2o_c":-1.0,
 "pi_c":1.0
@@ -35383,7 +35383,7 @@
 "id":"NTD6pp",
 "name":"5'-nucleotidase (dAMP)",
 "metabolites":{
-"dad__2_p":1.0,
+"dad_2_p":1.0,
 "damp_p":-1.0,
 "h2o_p":-1.0,
 "pi_p":1.0
@@ -39785,7 +39785,7 @@
 "metabolites":{
 "2dr1p_c":1.0,
 "ade_c":1.0,
-"dad__2_c":-1.0,
+"dad_2_c":-1.0,
 "pi_c":-1.0
 },
 "lower_bound":-1000.0,
@@ -42632,7 +42632,7 @@
 "metabolites":{
 "4crsol_c":1.0,
 "amet_c":-1.0,
-"dad__5_c":1.0,
+"dad_5_c":1.0,
 "dhgly_c":1.0,
 "h_c":1.0,
 "met__L_c":1.0,
@@ -43984,7 +43984,7 @@
 "metabolites":{
 "amet_c":-1.0,
 "btn_c":1.0,
-"dad__5_c":1.0,
+"dad_5_c":1.0,
 "dtbt_c":-1.0,
 "h_c":1.0,
 "met__L_c":1.0

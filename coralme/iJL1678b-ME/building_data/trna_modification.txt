@@ -25,7 +25,7 @@ Y_at_39	TruA_dim
 mnm5s2U_at_34	TrmU_mono,YhhP_mono,YheLMN_cplx,YccK_mono,MnmEG_cplx_mod_fad(1)_mod_k(2),MnmC_mono_mod_fad(1)	atp_c:-1,gtp_c:-1,h2o_c:-1,5fthf_c:-1,gly_c:-1,amet_c:-1,gdp_c:1,pi_c:1,h_c:4,thf_c:1,glx_c:1,ahcys_c:1,amp_c:1,ppi_c:1	IscS_mod_pydx5p(2)_mod_SH(1):-1,IscS_mod_pydx5p(2):1
 m6A_at_37	YfiC_mono	amet_c:-1,ahcys_c:1,h_c:1
 Cm_at_32	TrmJ_dim	amet_c:-1,ahcys_c:1,h_c:1
-ms2i6A_at_37	MiaA_dim_mod_mg2(2),MiaB_mono_mod_4fe4s(1)	dmpp_c:-1,amet_c:-2,ppi_c:1,ahcys_c:1,h_c:2,met__L_c:1,dad__5_c:1	IscS_mod_pydx5p(2)_mod_SH(1):-1,IscS_mod_pydx5p(2):1
+ms2i6A_at_37	MiaA_dim_mod_mg2(2),MiaB_mono_mod_4fe4s(1)	dmpp_c:-1,amet_c:-2,ppi_c:1,ahcys_c:1,h_c:2,met__L_c:1,dad_5_c:1	IscS_mod_pydx5p(2)_mod_SH(1):-1,IscS_mod_pydx5p(2):1
 Y_at_32	RluA_mono
 D_at_21	generic_Dus	nadph_c:-1,h_c:-1,nadp_c:1
 m1G_at_37	TrmD_dim	amet_c:-1,ahcys_c:1,h_c:1
