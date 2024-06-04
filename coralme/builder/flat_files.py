@@ -158,6 +158,9 @@ def process_m_model(
 # 	mets_to_remove = [ m for m in m_model.metabolites if len(m.reactions) == 0 ]
 # 	m_model.remove_metabolites(mets_to_remove)
 
+	# remove unused genes
+	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
+
 	# met_data DataFrame
 	mets_data = mets_data[mets_data['type'].isin(['ADD', 'REPLACE'])]
 	mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type']
