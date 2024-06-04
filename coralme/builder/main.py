@@ -2191,13 +2191,15 @@ class MEReconstruction(MEBuilder):
 		user_default_rnap = sigma_to_rnap.get(user_default_sigma, None)
 
 		if user_default_rnap is None:
+			msg = 'Assigning most common RNAP \'{:s}\' to missing polymerase in \'{:s}\''.format(most_common,transcription_data.id)
 			most_common = max(rnap_counter, key = rnap_counter.get)
 		else:
+			msg = 'Assigning user default RNAP \'{:s}\' to missing polymerase in \'{:s}\''.format(most_common,transcription_data.id)
 			most_common = user_default_rnap
 
 		for transcription_data in me.transcription_data:
-			if transcription_data.RNA_polymerase == '' and most_common != '':
-				logging.warning("Assigning most common RNAP \'{:s}\' to missing polymerase in \'{:s}\'".format(most_common,transcription_data.id))
+			if transcription_data.RNA_polymerase is None and most_common != '':
+				logging.warning(msg)
 				transcription_data.RNA_polymerase = most_common
 
 		# ### 7) Add Transcription Metacomplexes: Degradosome (both for RNA degradation and RNA splicing)
