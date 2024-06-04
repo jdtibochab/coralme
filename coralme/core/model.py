@@ -320,6 +320,20 @@ class MEModel(cobra.core.model.Model):
 		return NotImplemented
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def prune_unused_metabolites(self):
+		# originally at cobra.manipulation.delete.prune_unused_metabolites, but it requires to make a copy of the model
+		inactive_metabolites = [ m for m in self.metabolites if len(m.reactions) == 0 ]
+		self.remove_metabolites(inactive_metabolites)
+		return inactive_metabolites
+
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def prune_unused_reactions(self):
+		# originally at cobra.manipulation.delete.prune_unused_reactions, but it requires to make a copy of the model
+		reactions_to_prune = [ r for r in self.reactions if len(r.metabolites) == 0 ]
+		self.remove_reactions(reactions_to_prune)
+		return reactions_to_prune
+
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def merge(self, right, prefix_existing=None, inplace=True, objective='left'):
 		return NotImplemented
 
