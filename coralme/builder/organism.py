@@ -5,20 +5,14 @@ import random
 import io
 import anyconfig
 import numpy
-
-
-from collections import defaultdict
+import collections
 
 import Bio
 import cobra
 import pandas
 import tqdm
 bar_format = '{desc:<75}: {percentage:.1f}%|{bar}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
-
 import coralme
-from coralme.builder import dictionaries
-
-from coralme.builder.curation import MEManualCuration, MECurator
 
 import warnings
 try:
@@ -29,9 +23,6 @@ except:
 import logging
 log = logging.getLogger(__name__)
 
-#https://stackoverflow.com/questions/36408496/python-logging-handler-to-append-to-list
-#Here is a naive, non thread-safe implementation:
-# Inherit from logging.Handler
 element_types = {'CDS', 'rRNA','tRNA', 'ncRNA','misc_RNA','RNA','tmRNA'}
 
 class Organism(object):
@@ -82,7 +73,7 @@ class Organism(object):
 
         # Set initial properties
         self.is_reference = is_reference
-        self.curation_notes = defaultdict(list)
+        self.curation_notes = collections.defaultdict(list)
         self.config = config
 
         #if self.is_reference:
@@ -180,7 +171,7 @@ class Organism(object):
         else:
             # Use TUs dataframe file path as defined
             filename = self.config.get('df_TranscriptionalUnits', self.directory + "TUs_from_biocyc.txt")
-        
+
         if os.path.isfile(filename):
             # If TUs dataframe exists, read it
             tmp = pandas.read_csv(filename, index_col = 0, sep = "\t")
@@ -201,7 +192,7 @@ class Organism(object):
         else:
             # Read M-model from the configuration file path
             model = self.config['m-model-path']
-        
+
         if model.endswith('.json'):
             # Read from JSON model
             return cobra.io.load_json_model(model)
@@ -315,7 +306,6 @@ class Organism(object):
             gb_it = Bio.SeqIO.parse(self.config['genbank-path'], "gb")
         self.contigs = [ i for i in gb_it ]
 
-
     def check_folder(self):
         """ Checks that the necessary directories are present.
         """
@@ -325,7 +315,6 @@ class Organism(object):
         if not os.path.isdir(self.blast_directory):
             os.makedirs(self.blast_directory)
             logging.warning("{} directory was created.".format(self.blast_directory))
-
 
     def check_m_model(self):
         """ Performs checks on the M-model
@@ -432,8 +421,7 @@ class Organism(object):
     def load_manual_curation(self):
         """ Loads manual curation to Organism instance
         """
-        MEManualCuration(self).load_manual_curation()
-
+        coralme.builder.curation.MEManualCuration(self).load_manual_curation()
 
     def purge_genes_in_file(self):
         """ Checks genes in files and purges problematic ones.
@@ -571,7 +559,6 @@ class Organism(object):
                 "Source": source,
                 }}
         return self._add_entry_to_df(protein_mod,tmp)
-
 
     def sync_files(self):
         """
@@ -1363,7 +1350,7 @@ class Organism(object):
         def find_aminoacid(trna_string):
             """Call the aminoacid from a ligase description string"""
             trna_string = trna_string.lower()
-            for aa, rx in dictionaries.amino_acid_regex.items():
+            for aa, rx in coralme.builder.dictionaries.amino_acid_regex.items():
                 if re.search(rx, trna_string):
                     return aa
             return None
@@ -1373,7 +1360,7 @@ class Organism(object):
         generic_dict = self.generic_dict
         complexes_df = self.complexes_df
         warn_generic = []
-        d = defaultdict(set)
+        d = collections.defaultdict(set)
         for k,v in org_amino_acid_trna_synthetase.copy().items():
             if isinstance(v,list):
                 d[k] = set(v)
@@ -1399,7 +1386,7 @@ class Organism(object):
             d[aa].add(cplx)
         trna_ligases_from_subunits = self._get_ligases_subunits_from_regex(complexes_df).to_dict()['name']
 #         new_cplxs = {k:dict() for k in d.copy()}
-        new_cplxs = defaultdict(dict)
+        new_cplxs = collections.defaultdict(dict)
         for cplx,trna_string in trna_ligases_from_subunits.items():
             trna_string = self._extract_trna_string(trna_string)
             aa = find_aminoacid(trna_string)
@@ -1554,7 +1541,6 @@ class Organism(object):
                 }
             }
             self.sigmas = self._add_entry_to_df(self.sigmas,tmp)
-
 
     def get_rpod(self):
         """ Gets RpoD from files."""
@@ -2078,7 +2064,6 @@ class Organism(object):
                 return
         self.duplicated_genes = None
 
-
     def _check_for_duplicates_between_datasets(self,
                                                info):
         """Checks for duplicates between optinal files"""
@@ -2117,8 +2102,6 @@ class Organism(object):
                 logging.warning('Changed reaction ID from {} to {} to prevent the conflict between: {}'.format(c,c+'_rxn',' and '.join([j for j,k in row.items() if k])))
             else:
                 raise ValueError('The identifier {} is duplicated in {}. Please fix!'.format(c,' and '.join([j for j,k in row.items() if k])))
-
-
 
     def check_for_duplicates(self):
         """ Checks for problematic duplicates in provided files."""
