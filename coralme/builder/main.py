@@ -1777,8 +1777,10 @@ class MEReconstruction(MEBuilder):
 			else:
 				me.gem = cobra.io.read_sbml_model(me.global_info['m-model-path'])
 
-		# remove unused genes
+		# remove unused genes, reactions, and metabolites
 		cobra.manipulation.delete.remove_genes(me.gem, [ x for x in me.gem.genes if len(x.reactions) == 0 ], remove_reactions = False)
+		cobra.manipulation.delete.prune_unused_reactions(me.gem) # reactions without metabolites
+		cobra.manipulation.delete.prune_unused_metabolites(me.gem) # orphan metabolites
 
 		# update default options with missing, automated-defined values
 		me.global_info.update(self.configuration)
