@@ -316,6 +316,10 @@ class MEModel(cobra.core.model.Model):
 					rxn._metabolites[met] = coeff.subs({ self._mu_old : self.mu })
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def copy(self):
+		return NotImplemented
+
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def merge(self, right, prefix_existing=None, inplace=True, objective='left'):
 		return NotImplemented
 
