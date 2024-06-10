@@ -4,6 +4,8 @@ import coralme
 import pandas
 import sympy
 import tqdm
+import re
+
 
 def exchange_single_model(me, flux_dict = 0, solution=0):
 	"""
@@ -280,3 +282,19 @@ def get_reduced_costs(nlp,muopt,rxn_idx,basis=None,precision=1e-6):
 	_xopt, yopt, zopt, _stat, _basis = nlp.solvelp(muf = muopt, basis = basis, precision = precision)
 	return _xopt, yopt, zopt, _stat, _basis
 
+elements = ["C","H","O","N","P","S","Mn","Cr","Ni","Cu","Zn","Sb","Ca","H","Co","K","As","Cd","Mg","Mo","Fe","X","Hg","Pb","Ag","Se","Cl","Na","W","R"]
+def get_biomass_formula(me,fluxes):
+	if isinstance(fluxes,dict):
+		fluxes = pandas.Series(fluxes)
+	pattern = "^EX_|^DM_|^SK_|^TS"
+	fluxes = fluxes[fluxes.index.str.contains(pattern)]
+	fluxes = fluxes[fluxes!=0]
+	fluxes = fluxes.drop([r for r in fluxes.index if me.get("lipid_biomass") in me.get(r).products])
+
+	Formulas = {}
+	for e in elements:
+		Formulas[e] = {m:me.get(re.split(pattern,m)[1]).elements.get(e,0) for m in fluxes.index}
+	Formulas = pandas.DataFrame.from_dict(Formulas)
+	AbsoluteFormula = -fluxes.multiply(Formulas.T,axis=0).sum(axis=1)
+	RelativeFormula = AbsoluteFormula/AbsoluteFormula["C"]
+	return RelativeFormula[RelativeFormula>1e-3]
