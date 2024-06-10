@@ -853,7 +853,8 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	create_transcribed_gene(me_model, 'dummy', 'mRNA', seq)
 	add_transcription_reaction(me_model, 'RNA_dummy', {'dummy'}, seq)
 	me_model.add_metabolites(coralme.core.component.TranslatedGene('protein_' + 'dummy'))
-	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, update = update)
+	prot_sequence = str(Bio.Seq.Seq(seq).translate(table = list(me_model.global_info['transl_tables']['c'])[0]))
+	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, update = update)
 
 	try:
 		complex_data = coralme.core.processdata.ComplexData('CPLX_dummy', me_model)
