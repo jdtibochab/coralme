@@ -1434,7 +1434,7 @@ class MEModel(cobra.core.model.Model):
 
 			if stat == 'optimal':
 				muopt = [ x for x,c in zip(xopt, c) if c != 0 ][0]
-				self.solution = self._solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat)
+				self.solution = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat)
 				return True
 			else:
 				if hasattr(self, 'solution'):
@@ -1460,8 +1460,8 @@ class MEModel(cobra.core.model.Model):
 			if get_reduced_costs:
 				rxn_idx =  {rxn.id : idx for idx, rxn in enumerate(self.reactions)}
 				# Open biomass dilution bounds
-				me_nlp.xl[rxn_idx["biomass_dilution"]] =  lambda mu : 0
-				me_nlp.xu[rxn_idx["biomass_dilution"]] = lambda mu : 1000
+				me_nlp.xl[rxn_idx["biomass_dilution"]] = lambda mu : 0.
+				me_nlp.xu[rxn_idx["biomass_dilution"]] = lambda mu : 1000.
 				# Set new objective coefficient
 				me_nlp.c = [1.0 if r=="biomass_dilution" else 0.0 for r in rxn_idx]
 				# Solve at muopt
