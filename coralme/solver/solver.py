@@ -85,7 +85,7 @@ class ME_NLP:
     Contains the data matrices needed for solving ME as an NLP using qMINOS
     """
     #def __init__(self, me, growth_rxn = 'biomass_dilution'):
-    def __init__(self, Sf, Se, b, c, xl, xu, cs, mu = sympy.Symbol('mu', positive = True), lambdas = None):
+    def __init__(self, Sf, Se, b, c, xl, xu, cs, mu = sympy.Symbol('mu', positive = True), lambdas = None, Lr = list(), Lm = list()):
         # The ME model object
         #self.me = me
 
@@ -99,6 +99,8 @@ class ME_NLP:
         self.cs = cs
         self.mu = mu
         self.fn = lambdas
+        self.Lr = Lr
+        self.Lm = Lm
 
         # Inputs to qminos
         self.J     = None

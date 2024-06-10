@@ -1164,15 +1164,15 @@ class MEModel(cobra.core.model.Model):
 
 		return res
 
-	def construct_lp_problem(self, parameters : dict = {}, lambdify = False) -> tuple:
+	def construct_lp_problem(self, parameters : dict = {}, lambdify = False, as_dict = False) -> tuple:
 		"""
 		lambdify
 		    Returns lambda functions for each symbolic stoichiometric coefficient
 
 		Output:
 		    A tuple of 9 elements:
-		        Dictionary with numeric stoichiometric coefficients
-		        Dictionary with symbolic stoichiometric coefficients
+		        Dictionary with numeric stoichiometric coefficients: { (met, rxn) : float }
+		        Dictionary with symbolic stoichiometric coefficients: { (met, rxn) : symbol }
 		        List of lower bounds (numeric and symbolic)
 		        List of upper bounds (numeric and symbolic)
 		        List of metabolic bounds (see metabolites._bound property)
@@ -1186,11 +1186,11 @@ class MEModel(cobra.core.model.Model):
 		Sf = dict() # floats
 		Se = dict() # expressions
 		Lr = [ x.id for x in self.reactions ] # reaction identifiers
-		Lm = [ x.id for x in self.metabolites ] # reaction identifiers
+		Lm = [ x.id for x in self.metabolites ] # metabolite identifiers
 
 		# override default parameters
 		if hasattr(self, 'global_info'):
-			default = self.global_info['default_parameters']
+			default = self.global_info.get('default_parameters', {})
 			default.update(parameters)
 
 		# check how many variables are in the ME-model
@@ -1202,7 +1202,7 @@ class MEModel(cobra.core.model.Model):
 				if hasattr(value, 'subs'):
 					#atoms.add(list(value.free_symbols)[0])
 					atoms.update(list(value.free_symbols))
-					Se[met_index, idx] = value.xreplace(default)
+					Se[met_index, idx] = value
 				else:
 					Sf[met_index, idx] = value
 
@@ -1220,7 +1220,27 @@ class MEModel(cobra.core.model.Model):
 		else:
 			lambdas = None
 
-		return Sf, Se, list(lb), list(ub), b, c, cs, atoms, lambdas, Lr, Lm
+		#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
+		#self.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
+
+		# eval Se with parameters, except mu
+		Se = { k:v.xreplace(default) for k,v in Se.items() }
+		if as_dict:
+			return {
+				'Sf' : Sf,
+				'Se' : Se,
+				'xl' : list(lb),
+				'xu' : list(ub),
+				'b' : b,
+				'c' : c,
+				'cs' : cs,
+				'mu' : atoms,
+				'lambdas' : lambdas,
+				'Lr' : Lr, # list of reaction IDs
+				'Lm' : Lm, # list of metabolite IDs
+				}
+		else:
+			return Sf, Se, list(lb), list(ub), b, c, cs, atoms, lambdas, Lr, Lm
 
 	def rank(self, mu = 0.001):
 		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem()
