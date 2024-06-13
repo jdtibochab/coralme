@@ -6,7 +6,9 @@ def add_iron_sulfur_modifications(me_model):
 	#generic_fes_transfer_complexes = me_model.global_info['complex_cofactors']['generic_fes_transfer_complexes']
 	fes_transfers = me_model.global_info['complex_cofactors']['fes_transfers']
 
-	#identify if the user added MetabolicReactions to create FeS transfers
+	#identify if the user added MetabolicReactions to create modified FeS transfers
+	#if not, FormationReaction's are modified during update(),
+	#but missing 2fe2s and 4fe4s will be added as troubleshooted reactions
 	for fes in ['2fe2s', '4fe4s']:
 		components = [ '{:s}_mod_{:s}(1)'.format(x, fes) for x in set(fes_transfers) if x != '' ]
 		for component in components:
