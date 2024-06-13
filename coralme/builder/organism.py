@@ -46,7 +46,7 @@ class Organism(object):
     def __init__(self, config, is_reference):
         if is_reference:
             # If Organism is reference, set some default values for future processing
-            if bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
+            if bool(config.get('dev_reference', False)) and not bool(config.get('user_reference', False)):
                 # If no reference set, use the default iJL1678b E. coli ME-model files as reference
                 self.id = 'iJL1678b'
             elif not bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
@@ -61,11 +61,11 @@ class Organism(object):
                         config.update(anyconfig.load(infile))
             elif bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
                 # Reference configuration is contradictory. Using default reference instead.
-                logging.warning('The \'dev_reference\' and \'user-reference\' options are mutually exclusive.')
+                logging.warning('The \'dev_reference\' and \'user-reference\' options are mutually exclusive. Using default iJL1678b as reference.')
                 self.id = 'iJL1678b'
             else:
                 # In any other case, use the default reference instead
-                warnings.warn("Reference configuration was wrongly set. Using default iJL1678b as reference.")
+                logging.warning('No reference was set. Using default iJL1678b as reference.')
                 self.id = 'iJL1678b'
         else:
             # If it is not the reference, use the organism files
@@ -956,6 +956,7 @@ class Organism(object):
                         'importance':'medium',
                         'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
         return gene_dictionary
+
     def read_proteins_df(self,filename):
         """ Loads the proteins file."""
         return self.read_optional_file(
@@ -968,6 +969,7 @@ class Organism(object):
                 'Locations'
             ]
         )
+
     def read_gene_sequences(self,filename):
         """ Loads the gene sequences file."""
         if os.path.isfile(filename):
@@ -977,6 +979,7 @@ class Organism(object):
                     d[g] = i
             return d
         return {}
+
     def read_RNA_df(self,filename):
         """ Loads the RNAs file."""
         return self.read_optional_file(
@@ -988,6 +991,7 @@ class Organism(object):
                 'Gene'
             ]
         )
+
     def read_TU_df(self,filename):
         """ Loads the TUs file."""
         return self.read_optional_file(
@@ -1456,6 +1460,7 @@ class Organism(object):
             if not peptide_release_factors["UGA"]['enzyme'] and rf.str.contains("2").any():
                 peptide_release_factors["UGA"]['enzyme'] = rf[rf.str.contains("2")].index[0]
                 generics["generic_RF"]['enzymes'].append(peptide_release_factors["UGA"]['enzyme'])
+
     def get_nonmetabolic(self):
         """ Gets nonmetabolic metabolites in M-model."""
         m_model = self.m_model
@@ -1510,6 +1515,7 @@ class Organism(object):
         if not name:
             name = "_".join(row["genes"])
         return "RNAP_" + name
+
     def get_sigma_factors(self):
         """ Gets sigma factors from files."""
         complexes_df = self.complexes_df
@@ -1571,6 +1577,7 @@ class Organism(object):
                        ):
         """The a slice of a dataframe from a regex"""
         return df[df["name"].str.contains(regex,regex=True)]
+
     def _get_complex_from_regex(self,
                                complexes_df,
                                cplx_regex,
@@ -1588,6 +1595,7 @@ class Organism(object):
         if subunits.shape[0] == 1:
             return subunits,'cplx'
         return subunits,'subunits'
+
     def _get_rna_polymerase_from_regex(self,
                                         complexes_df):
         """Call the RNAP from regex"""
@@ -1604,29 +1612,24 @@ class Organism(object):
                 "(?:^RNA polymerase$)",
                 subunit_regex = "(?:^RNA polymerase)(?=.*subunit.*|.*chain.*)")
         return cplx,flag
+
     def _add_rna_polymerase_to_complexes(self,
                                         complexes_df,
                                         RNAP_genes):
         """Add the RNAP entry to the complexes dataframe"""
-        return complexes_df.append(
-            pandas.DataFrame.from_dict(
-                {
-                    "RNAP-CPLX": {
-                        "name": "DNA-directed RNA polymerase",
-                        "genes": " AND ".join(
-                            ["{}()".format(g) for g in RNAP_genes]
-                        ),
-                        "source": "GenBank",
-                    }
-                }
-            ).T
-        )
+        tmp = pandas.DataFrame.from_dict({
+            "RNAP-CPLX": {
+                "name": "DNA-directed RNA polymerase",
+                "genes": " AND ".join(["{}()".format(g) for g in RNAP_genes]),
+                "source": "GenBank",
+                }}).T
+        return pandas.concat([complexes_df, tmp], axis = 0, join = 'outer')
 
     def _is_beta_prime_in_RNAP(self,RNAP,complexes_df):
         """Checks if beta prime subunit is in RNAP"""
         genes = [re.findall('.*(?=\(\d*\))',i)[0] for i in complexes_df.loc[RNAP]['genes'].split(' AND ')]
         df = complexes_df[complexes_df['genes'].str.contains('|'.join(genes))]
-        return df['name'].str.contains("beta(\'|.*prime)|rpoc|RNA polymerase.*(subunit|chain).*beta",regex=True,case=False).any()
+        return df['name'].str.contains("beta(?:\'|.*prime)|rpoc|RNA polymerase.*(?:subunit|chain).*beta",regex=True,case=False).any()
 
     def get_rna_polymerase(self, force_RNAP_as=""):
         """Call the RNAP from files"""
