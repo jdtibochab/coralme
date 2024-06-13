@@ -48,7 +48,7 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, organelle
 
 	# 2) add TranscriptionData into TranscriptionReaction
 	transcription.transcription_data = coralme.core.processdata.TranscriptionData(
-		id = tu_name, model = me_model, nucleotide_sequence = sequence, rnap = None,
+		id = tu_name, model = me_model, nucleotide_sequence = sequence, rnap = '',
 		rna_products = {'RNA_' + i for i in locus_ids}, organelle = organelle
 		)
 
@@ -851,8 +851,8 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	dummy._stoichiometry = {'CPLX_dummy': -1}
 
 	create_transcribed_gene(me_model, 'dummy', 'mRNA', seq)
-	add_transcription_reaction(me_model, 'RNA_dummy', {'dummy'}, seq)
-	me_model.add_metabolites(coralme.core.component.TranslatedGene('protein_' + 'dummy'))
+	add_transcription_reaction(me_model, 'TU_RNA_dummy', {'dummy'}, seq)
+	me_model.add_metabolites(coralme.core.component.TranslatedGene('protein_dummy'))
 	prot_sequence = str(Bio.Seq.Seq(seq).translate(table = list(me_model.global_info['transl_tables']['c'])[0]))
 	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, update = update)
 
