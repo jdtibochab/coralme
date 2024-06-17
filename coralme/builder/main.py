@@ -2665,8 +2665,9 @@ class MEReconstruction(MEBuilder):
 				keff = sasa * median_keff / median_sasa
 				mapped_keffs[rxn] = 3000. if keff > 3000. else 0.01 if keff < 0.01 else keff
 
+			# WARNING: Do not change 'keff' unless it is fully deprecated by coupling_coefficient_enzyme or coupling_coefficient_subreaction
 			# dictionary of reaction IDs : coralme.core.reaction objects
-			rxns_to_map = { x.id:x for x in me.reactions + me.subreaction_data if hasattr(x, 'keff') }
+			rxns_to_map = { x.id:x for x in me.subreaction_data + me.reactions if hasattr(x, 'keff') }
 			# Step 3: Replace user values if they match
 			for idx, row in tqdm.tqdm(list(df_keffs.iterrows()), 'Mapping effective turnover rates from user input...', bar_format = bar_format):
 				if row['direction'] == '' and row['complex'] == '' and row['mods'] == '':
@@ -2687,7 +2688,11 @@ class MEReconstruction(MEBuilder):
 			# Step 4: Set keffs
 			if mapped_keffs:
 				for rxn, keff in tqdm.tqdm(sorted(mapped_keffs.items(), key = lambda x: x[0].id), 'Setting the effective turnover rates using user input...', bar_format = bar_format):
-					rxn.coupling_coefficient_enzyme = float(keff)
+					if isinstance(rxn, coralme.core.reaction.MetabolicReaction):
+						rxn.coupling_coefficient_enzyme = float(keff)
+					if isinstance(rxn, coralme.core.processdata.SubreactionData):
+						rxn.coupling_coefficient_subreaction = float(keff)
+					# update() will convert the coupling coefficient into mu / value / 3600.
 					if hasattr(rxn, 'update'): # subreactions has no update attribute
 						rxn.update()
 					logging.warning('Setting the effective turnover rate for \'{:s}\' in {:f} successfully.'.format(rxn.id, float(keff)))
