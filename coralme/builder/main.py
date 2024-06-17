@@ -2198,7 +2198,7 @@ class MEReconstruction(MEBuilder):
 			most_common = user_default_rnap
 
 		for transcription_data in me.transcription_data:
-			if transcription_data.RNA_polymerase is None and most_common != '':
+			if transcription_data.RNA_polymerase == '' and most_common != '':
 				logging.warning(msg.format(most_common,transcription_data.id))
 				transcription_data.RNA_polymerase = most_common
 
