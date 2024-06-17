@@ -834,6 +834,18 @@ class MetabolicReaction(MEReaction):
 		self.reverse = False
 		self._coupling_coefficient_enzyme = None
 
+	# Backward compatibility
+	@property
+	def keff(self):
+		return self._coupling_coefficient_enzyme
+
+	@keff.setter
+	def keff(self, value):
+		"""
+		value is the keff in per second, not the final value in per hour
+		"""
+		self._coupling_coefficient_enzyme = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+
 	@property
 	def coupling_coefficient_enzyme(self):
 		return self._coupling_coefficient_enzyme
