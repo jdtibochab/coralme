@@ -184,13 +184,22 @@ class SubreactionData(ProcessData):
 		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, evaluate = False)
 		self._element_contribution = {}
 
+	# Backward compatibility
+	@property
+	def keff(self):
+		return self._coupling_coefficient_subreaction
+
+	@keff.setter
+	def keff(self, value):
+		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+
 	@property
 	def coupling_coefficient_subreaction(self):
 		return self._coupling_coefficient_subreaction
 
 	@coupling_coefficient_subreaction.setter
 	def coupling_coefficient_subreaction(self, value):
-		self._coupling_coefficient_subreaction = value
+		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
 
 	@property
 	def element_contribution(self):
