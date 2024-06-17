@@ -23,7 +23,7 @@ import coralme
 
 # configuration
 log_format = '%(asctime)s %(message)s' #%(clientip)-15s %(user)-8s
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
+bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 try:
 	warnings.simplefilter(action = 'ignore', category = pandas.errors.SettingWithCopyWarning)
 except:
