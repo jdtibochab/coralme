@@ -1346,8 +1346,7 @@ class MEModel(cobra.core.model.Model):
 		if verbose:
 			print('Running FVA for {:d} reactions. Maximum growth rate fixed to {:g}'.format(len(reaction_list), mu_fixed))
 
-		from coralme.solver.solver import ME_NLP
-		me_nlp = ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
+		me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
 
 		# We need only reaction objects
 		rxns_fva = []
@@ -1373,22 +1372,19 @@ class MEModel(cobra.core.model.Model):
 		return pandas.DataFrame(fva_result).T
 
 	def _solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat, solver = 'qminos'):
-		if solver == 'qminos':
+		if solver in ['qminos', 'gurobi']:
 			#f = sum([ rxn.objective_coefficient * xopt[idx] for idx, rxn in enumerate(self.reactions) ])
 			#x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
 			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
 			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
 			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
-		if solver == 'cplex':
+		elif solver == 'cplex':
 			#x_primal =
 			x_dict = { rxn.id: xopt[rxn.id].solution_value for idx, rxn in enumerate(self.reactions) }
 			y_dict = { met.id: yopt[met.id].dual_value for idx, met in enumerate(self.metabolites) }
 			z_dict = { rxn.id: zopt[rxn.id].reduced_cost for idx, rxn in enumerate(self.reactions) }
-		if solver == 'gurobi':
-			#x_primal = gpModel.x[ 0:len(self.reactions) ]
-			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
-			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
+		else:
+			raise ValueError('solver output not compatible.')
 
 		#self.me.solution = Solution(f, x_primal, x_dict, y, y_dict, 'qminos', time_elapsed, status)
 		return cobra.core.Solution(
@@ -1715,9 +1711,8 @@ class MEModel(cobra.core.model.Model):
 		else:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, lambdas, lb, ub, keys, atoms)
 
-		from coralme.solver.solver import ME_NLP
 		#me_nlp = ME_NLP(me)
-		me_nlp = ME_NLP(Sf, dict(), b, c, lb, ub, cs, set(keys.keys()), None)
+		me_nlp = coralme.solver.solver.ME_NLP(Sf, dict(), b, c, lb, ub, cs, set(keys.keys()), None)
 		muopt, xopt, yopt, zopt, basis, stat = me_nlp.bisectmu(
 				mumax = 1., # mu was already replaced and maxIter is one, so a value here doesn't matter
 				mumin = 0.,
