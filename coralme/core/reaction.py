@@ -1463,10 +1463,10 @@ class TranscriptionReaction(MEReaction):
 		rna_polymerase = self.transcription_data.RNA_polymerase
 		if rna_polymerase is not None and rna_polymerase in metabolites:
 			stoichiometry[rna_polymerase] = -self.transcription_data.coupling_coefficient_rnapol
-		elif rna_polymerase is not None:
+		elif rna_polymerase is not None and rna_polymerase != '':
 			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(rna_polymerase, tu_id))
 		else:
-			logging.warning('The \'{:s}\' component has no RNA Polymerase.'.format(tu_id, tu_id))
+			logging.warning('The \'{:s}\' component has no RNA Polymerase associated to it. It might be added later during the reconstruction.'.format(tu_id))
 
 		# 2) RNA products defined in data.RNA_products
 		# WARNING: All genes in TU must be added to the model prior to creating transcription reactions
