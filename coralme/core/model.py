@@ -806,7 +806,22 @@ class MEModel(cobra.core.model.Model):
 
 	@property
 	def all_genes(self):
-		lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id]
+		lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
+		return cobra.core.dictlist.DictList(lst)
+
+	@property
+	def mRNA_genes(self):
+		lst = [ g for g in self.all_genes if g.RNA_type == 'mRNA' ]
+		return cobra.core.dictlist.DictList(lst)
+
+	@property
+	def rRNA_genes(self):
+		lst = [ g for g in self.all_genes if g.RNA_type == 'rRNA' ]
+		return cobra.core.dictlist.DictList(lst)
+
+	@property
+	def tRNA_genes(self):
+		lst = [ g for g in self.all_genes if g.RNA_type == 'tRNA' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
@@ -1782,8 +1797,14 @@ class MEModel(cobra.core.model.Model):
 				<td><strong>Number of genes</strong></td>
 				<td>{len(self.all_genes)-1}</td>
 			</tr><tr>
-				<td><strong>Number of groups</strong></td>
-				<td>{len(self.groups)}</td>
+				<td><strong>Number of mRNA genes</strong></td>
+				<td>{len(self.mRNA_genes)}</td>
+			</tr><tr>
+				<td><strong>Number of rRNA genes</strong></td>
+				<td>{len(self.rRNA_genes)}</td>
+			</tr><tr>
+				<td><strong>Number of tRNA genes</strong></td>
+				<td>{len(self.tRNA_genes)}</td>
 			</tr><tr>
 				<td><strong>Objective expression</strong></td>
 				<td>{cobra.util.util.format_long_string(",".join([r.id for r in self.objective]), 100)}</td>
