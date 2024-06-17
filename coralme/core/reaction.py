@@ -1068,13 +1068,14 @@ class ComplexFormation(MEReaction):
 
 		metabolites = self._model.metabolites
 
-		# 1) Complex product defined in self._complex_id == self.complex_data_id
-		if self.complex_data_id not in metabolites:
+		# 1) Complex product defined in self._complex_id
+		if self._complex_id not in metabolites:
 			complex_met = coralme.core.component.create_component(self._complex_id, default_type = coralme.core.component.Complex)
 			self._model.add_metabolites([complex_met])
 
+		# WARNING: careful with lipoyl modifications because complex_id != id
 		complex_info = self._model.process_data.get_by_id(self.complex_data_id)
-		stoichiometry[complex_info.id] = 1
+		stoichiometry[complex_info.complex_id] = 1.
 
 		# 2) Protein subunits with stoichiometry defined in data.stoichiometry
 		for component_id, value in complex_info.stoichiometry.items():
@@ -1087,7 +1088,7 @@ class ComplexFormation(MEReaction):
 		new_stoich = self.get_components_from_ids(stoichiometry, default_type = coralme.core.component.Complex, verbose = verbose)
 
 		# Add formula to complex
-		self._add_formula_to_complex(complex_info, self._model.metabolites.get_by_id(self.complex_data_id))
+		self._add_formula_to_complex(complex_info, metabolites.get_by_id(self._complex_id))
 
 		# 4) Biomass corresponding to modifications detailed in data.subreactions
 		# Biomass accounting of protein subunits is handled in translation
