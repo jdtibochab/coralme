@@ -2,6 +2,7 @@
 import numpy
 import pathlib
 import pandas
+import xlsxwriter
 import warnings
 
 import logging
