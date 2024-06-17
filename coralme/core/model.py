@@ -230,8 +230,8 @@ class MEModel(cobra.core.model.Model):
 
 		# derived parameters that are common throughout the ME-model
 		# WARNING: The equation are written following O'Brien 2013 paper, no COBRAme documentation
+		# https://www.embopress.org/doi/full/10.1038/msb.2013.52#supplementary-materialsZ
 		# Empirical relationship between measured ratio of RNA (R) to Protein (P)
-		# https://cobrame.readthedocs.io/en/master/coupling_constraint_derivation.html#Parameters
 		self.symbols['R/P'] = (self._mu / self.symbols['k_t']) + self.symbols['r_0'] # eq 1, page 15
 
 		# 70S ribosomes (page 16)
@@ -248,15 +248,15 @@ class MEModel(cobra.core.model.Model):
 		# mRNA coupling
 		self.symbols['c_mRNA'] = self.symbols['m_nt'] / (self.symbols['f_mRNA'] * self.symbols['m_aa']) # page 19
 		# Hyperbolic mRNA catalytic rate
-		self.symbols['k_mRNA'] = self.symbols['c_mRNA'] * self._mu / self.symbols['R/P']
+		self.symbols['k_mRNA'] = 3 * self.symbols['c_mRNA'] * self._mu / self.symbols['R/P'] # 3 nt per aa
 
 		# mRNA dilution, degradation, and translation
 		self.symbols['alpha_1'] = self._mu / self.symbols['k^mRNA_deg']
 		# WARNING: There is an error in O'Brien 2013; corrected in COBRAme docs
 		self.symbols['alpha_2'] = self.symbols['R/P'] / (3 * self.symbols['alpha_1'] * self.symbols['c_mRNA'])
 		# mRNA dilution, degradation, and translation
-		self.symbols['rna_amount'] = self._mu / self.symbols['k_mRNA'] # == 3 * alpha_1 * alpha_2
-		self.symbols['deg_amount'] = self.symbols['k^mRNA_deg'] / self.symbols['k_mRNA'] # == 3 * alpha_2
+		self.symbols['rna_amount'] = self._mu / self.symbols['k_mRNA'] # == alpha_1 * alpha_2
+		self.symbols['deg_amount'] = self.symbols['k^mRNA_deg'] / self.symbols['k_mRNA'] # == alpha_2
 
 		# tRNA coupling
 		self.symbols['c_tRNA'] = self.symbols['m_tRNA'] / (self.symbols['f_tRNA'] * self.symbols['m_aa']) # page 20

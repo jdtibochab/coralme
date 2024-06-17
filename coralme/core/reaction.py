@@ -1776,7 +1776,7 @@ class TranslationReaction(MEReaction):
 
 		# 5) RNA_degradosome w/ degradation coupling coefficient (if present and kdeg > 0)
 		if degradosome_id in metabolites:
-			stoichiometry[degradosome_id] = -self._model.process_data.get_by_id('RNA_degradation_machine').coupling_coefficient_subreaction
+			stoichiometry[degradosome_id] = -self._model.symbols['deg_amount'] * self._model.process_data.get_by_id('RNA_degradation_machine').coupling_coefficient_subreaction
 		else:
 			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(degradosome_id, protein_id))
 
