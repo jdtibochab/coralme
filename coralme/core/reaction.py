@@ -1736,7 +1736,7 @@ class TranslationReaction(MEReaction):
 
 		# 2) Ribosome w/ translation coupling coefficient (if present)
 		if ribosome_id in metabolites:
-			stoichiometry[ribosome_id] = -self.translation_data.coupling_coefficient_ribosome
+			stoichiometry[ribosome_id] = -self.translation_data._coupling_coefficient_ribosome
 		else:
 			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(ribosome_id, protein_id))
 
@@ -1794,6 +1794,12 @@ class TranslationReaction(MEReaction):
 
 		# 7) Subreactions defined in data.subreactions
 		stoichiometry = self.add_subreactions(self.translation_data.id, stoichiometry)
+
+		# 8) Scale stoichiometry using translational efficiency data
+		for k, v in stoichiometry.items():
+			if k in [ transcript.id, 'mRNA_biomass' ]:
+				continue
+			stoichiometry[k] = self.translation_data.translational_efficiency * stoichiometry[k]
 
 		# convert metabolite ids to coralme metabolites
 		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
