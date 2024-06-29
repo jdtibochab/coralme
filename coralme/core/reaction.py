@@ -1809,7 +1809,7 @@ class TranslationReaction(MEReaction):
 		self._add_formula_to_protein(self.translation_data, protein)
 
 		# 8) protein_biomass corresponding to the protein product's mass
-		protein_mass = protein.formula_weight / 1000.  # kDa
+		protein_mass = self.translation_data.translational_efficiency * protein.formula_weight / 1000.  # kDa
 		self.add_metabolites({metabolites.protein_biomass: protein_mass}, combine = False)
 
 		# 9) Subtract mRNA_biomass defined by mRNA degradation coupling coefficinet (if kdeg > 0)
