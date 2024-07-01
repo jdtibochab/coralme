@@ -17,12 +17,14 @@ def add_trna_modification_procedures(me_model, trna_mods):
 			name = '{:s}_at_{:s}'.format(mod_data['modification'], position)
 			trna_mod = coralme.core.processdata.SubreactionData(name, me_model)
 			#trna_mod.enzyme = mod_data['enzymes'].split(' AND ') if mod_data['enzymes'] != 'No_Machine' else None
-			trna_mod.enzyme = mod_data.enzymes.split(' AND ') if mod_data.enzymes != 'No_Machine' else ['CPLX_dummy']
+			trna_mod.enzyme = mod_data['enzymes'].split(' AND ') if mod_data['enzymes'] != 'No_Machine' else ['CPLX_dummy']
 			#trna_mod.stoichiometry = modification_info[mod_data.modification]['metabolites']
-			try:
-				trna_mod.stoichiometry = me_model.process_data.get_by_id(mod_data.modification).stoichiometry
-			except:
+			if me_model.process_data.has_id(mod_data['modification']):
+				trna_mod.stoichiometry = me_model.process_data.get_by_id(mod_data['modification']).stoichiometry
+			else:
+				logging.warning('The tRNA modification {:s} was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
 				trna_mod.stoichiometry = {}
+
 			trna_mod.keff = 65.  # iOL uses 65 for all tRNA mods
 
 			for met, stoich in trna_mod.stoichiometry.items():
@@ -35,7 +37,7 @@ def add_trna_modification_procedures(me_model, trna_mods):
 
 		# Add element contribution from modification to tRNA
 		#trna_mod._element_contribution = modification_info[mod_data.modification]['elements']
-		try:
+		if me_model.process_data.has_id(mod_data['modification']):
 			trna_mod._element_contribution = me_model.process_data.get_by_id(mod_data['modification']).calculate_element_contribution()
-		except:
+		else:
 			trna_mod._element_contribution = {}

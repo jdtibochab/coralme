@@ -814,14 +814,15 @@ class TranslationData(ProcessData):
 		self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
 		self._coupling_coefficient_rna_synthesis = self._model.symbols['rna_amount'] + self._model.symbols['deg_amount']
 		self._coupling_coefficient_hydrolysis = sympy.Mul((len(nucleotide_sequence) - 1) / 4., self._model.symbols['deg_amount'], evaluate = False) # deg_amount
+		self._translational_efficiency = 1.
 
 	@property
-	def coupling_coefficient_ribosome(self):
-		return self._coupling_coefficient_ribosome
+	def translational_efficiency(self):
+		return self._translational_efficiency
 
-	@coupling_coefficient_ribosome.setter
-	def coupling_coefficient_ribosome(self, value):
-		self._coupling_coefficient_ribosome = value
+	@translational_efficiency.setter
+	def translational_efficiency(self, value):
+		self._translational_efficiency = value
 
 	@property
 	def amino_acid_sequence(self):

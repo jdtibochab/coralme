@@ -1179,7 +1179,7 @@ class MEModel(cobra.core.model.Model):
 
 		return res
 
-	def construct_lp_problem(self, parameters : dict = {}, lambdify = False, as_dict = False) -> tuple:
+	def construct_lp_problem(self, lambdify = False, as_dict = False) -> tuple:
 		"""
 		lambdify
 		    Returns lambda functions for each symbolic stoichiometric coefficient
@@ -1203,19 +1203,16 @@ class MEModel(cobra.core.model.Model):
 		Lr = [ x.id for x in self.reactions ] # reaction identifiers
 		Lm = [ x.id for x in self.metabolites ] # metabolite identifiers
 
-		# override default parameters
-		if hasattr(self, 'global_info'):
-			default = self.global_info.get('default_parameters', {})
-			default.update(parameters)
-
 		# check how many variables are in the ME-model
 		atoms = set()
 
 		for idx, rxn in enumerate(self.reactions):
+			# metabolites derives from symbolic_stoichiometry, replacing everything except mu
 			for met, value in rxn.metabolites.items():
 				met_index = self.metabolites.index(met)
 				if hasattr(value, 'subs'):
-					#atoms.add(list(value.free_symbols)[0])
+					# atoms.add(list(value.free_symbols)[0])
+					# if two or more ME-models are merged, detect if 'mu' is unique
 					atoms.update(list(value.free_symbols))
 					Se[met_index, idx] = value
 				else:
@@ -1228,24 +1225,23 @@ class MEModel(cobra.core.model.Model):
 		cs = [ 'E' for m in self.metabolites ]
 
 		if lambdify:
-			fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x))
-			lb = [ x for x in fn(lb) ]
-			ub = [ x for x in fn(ub) ]
-			lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			# fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x))
+			lb = sympy.lambdify(list(atoms), lb) # 5x faster than [ x for x in fn(lb) ]
+			ub = sympy.lambdify(list(atoms), ub) # 5x faster than [ x for x in fn(ub) ]
+			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values())))
 		else:
 			lambdas = None
 
 		#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
 		#self.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
-		# eval Se with parameters, except mu
-		Se = { k:v.xreplace(default) for k,v in Se.items() }
 		if as_dict:
 			return {
 				'Sf' : Sf,
 				'Se' : Se,
-				'xl' : list(lb),
-				'xu' : list(ub),
+				'xl' : ub,
+				'xu' : ub,
 				'b' : b,
 				'c' : c,
 				'cs' : cs,
@@ -1255,7 +1251,7 @@ class MEModel(cobra.core.model.Model):
 				'Lm' : Lm, # list of metabolite IDs
 				}
 		else:
-			return Sf, Se, list(lb), list(ub), b, c, cs, atoms, lambdas, Lr, Lm
+			return Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
 	def rank(self, mu = 0.001):
 		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem()

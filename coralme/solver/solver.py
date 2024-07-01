@@ -287,9 +287,10 @@ class ME_NLP:
             Se = { k:float(x.xreplace(dct)) if hasattr(x, 'subs') else x for k,x in self.Se.items() }
             self.Sf.update(Se)
         else:
-            xl = [ fn(*[muf]*len(dct)) for fn in self.xl ]
-            xu = [ fn(*[muf]*len(dct)) for fn in self.xu ]
-            Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
+            xl = self.xl(*[muf]*len(dct)) # [ fn(*[muf]*len(dct)) for fn in self.xl ]
+            xu = self.xu(*[muf]*len(dct)) # [ fn(*[muf]*len(dct)) for fn in self.xu ]
+            # Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
+            Se = { k:v for k,v in zip(self.fn[0], self.fn[1](*[muf]*len(dct))) }
             self.Sf.update(Se)
 
         Sp = scipy.sparse.dok_matrix((len(self.b), len(self.c)), dtype = float)
