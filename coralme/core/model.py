@@ -1240,7 +1240,7 @@ class MEModel(cobra.core.model.Model):
 			return {
 				'Sf' : Sf,
 				'Se' : Se,
-				'xl' : ub,
+				'xl' : lb,
 				'xu' : ub,
 				'b' : b,
 				'c' : c,
