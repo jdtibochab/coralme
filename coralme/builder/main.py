@@ -872,7 +872,8 @@ class MEBuilder(object):
 					bar_format = bar_format,
 					total=len(ref_generic_dict)):
 			if k not in generic_dict:
-				continue
+				generic_dict[k] = {"enzymes":[]}
+				#continue
 			if generic_dict[k]['enzymes']:
 				continue
 			ref_cplxs = v['enzymes']
