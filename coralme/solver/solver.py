@@ -43,7 +43,7 @@ def makeME_LP(S, b, c, xl, xu, csense):
 
     # c is added as a free (unbounded slacks) row,
     # so that MINOS treats problem as an LP - Ding Ma
-    J = scipy.sparse.vstack((S, c), dtype = float).tocsc()
+    J = scipy.sparse.vstack((S, [c]), dtype = float).tocsc()
     J.sort_indices()
 
     b2 = b + [0.0]
@@ -74,8 +74,8 @@ def makeME_LP(S, b, c, xl, xu, csense):
     sl[m - 1] = -bigbnd
     su[m - 1] = +bigbnd
 
-    bl = scipy.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ])
-    bu = scipy.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ])
+    bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ])
+    bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ])
 
     return J, ne, P, I, V, bl, bu
 
@@ -308,8 +308,8 @@ class ME_NLP:
         ha = I
         ka = P
         ad = V
-        bld = [ bi for bi in bl.flat ]
-        bud = [ bi for bi in bu.flat ]
+        bld = [ bi for bi in bl.toarray() ]
+        bud = [ bi for bi in bu.toarray() ]
         nb = m + n
         hs = numpy.zeros(nb, numpy.dtype('i4'))
 
