@@ -190,7 +190,7 @@ class MEBuilder(object):
 		if bool(config.get('dev_reference', False)) or bool(config.get('user_reference', False)):
 			logging.warning("Reading reference")
 
-			self.ref = coralme.builder.organism.Organism(config, is_reference = True)
+			self.ref = coralme.builder.organism.Organism(config.copy(), is_reference = True)
 			self.ref.get_organism()
 
 			folder = self.org.blast_directory
