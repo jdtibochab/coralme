@@ -14,9 +14,22 @@ For more information on coralME's inputs, architecture and usage, see coralME's 
 Installation
 ------------
 
-1. ``pip install -r requirements.txt``
-2. ``python3 setup.py clean build install``
+Install using pip (available upon publication)
+==============================================
+1. ``pip install coralme``
 
+Install locally
+===============
+1. Clone repository and navigate to coralme/.
+2. ``pip install -r requirements.txt``
+3. ``python3 setup.py clean build install``
+
+Install using docker
+====================
+1. Clone repository and navigate to coralme/
+2. ``docker build --file "./Dockerfile-Python3.10" . -t "python3.10-coralme"``
+3. ``docker run --detach -p 10000:8888 -v USER/PATH/TO/coralme/:/opt/notebooks/ python3.10-coralme``
+4. In your browser, go to ``localhost:10000``
 
 Requirements
 ------------
