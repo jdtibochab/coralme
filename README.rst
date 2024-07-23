@@ -51,6 +51,13 @@ Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralm
 - cython 0.29.32
 - cpython 0.0.6
 
+Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
+
+- Python3, versions 3.11.9 and 3.12.4
+- wheel 0.43.0
+- numpy 2.0.0
+- cython 3.0.10
+
 Documentation
 -------------
 
