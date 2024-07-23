@@ -49,6 +49,7 @@ class Organism(object):
             if bool(config.get('dev_reference', False)) and not bool(config.get('user_reference', False)):
                 # If no reference set, use the default iJL1678b E. coli ME-model files as reference
                 self.id = 'iJL1678b'
+                config["locus_tag"] = "locus_tag"
             elif not bool(config.get('dev_reference', False)) and bool(config.get('user_reference', False)):
                 # If User set a reference, use manually set values
                 # Set ID
@@ -63,10 +64,12 @@ class Organism(object):
                 # Reference configuration is contradictory. Using default reference instead.
                 logging.warning('The \'dev_reference\' and \'user-reference\' options are mutually exclusive. Using default iJL1678b as reference.')
                 self.id = 'iJL1678b'
+                config["locus_tag"] = "locus_tag"
             else:
                 # In any other case, use the default reference instead
                 logging.warning('No reference was set. Using default iJL1678b as reference.')
                 self.id = 'iJL1678b'
+                config["locus_tag"] = "locus_tag"
         else:
             # If it is not the reference, use the organism files
             self.id = config['ME-Model-ID']
@@ -1504,6 +1507,7 @@ class Organism(object):
                     ">{}\n".format(feature.qualifiers[self.locus_tag][0])
                 )  # Some way to identify which qualifier meets regular expression?
                 file.write("{}\n".format(feature.qualifiers["translation"][0]))
+        file.close()
 
     def _process_sigma_name(self,name, row):
         """Generate a sigma factor identifier from its description"""

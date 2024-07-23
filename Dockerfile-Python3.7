@@ -1,0 +1,82 @@
+# Use the python3 official image as parent image
+FROM python:3.7
+
+# set shell
+RUN export SHELL=/bin/bash
+
+# Update
+RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+RUN apt-get update
+RUN apt-get install -y dialog apt-utils
+RUN apt-get upgrade -y
+RUN apt-get install -y htop git gcc nano
+RUN apt-get install -y libgfortran5
+RUN apt-get install -y libglpk-dev
+RUN apt-get install -y ncbi-blast+
+
+# Install ZenglerLab coralme software stack
+# general purpose
+# RUN python -m pip install pip -U
+RUN python -m pip install wheel
+RUN python -m pip install cython
+#RUN python -m pip install cpython==0.0.6
+
+# data manipulation
+RUN python -m pip install numpy==1.21.6
+RUN python -m pip install scipy==1.7.3
+RUN python -m pip install sympy
+RUN python -m pip install pandas==1.3.5
+
+# coralme
+RUN python -m pip install cobra==0.26.3
+RUN python -m pip install python-libsbml
+RUN python -m pip install Biopython==1.80
+RUN python -m pip install anyconfig==0.13.0
+RUN python -m pip install pyranges
+RUN python -m pip install xlsxwriter
+RUN python -m pip install openpyxl
+RUN python -m pip install jsonschema
+RUN python -m pip install tqdm
+
+# jupyter and plot
+RUN python -m pip install ipykernel
+RUN python -m pip install matplotlib
+RUN python -m pip install seaborn
+RUN python -m pip install notebook
+RUN python -m pip install versioneer
+RUN python -m pip install importlib-metadata
+
+# Copy coralme to image
+RUN mkdir /root/coralme
+ADD ./coralme /root/coralme
+COPY ./setup.py /root/setup.py
+COPY ./README.rst /root/README.rst
+COPY ./setup.cfg /root/setup.cfg
+WORKDIR /root/
+RUN python setup.py clean build install
+
+# Install jupyter notebook extensions (not working)
+# RUN python3 -m pip install jupyter_nbextensions_configurator nbserverproxy
+
+# Download the coralme tutorial
+# RUN mkdir -p /opt/notebooks/coralme-tutorial
+# WORKDIR /opt/notebooks/coralme-tutorial
+# RUN git init
+# RUN git remote add -f origin https://github.com/ZenglerLab/coralme
+# RUN git config core.sparseCheckout true
+# RUN echo "docs" >> .git/info/sparse-checkout
+# RUN git pull origin master
+# RUN mv docs/GettingStarted.ipynb .
+# RUN mv docs/helper_files .
+# RUN rm -rf docs .git
+
+# Set the working directory
+WORKDIR /opt/notebooks
+
+# Set jupyter configuration
+RUN jupyter notebook --generate-config
+# RUN wget https://raw.githubusercontent.com/glucksfall/zenglerlab/master/jupyter_notebook_config.json --directory-prefix=/root/.jupyter
+COPY ./jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
+
+# Initiate jupyter server at runtime
+CMD ["jupyter", "notebook", "--notebook-dir=/opt/notebooks", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
