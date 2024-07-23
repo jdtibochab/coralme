@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import copy
+import sys
 import numpy
 import scipy
 import sympy
@@ -74,8 +74,8 @@ def makeME_LP(S, b, c, xl, xu, csense):
     sl[m - 1] = -bigbnd
     su[m - 1] = +bigbnd
 
-    bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ])
-    bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ])
+    bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ], dtype = float)
+    bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ], dtype = float)
 
     return J, ne, P, I, V, bl, bu
 
@@ -90,42 +90,17 @@ class ME_NLP:
         #self.me = me
 
         # Reformulation of ME to NLP
-        self.Sf = Sf
-        self.Se = Se
-        self.b  = b
-        self.c  = c
-        self.xl = xl
-        self.xu = xu
-        self.cs = cs
-        self.mu = mu
+        self.Sf = Sf # dict of float coefficients
+        self.Se = Se # dict of symbolic coefficients
+        self.b  = b  # accumulation
+        self.c  = c  # objective
+        self.xl = xl # lower bounds
+        self.xu = xu # upper bounds
+        self.cs = cs # constraint sense
+        self.mu = mu # symbol to evaluate
         self.fn = lambdas
         self.Lr = Lr
         self.Lm = Lm
-
-        # Inputs to qminos
-        self.J     = None
-        self.nnCon = None
-        self.nnJac = None
-        self.neJac = None
-        self.ne    = None
-        self.ha    = None
-        self.ka    = None
-        self.ad    = None
-        self.bld   = None
-        self.bud   = None
-        self.mu0   = None
-        self.M     = None
-        self.N     = None
-        self.nb    = None
-
-        # Solution and exit flag
-        self.x      = None
-        self.inform = numpy.array(0)
-
-        # Hold LP results and options
-        self.lp_inform  = None
-        self.lp_hs      = None
-        self.lp_x       = None
 
         # Initialize solver options
         self.init_solver_opts()
@@ -245,21 +220,20 @@ class ME_NLP:
         """
         Return options that will be passed as arguments to minoss
         """
+        if sys.version_info >= (3, 11): # qMINOS was compiled using numpy 2.0
+            stropts = [ s.ljust(self.opt_strwidth[prob]).encode() for s in self.opt_strlist[prob] ]
+            intopts = [ s.ljust(self.opt_intwidth[prob]).encode() for s in self.opt_intdict[prob].keys() ]
+            realopts = [ s.ljust(self.opt_realwidth[prob]).encode() for s in self.opt_realdict[prob].keys() ]
+        else:
+            lst = [ s.ljust(self.opt_strwidth[prob]) for s in self.opt_strlist[prob] ]
+            stropts = numpy.array(numpy.array(lst, dtype = 'c').T)
+            lst = [ s.ljust(self.opt_intwidth[prob]) for s in self.opt_intdict[prob].keys() ]
+            intopts = numpy.array(numpy.array(lst, dtype = 'c').T)
+            lst = [ s.ljust(self.opt_realwidth[prob]) for s in self.opt_realdict[prob].keys() ]
+            realopts = numpy.array(numpy.array(lst, dtype = 'c').T)
 
-        lst = [ c for c in [ s.ljust(self.opt_strwidth[prob]) for s in self.opt_strlist[prob] ] ]
-        stropts = numpy.array(numpy.array(lst, dtype = 'c').T)
-
-        intkeys = self.opt_intdict[prob].keys()
-        realkeys = self.opt_realdict[prob].keys()
-
-        lst = [ c for c in [ s.ljust(self.opt_intwidth[prob]) for s in intkeys ] ]
-        intopts = numpy.array(numpy.array(lst, dtype = 'c').T)
-
-        lst = [ c for c in [ s.ljust(self.opt_realwidth[prob]) for s in realkeys ] ]
-        realopts = numpy.array(numpy.array(lst, dtype = 'c').T)
-
-        intvals = numpy.array([ self.opt_intdict[prob][k] for k in intkeys ], dtype = 'i4')
-        realvals = numpy.array([ self.opt_realdict[prob][k] for k in realkeys ], dtype = 'd')
+        intvals = numpy.array([ self.opt_intdict[prob][k] for k in self.opt_intdict[prob].keys() ], dtype = 'i4')
+        realvals = numpy.array([ self.opt_realdict[prob][k] for k in self.opt_realdict[prob].keys() ], dtype = 'd')
 
         self.opt_stropts[prob] = stropts
         self.opt_intopts[prob] = intopts
