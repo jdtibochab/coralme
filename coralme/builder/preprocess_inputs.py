@@ -10,11 +10,6 @@ log = logging.getLogger(__name__)
 
 from Bio import SeqIO
 
-try:
-	warnings.simplefilter(action = 'ignore', category = pandas.errors.SettingWithCopyWarning)
-except:
-	warnings.warn("This pandas version does not allow for correct warning handling. Pandas >=1.5.1 is suggested.")
-
 def _save_to_excel(data, output):
 	#if overwrite:
 	try:
@@ -275,7 +270,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 		tmp.setdefault(k, []).append(list(v['Generic']))
 
 	data['Generic Complex ID'] = data.apply(lambda x: generics_from_gene(x, tmp), axis = 1)
-	data['Generic Complex ID'].update(data.apply(lambda x: generics_from_complex(x, tmp), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['Generic Complex ID'].update(data.apply(lambda x: generics_from_complex(x, tmp), axis = 1))
+	data.update({ 'Generic Complex ID' : data.apply(lambda x: generics_from_complex(x, tmp), axis = 1) })
 	data = data.explode('Generic Complex ID')
 
 	# Add M-model Reaction IDs, names, and reversibility from builder
@@ -340,7 +337,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 	dct = {}
 	for x in [ x for y in [builder.org.ribosome_stoich[x]['stoich'].keys() for x in ['30_S_assembly', '50_S_assembly']] for x in y ]:
 		dct.setdefault(x.split('_mod_')[0], []).append(' AND '.join(x.split('_mod_')[1:]))
-	data['MetaComplex ID'].update(data.apply(lambda x: get_ribosome(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['MetaComplex ID'].update(data.apply(lambda x: get_ribosome(x, dct), axis = 1))
+	data.update({ 'MetaComplex ID' : data.apply(lambda x: get_ribosome(x, dct), axis = 1) })
 
 	def get_degradosome_and_excision(x, dct):
 		subrxns = []
@@ -371,7 +370,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 			tmp.setdefault(x.split('_mod_')[0], []).append(' AND '.join(x.split('_mod_')[1:]))
 		dct[key] = tmp
 
-	data['MetaComplex ID'].update(data.apply(lambda x: get_degradosome_and_excision(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['MetaComplex ID'].update(data.apply(lambda x: get_degradosome_and_excision(x, dct), axis = 1))
+	data.update({ 'MetaComplex ID' : data.apply(lambda x: get_degradosome_and_excision(x, dct), axis = 1) })
 
 	# set RNA targets (tRNA<->mod_at_position)
 	dct = builder.org.rna_modification_targets.copy(deep = True)
@@ -394,7 +395,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 
 	dct = { k.split('_mod_')[0]:' AND '.join(k.split('_mod_')[1:]) for k,v in builder.org.rna_modification.items() }
 	dct = { k:v for k,v in dct.items() } # if v != '' } # just in case of empty values
-	data['MetaComplex ID'].update(data.apply(lambda x: get_rna_modifiers(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['MetaComplex ID'].update(data.apply(lambda x: get_rna_modifiers(x, dct), axis = 1))
+	data.update({ 'MetaComplex ID' : data.apply(lambda x: get_rna_modifiers(x, dct), axis = 1) })
 
 	# set RNA modifiers (CDS<->mod_at_position). Part2: Add 'modification' list in 'RNA mods/enzyme' column
 	def get_rna_modifications(x, dct):
@@ -418,7 +421,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 
 	dct = { (k.split('_mod_')[0], ' AND '.join(k.split('_mod_')[1:])):','.join(v) for k,v in builder.org.rna_modification.items() }
 	dct = { k:v for k,v in dct.items() } # if v != '' } # just in case of empty values
-	data['RNA mods/enzyme'].update(data.apply(lambda x: get_rna_modifications(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['RNA mods/enzyme'].update(data.apply(lambda x: get_rna_modifications(x, dct), axis = 1))
+	data.update({ 'RNA mods/enzyme' : data.apply(lambda x: get_rna_modifications(x, dct), axis = 1) })
 
 	def get_transpaths(x, dct):
 		pathways = []
@@ -432,7 +437,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 			return pathways
 
 	dct = { k:v['enzymes'] for k,v in builder.org.translocation_pathways.items() if len(v['enzymes']) != 0 }
-	data['MetaComplex ID'].update(data.apply(lambda x: get_transpaths(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['MetaComplex ID'].update(data.apply(lambda x: get_transpaths(x, dct), axis = 1))
+	data.update({ 'MetaComplex ID' : data.apply(lambda x: get_transpaths(x, dct), axis = 1) })
 	data = data.explode('MetaComplex ID')
 
 	# ME-model subreactions
@@ -495,7 +502,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 			tmp.setdefault(x.split('_mod_')[0], []).append(' AND '.join(x.split('_mod_')[1:]))
 		dct[key] = tmp
 
-	data['ME-model SubReaction'].update(data.apply(lambda x: get_translation_subrxns(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['ME-model SubReaction'].update(data.apply(lambda x: get_translation_subrxns(x, dct), axis = 1))
+	data.update({ 'ME-model SubReaction' : data.apply(lambda x: get_translation_subrxns(x, dct), axis = 1) })
 	data = data.explode('ME-model SubReaction')
 
 	def get_transcription_subrxns(x, dct):
@@ -521,7 +530,9 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 			tmp.setdefault(x.split('_mod_')[0], []).append(' AND '.join(x.split('_mod_')[1:]))
 		dct[key] = tmp
 
-	data['ME-model SubReaction'].update(data.apply(lambda x: get_transcription_subrxns(x, dct), axis = 1))
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# data['ME-model SubReaction'].update(data.apply(lambda x: get_transcription_subrxns(x, dct), axis = 1))
+	data.update({ 'ME-model SubReaction' : data.apply(lambda x: get_transcription_subrxns(x, dct), axis = 1) })
 	data = data.explode('ME-model SubReaction')
 
 	# Post-translation processing
@@ -609,48 +620,56 @@ def correct_input(df):
 		'protein_{:s}'.format(x['Gene Locus ID']) if (x['Feature Type'] == 'CDS' and not x['Gene Locus ID'].startswith('protein_')) \
 		else 'RNA_{:s}'.format(x['Gene Locus ID']) if (x['Feature Type'] != 'pseudo' and not x['Gene Locus ID'].startswith('RNA_')) \
 		else 'pseudo_{:s}'.format(x['Gene Locus ID'])
-	df['Gene Locus ID'] = df[['Gene Locus ID', 'Feature Type']].apply(fn, axis = 1)
+	df.loc[:, 'Gene Locus ID'] = df[['Gene Locus ID', 'Feature Type']].apply(fn, axis = 1)
 
 	# correct generics to contain the `generic_` prefix
 	fn = lambda x: 'generic_{:s}'.format(x) if isinstance(x, str) and not x.startswith('generic_') else x
-	df['Generic Complex ID'] = df['Generic Complex ID'].apply(fn)
+	df.loc[:, 'Generic Complex ID'] = df['Generic Complex ID'].apply(fn)
 	return df
 
 # 2nd step
 def get_generics(df):
 	#tmp = df[df['Generic Complex ID'].notna() & ~df['Feature Type'].isin(['pseudo'])]
-	tmp = df[df['Generic Complex ID'].notna()]
+	tmp = df[df['Generic Complex ID'].notna()].copy() # this was a view
 	tmp = correct_input(tmp)
 
 	fn = lambda x: x['Complex ID'].split(':')[0] + ''.join([ '_mod_{:s}'.format(x) for x in x['Cofactors in Modified Complex'].split(' AND ')]) \
 		if isinstance(x['Cofactors in Modified Complex'], str) else numpy.nan
-	tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
+	tmp.loc[:, 'Modified Complex'] = tmp.apply(fn, axis = 1).values
 
 	# collapse
-	tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-	tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
-	tmp['Gene Locus ID'] = tmp['Gene Locus ID'].apply(lambda x: x.split(':')[0] if isinstance(x, str) else x)
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+	tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+	# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
+
+	tmp.loc[:, 'Gene Locus ID'] = tmp['Gene Locus ID'].apply(lambda x: x.split(':')[0] if isinstance(x, str) else x)
 	tmp = tmp.groupby(['Generic Complex ID']).agg({'Gene Locus ID': lambda x: sorted(set(x.tolist()))}).to_dict()['Gene Locus ID'].items()
 	return tmp
 
 def get_metacomplex_stoichiometry(df, key):
 	#tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.startswith(key) & ~df['Feature Type'].isin(['pseudo'])]
-	tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.startswith(key)]
+	tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.startswith(key)].copy() # this was a view
 	if not tmp.empty:
 		tmp = correct_input(tmp)
 
-		tmp['Complex ID'] = tmp['Complex ID'].apply(lambda x: x.split(':')[0] if isinstance(x, str) else x)
+		tmp.loc[:, 'Complex ID'] = tmp['Complex ID'].apply(lambda x: x.split(':')[0] if isinstance(x, str) else x)
 
 		fn = lambda x: x['Complex ID'].split(':')[0] + ''.join([ '_mod_{:s}'.format(x) for x in x['Cofactors in Modified Complex'].split(' AND ')]) \
-			if isinstance(x['Cofactors in Modified Complex'], str) else numpy.nan
-		tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
+			if isinstance(x['Cofactors in Modified Complex'], str) else None #numpy.nan
+		tmp.loc[:, 'Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
 
 		# collapse
-		tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-		tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-		tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
+		tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+		# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+		tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+		# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
-		tmp['stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
+		tmp.loc[:, 'stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
 		return tmp
 	else:
 		return None
@@ -671,20 +690,24 @@ def dnapolymerase_stoichiometry(df):
 
 def excision_machinery_stoichiometry(df, keys):
 	#tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.match(keys) & ~df['Feature Type'].isin(['pseudo'])]
-	tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.match(keys)]
+	tmp = df[df['MetaComplex ID'].notna() & df['MetaComplex ID'].str.match(keys)].copy() # this was a view
 	if not tmp.empty:
 		tmp = correct_input(tmp)
 
 		fn = lambda x: x['Complex ID'].split(':')[0] + ''.join([ '_mod_{:s}'.format(x) for x in x['Cofactors in Modified Complex'].split(' AND ')]) \
 			if isinstance(x['Cofactors in Modified Complex'], str) else numpy.nan
-		tmp['Modified Complex'] = tmp.apply(fn, axis = 1)
+		tmp.loc[:, 'Modified Complex'] = tmp.apply(fn, axis = 1)
 
 		# collapse
-		tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-		tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-		tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
+		tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+		# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+		tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+		# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
-		tmp['stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
+		tmp.loc[:, 'stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
 		return { k.split(':')[0]:int(v) for k,v in zip(tmp['Gene Locus ID'], tmp['stoich']) }
 	else:
 		return None
@@ -699,9 +722,13 @@ def aa_synthetase_dict(df):
 	tmp['Modified Complex'] = tmp.apply(fn, axis = 1)
 
 	# collapse
-	tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-	tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-	tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
+	tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+	# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+	tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+	# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
 	tmp = tmp.drop_duplicates(['Gene Locus ID'])
 
@@ -725,9 +752,13 @@ def get_subreactions(df, key: str):
 	tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
 
 	# collapse
-	tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-	tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-	tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
+	tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+	# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+	tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+	# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
 	# Correct Translation_termination_generic_RF_mediated
 	if key.startswith('Translation_termination_generic_RF_mediated'):
@@ -790,7 +821,9 @@ def get_df_ptms(df):
 		tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
 
 		# Modified complex names can be replaced using an alias
-		tmp['Modified Complex'].update(tmp['Complex Name'].str.replace(' ', '_')) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Modified Complex'].update(tmp['Complex Name'].str.replace(' ', '_')) # inplace
+		tmp.update({ 'Modified Complex' : tmp['Complex Name'].str.replace(' ', '_') })
 
 		tmp = tmp[['Modified Complex', 'Complex ID', 'Cofactors in Modified Complex']]
 		tmp.columns = ['Modified_enzyme', 'Core_enzyme', 'Modifications']
@@ -814,12 +847,18 @@ def get_df_enz2rxn(df, filter_in = set(), generics = False):
 	tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
 
 	# collapse
+	# Copy-on-Write pandas 3.0 behavior is default to be True
 	#tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-	tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-	tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+	# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+	tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+	# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+	tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
 	# Modified complex names can be replaced using an alias
-	tmp['Gene Locus ID'].update(tmp['Complex Name'].str.replace(' ', '_')) # inplace
+	# Copy-on-Write pandas 3.0 behavior is default to be True
+	# tmp['Gene Locus ID'].update(tmp['Complex Name'].str.replace(' ', '_')) # inplace
+	tmp.update({ 'Gene Locus ID' : tmp['Complex Name'].str.replace(' ', '_') })
 
 	tmp = tmp.groupby(['M-model Reaction ID']).agg({'Gene Locus ID': lambda x: ' OR '.join(sorted(set(x.tolist())))})
 	tmp.columns = ['Complexes']
@@ -846,9 +885,13 @@ def get_df_rna_enzs(df, filter_in = set(), generics = False):
 		tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
 
 		# collapse
-		tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
-		tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
-		tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Modified Complex'].update(tmp['Generic Complex ID']) # inplace
+		tmp.update({ 'Modified Complex' : tmp['Generic Complex ID'] })
+		# tmp['Complex ID'].update(tmp['Modified Complex']) # inplace
+		tmp.update({ 'Complex ID' : tmp['Modified Complex'] })
+		# tmp['Gene Locus ID'].update(tmp['Complex ID']) # inplace
+		tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
 		tmp = tmp[['Gene Locus ID', 'modification', 'positions']]
 		tmp.columns = ['enzymes', 'modification', 'positions']
@@ -870,7 +913,9 @@ def get_df_rna_ptms(df, filter_in = set(), generics = False):
 		tmp['positions'] = tmp['RNA mods/enzyme'].apply(lambda x: x.split('_at_')[1])
 
 		# collapse
-		tmp['Gene Locus ID'].update(tmp['Generic Complex ID']) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Gene Locus ID'].update(tmp['Generic Complex ID']) # inplace
+		tmp.update({ 'Gene Locus ID' : tmp['Generic Complex ID'] })
 
 		tmp = tmp[['Gene Locus ID', 'modification', 'positions']]
 		tmp.columns = ['bnum', 'modification', 'positions']
@@ -890,7 +935,9 @@ def get_df_protloc(df, filter_in = set(), generics = False):
 		tmp['Monomer ID'] = tmp['Gene Locus ID'].apply(lambda x: '{:s}-MONOMER'.format(x))
 
 		# collapse
-		tmp['Monomer ID'].update(tmp['Complex ID']) # inplace
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Monomer ID'].update(tmp['Complex ID']) # inplace
+		tmp.update({ 'Monomer ID' : tmp['Complex ID'] })
 
 		tmp = tmp[['Monomer ID', 'Complex Location', 'Gene Locus ID', 'Subunit Location', 'Translocation Pathway']]
 		tmp.columns = ['Complex', 'Complex_compartment', 'Protein', 'Protein_compartment', 'translocase_pathway']
@@ -910,8 +957,11 @@ def get_df_transpaths(df, filter_in = set(), generics = False):
 		tmp['Complex ID'] = tmp['Complex ID'].apply(lambda x: x.split(':')[0] if isinstance(x, str) else x)
 
 		# collapse
-		tmp['Complex ID'].update(tmp['Generic Complex ID'])
-		tmp['Gene Locus ID'].update(tmp['Complex ID'])
+		# Copy-on-Write pandas 3.0 behavior is default to be True
+		# tmp['Complex ID'].update(tmp['Generic Complex ID'])
+		tmp.update({ 'Complex ID' : tmp['Generic Complex ID'] })
+		# tmp['Gene Locus ID'].update(tmp['Complex ID'])
+		tmp.update({ 'Gene Locus ID' : tmp['Complex ID'] })
 
 		return tmp[['Gene Locus ID', 'MetaComplex ID']].groupby('MetaComplex ID').agg(lambda x: list(set(x.tolist())))
 	else:
