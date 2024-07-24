@@ -104,7 +104,7 @@ def get_complex_modifications(reaction_matrix, protein_complexes, complex_mods, 
 def get_reaction_to_complex(m_model, enz2rxn, modifications = True):
 	"""anything not in this dict is assumed to be an orphan"""
 	enz2rxn.columns = ['Complexes']
-	enz2rxn = enz2rxn.applymap(lambda x: x.replace('DASH', ''))
+	enz2rxn = enz2rxn.map(lambda x: x.replace('DASH', ''))
 
 	rxn_to_complex_dict = defaultdict(set)
 	for reaction, complexes in enz2rxn.itertuples():
