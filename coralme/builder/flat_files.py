@@ -206,8 +206,8 @@ def process_m_model(
 			reversible = rxns_data.loc[rxn_id, 'is_reversible']
 			subsystem = 'Not Determined' if rxns_data.loc[rxn_id, 'subsystems'] == 'False' else rxns_data.loc[rxn_id, 'subsystems']
 		else:
-			reversible = 'True'
-			logging.warning('Unable to determine MetabolicReaction \'{:s}\' reversibility. Default value is \'True\'.'.format(rxn_id))
+			reversible = 'False'
+			logging.warning('Unable to determine MetabolicReaction \'{:s}\' reversibility. Default value is \'False\'.'.format(rxn_id))
 			subsystem = 'Not Determined'
 			logging.warning('Unable to determine MetabolicReaction \'{:s}\' subsystem. Default value is \'Not Determined\'.'.format(rxn_id))
 
