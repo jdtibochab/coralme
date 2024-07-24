@@ -22,7 +22,7 @@ def add_trna_modification_procedures(me_model, trna_mods):
 			if me_model.process_data.has_id(mod_data['modification']):
 				trna_mod.stoichiometry = me_model.process_data.get_by_id(mod_data['modification']).stoichiometry
 			else:
-				logging.warning('The tRNA modification {:s} was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
+				logging.warning('The tRNA modification \'{:s}\' was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
 				trna_mod.stoichiometry = {}
 
 			trna_mod.keff = 65.  # iOL uses 65 for all tRNA mods
