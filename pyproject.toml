@@ -1,0 +1,55 @@
+[project]
+name = "coralME"
+version = "1.1.0+28.g1b828b9.dirty"
+description = "Comprehensive Reconstruction Algorithm for ME-models (coralME)"
+authors = [
+    {name = "Juan D. Tibocha-Bonilla", email = "jdtibochab@users.noreply.github.com"},
+    {name = "Rodrigo Santibáñez-Palominos", email = "glucksfall@users.noreply.github.com"}
+]
+dependencies = [
+    "setuptools>=71.1.0",
+    "Biopython==1.80",
+    "XlsxWriter<=3.1.2",
+    "anyconfig<=0.13.0",
+    "cobra==0.26.3",
+    "jsonschema<=4.21.1",
+    "numpy<=1.26.4",
+    "openpyxl<=3.1.2",
+    "pandas<=1.5.1",
+    "pyranges<=0.0.129",
+    "python-libsbml<=5.20.1",
+    "scipy<=1.11.1",
+    "sympy<=1.12",
+    "tqdm<=4.62.3",
+]
+requires-python = "~=3.0"
+readme = "README.rst"
+license = {text = "MIT"}
+keywords = ["metabolism", "biology", "constraint-based", "linear programming", "mixed-integer", "optimization", "flux-balance analysis", "reconstruction"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+
+[project.urls]
+Homepage = "https://github.com/jdtibochab/coralme"
+Manual = "https://coralme.readthedocs.io"
+"Bug Reports" = "https://github.com/jdtibochab/coralme/issues"
+Source = "https://github.com/jdtibochab/coralme"
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pdm]
+distribution = true
