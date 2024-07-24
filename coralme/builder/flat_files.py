@@ -161,12 +161,13 @@ def process_m_model(
 	# remove unused genes
 	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
 	cobra.manipulation.delete.prune_unused_reactions(m_model) # reactions without metabolites
-	cobra.manipulation.delete.prune_unused_metabolites(m_model) # orphan metabolites
+	# cobra.manipulation.delete.prune_unused_metabolites(m_model) # orphan metabolites
 
 	# met_data DataFrame
 	mets_data = mets_data[mets_data['type'].isin(['ADD', 'REPLACE'])]
 	mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type']
-	mets_data.rename(lambda x: x.replace('_DASH_', '__'), inplace = True)
+	# WARNING: Do we need to rename the index?
+	#mets_data.rename(index = lambda x: x.replace('_DASH_', '__'), inplace = True)
 
 	# process protein_complex DataFrame, and...
 	complex_dct = get_complex_subunit_stoichiometry(cplx_data)
