@@ -12,6 +12,7 @@ dependencies = [
     "Biopython",
     "XlsxWriter",
     "anyconfig",
+    "anyconfig<0.14.0; python_version<='3.7'",
     "cobra",
     "jsonschema",
     "numpy<=1.26.4; python_version<='3.10'",
