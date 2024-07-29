@@ -347,3 +347,18 @@ def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbos
 														only_types = only_types,
 														verbose = verbose,
 														growth_key = growth_key)
+
+
+def get_keffs_from_model(me):
+	data = []
+	for reaction in me.reactions:
+		if hasattr(reaction, 'coupling_coefficient_enzyme') and 'dummy_reaction' not in reaction.id:
+			data.append([reaction.id, reaction.keff])
+	df = pandas.DataFrame(data, columns = ['reaction', 'keff'])
+
+	tmp = df['reaction'].str.split('_mod_', expand = True, n = 1)
+	df['reaction'] = tmp.iloc[:, 0].apply(lambda x: x.split('_FWD_')[0].split('_REV_')[0])
+	df['complex'] = tmp.iloc[:, 0].apply(lambda x: x.split('_FWD_')[1] if 'FWD' in x else x.split('_REV_')[1])
+	df['mods'] = tmp.iloc[:, 1].apply(lambda x: ' AND '.join(x.split('_mod_')) if x is not None else None)
+
+	return df[['reaction', 'direction', 'complex', 'mods', 'keff']]
