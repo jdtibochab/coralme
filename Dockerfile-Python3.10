@@ -79,4 +79,4 @@ RUN jupyter notebook --generate-config
 COPY ./jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
 
 # Initiate jupyter server at runtime
-CMD ["jupyter", "notebook", "--notebook-dir=/opt/notebooks", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
+CMD ["jupyter", "notebook", "--notebook-dir=/opt", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root","--NotebookApp.token=''","--NotebookApp.password=''"]
