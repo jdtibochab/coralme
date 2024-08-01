@@ -24,7 +24,7 @@ Install locally
 2. ``pip install -r requirements.txt``
 3. ``python3 setup.py clean build install``
 
-Install using docker
+Install using docker (tested on Ubuntu 22.04)
 ====================
 1. Clone repository and navigate to coralme/
 2. ``docker build --file "./Dockerfile-Python3.10" . -t "python3.10-coralme"``
