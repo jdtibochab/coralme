@@ -412,13 +412,13 @@ class MEBuilder(object):
 			self.org.curation_notes['prepare_model'].append({
 				'msg':'NGAM could not be identified in M-model, setting a standard value of {:g}.'.format(self.me_model._ngam),
 				'importance':'high',
-				'to_do':'Manually define NGAM with me_builder.org.NGAM = NGAM_value. Check if a reaction with identifier NGAM or ATPM has a zero or negative lower bound.'})
+				'to_do':'Manually define NGAM with builder.configuration[\'ngam\'] = NGAM_value. Check if a reaction with identifier NGAM or ATPM has a zero or negative lower bound.'})
 		elif self.org.NGAM == 0:
 			self.org.NGAM = self.configuration.get('ngam', self.me_model._ngam)
 			self.org.curation_notes['prepare_model'].append({
 				'msg':'NGAM was identified from reaction {}, but its lower bound is 0. NGAM set to a standard value of {:g}.'.format(rxn.id, self.me_model._ngam),
 				'importance':'high',
-				'to_do':'Manually define NGAM with me_builder.org.NGAM = NGAM_value'})
+				'to_do':'Manually define NGAM with builder.configuration[\'ngam\'] = NGAM_value'})
 		# Warnings
 		if warn_compartments:
 			self.org.curation_notes['prepare_model'].append({
