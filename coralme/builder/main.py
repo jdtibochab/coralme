@@ -390,11 +390,11 @@ class MEBuilder(object):
 				self.org.GAM = biomass_rxn.metabolites[adp]
 				logging.warning('GAM identified with value {}'.format(self.org.GAM))
 			else:
-				self.org.GAM = 45.
+				self.org.GAM = self.configuration.get('gam', self.me_model._gam)
 				self.org.curation_notes['prepare_model'].append({
-					'msg':'GAM could not be identified from biomass reaction, setting a standard value of 45. adp_c is not present as a product.',
+					'msg':'GAM could not be identified from biomass reaction, setting a standard value of {:g}. adp_c is not present as a product.'.format(self.me_model._gam),
 					'importance':'high',
-					'to_do':'Check whether the biomass reaction was read or defined correctly. You can define GAM with me_builder.org.GAM = GAM_value'})
+					'to_do':'Check whether the biomass reaction was read or defined correctly. You can define GAM with builder.configuration[\'gam\'] = GAM_value'})
 		self.org.NGAM = self.configuration.get('ngam',None)
 		if self.org.NGAM is None:
 			# Get NGAM
@@ -407,16 +407,16 @@ class MEBuilder(object):
 					self.org.NGAM = rxn.lower_bound
 					logging.warning('{} was identified as NGAM with value {}'.format(r,self.org.NGAM))
 					break
-		if self.org.NGAM == None:
-			self.org.NGAM = 1.
+		if self.org.NGAM is None:
+			self.org.NGAM = self.configuration.get('ngam', self.me_model._ngam)
 			self.org.curation_notes['prepare_model'].append({
-				'msg':'NGAM could not be identified in M-model, setting a standard value of 1.',
+				'msg':'NGAM could not be identified in M-model, setting a standard value of {:g}.'.format(self.me_model._ngam),
 				'importance':'high',
 				'to_do':'Manually define NGAM with me_builder.org.NGAM = NGAM_value. Check if a reaction with identifier NGAM or ATPM has a zero or negative lower bound.'})
 		elif self.org.NGAM == 0:
-			self.org.NGAM = 1.
+			self.org.NGAM = self.configuration.get('ngam', self.me_model._ngam)
 			self.org.curation_notes['prepare_model'].append({
-				'msg':'NGAM was identified from reaction {}, but its lower bound is 0. NGAM set to a standard value of 1.0.'.format(rxn.id),
+				'msg':'NGAM was identified from reaction {}, but its lower bound is 0. NGAM set to a standard value of {:g}.'.format(rxn.id, self.me_model._ngam),
 				'importance':'high',
 				'to_do':'Manually define NGAM with me_builder.org.NGAM = NGAM_value'})
 		# Warnings
