@@ -53,9 +53,9 @@ df_gene_cplxs_mods_rxns: ./building_data/automated-org-with-refs.xlsx
 df_TranscriptionalUnits: .//building_data/TUs_from_biocyc.txt
 out_directory: ./
 log_directory: ./
-run_bbh_blast: false
+run_bbh_blast: true
 e_value_cutoff: 1.0e-10
-dev_reference: false
+dev_reference: true
 include_pseudo_genes: true
 locus_tag: old_locus_tag
 selenocysteine_enzymes:

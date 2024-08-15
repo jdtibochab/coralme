@@ -1,5 +1,4 @@
 id	me_id	name	formula	compartment	type
-LI_c					CURATE
 alatrna_c					REMOVE
 argtrna_c					REMOVE
 asntrna_c					REMOVE
@@ -51,19 +50,6 @@ tyrtrna_c					REMOVE
 valtrna_c					REMOVE
 wco_c					REMOVE
 2fe1s_c					REMOVE
-sufbcd_c					CURATE
-sufse_c					CURATE
-sufsesh_c					CURATE
-dsbard_p					CURATE
-dsbaox_p					CURATE
-dsbcrd_p					CURATE
-dsbcox_p					CURATE
-dsbdrd_c					CURATE
-dsbdox_c					CURATE
-dsbgrd_p					CURATE
-dsbgox_p					CURATE
-lpp_p					CURATE
-alpp_p					CURATE
 moadamp_c	BSU14310-MONOMER_mod_amp(1)				REPLACE
 moadcoo_c	BSU14310-MONOMER_mod_coo(1)				REPLACE
 moadcosh_c	BSU14310-MONOMER_mod_cosh(1)				REPLACE
@@ -72,7 +58,6 @@ ACP_c	BSU15920-MONOMER_mod_pan4p(1)				REPLACE
 3haACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ha(1)				REPLACE
 3hcddec5eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcddec5e(1)				REPLACE
 3hcmrs7eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcmrs7e(1)				REPLACE
-3hcpalm9eACP_c					CURATE
 3hcvac11eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcvac11e(1)				REPLACE
 3hddecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hddec(1)				REPLACE
 3hdecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hdec(1)				REPLACE
@@ -91,7 +76,6 @@ ACP_c	BSU15920-MONOMER_mod_pan4p(1)				REPLACE
 3ooctACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ooct(1)				REPLACE
 3ooctdACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ooctd(1)				REPLACE
 3opalmACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3opalm(1)				REPLACE
-3ocpalm9eACP_c					CURATE
 acACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_ac(1)				REPLACE
 actACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_act(1)				REPLACE
 butACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_but(1)				REPLACE
@@ -133,10 +117,26 @@ flxr_c	BSU14170-MONOMER				REPLACE
 fldrd_c	BSU14170-MONOMER				REPLACE
 flxso_c	BSU14170-MONOMER_mod_Oxidized(1)				REPLACE
 fldox_c	BSU14170-MONOMER_mod_Oxidized(1)				REPLACE
-grxrd_c					CURATE
-grxox_c					CURATE
 iscs_c	BSU27510-MONOMER_mod_pydx5p(2)				REPLACE
-iscssh_c					CURATE
 iscu_c	BSU32680-MONOMER				REPLACE
 trdrd_c	BSU28500-MONOMER				REPLACE
 trdox_c	BSU28500-MONOMER_mod_Oxidized(1)				REPLACE
+LI_c					CURATE
+sufbcd_c					CURATE
+sufse_c					CURATE
+sufsesh_c					CURATE
+dsbard_p					CURATE
+dsbaox_p					CURATE
+dsbcrd_p					CURATE
+dsbcox_p					CURATE
+dsbdrd_c					CURATE
+dsbdox_c					CURATE
+dsbgrd_p					CURATE
+dsbgox_p					CURATE
+lpp_p					CURATE
+alpp_p					CURATE
+3hcpalm9eACP_c					CURATE
+3ocpalm9eACP_c					CURATE
+grxrd_c					CURATE
+grxox_c					CURATE
+iscssh_c					CURATE

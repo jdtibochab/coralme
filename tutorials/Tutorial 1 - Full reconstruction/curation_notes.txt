@@ -364,207 +364,6 @@ Check whether the genbank was downloaded or constructed correctly.
 
 
 
-#################### low@org._get_manual_curation ####################
-********** No reaction_corrections file found
-
-**********Solution:
-Fill in .//building_data/reaction_corrections.txt
-
-#################### low@org._get_manual_curation ####################
-********** No metabolite_corrections file found
-
-**********Solution:
-Fill in .//building_data/metabolite_corrections.txt
-
-#################### low@org._get_manual_curation ####################
-********** No protein_location file found
-
-**********Solution:
-Fill in .//building_data/peptide_compartment_and_pathways.txt
-
-#################### low@org._get_manual_curation ####################
-********** No translocation_multipliers file found
-
-**********Solution:
-Fill in .//building_data/translocation_multipliers.txt
-
-#################### low@org._get_manual_curation ####################
-********** No lipoprotein_precursors file found
-
-**********Solution:
-Fill in .//building_data/lipoprotein_precursors.txt
-
-#################### low@org._get_manual_curation ####################
-********** No cleaved_methionine file found
-
-**********Solution:
-Fill in .//building_data/cleaved_methionine.txt
-
-#################### low@org._get_manual_curation ####################
-********** No manual_complexes file found
-
-**********Solution:
-Fill in .//building_data/protein_corrections.txt
-
-#################### low@org._get_manual_curation ####################
-********** No sigmas file found
-
-**********Solution:
-Fill in .//building_data/sigma_factors.txt
-
-#################### low@org._get_manual_curation ####################
-********** No rho_independent file found
-
-**********Solution:
-Fill in .//building_data/rho_independent.txt
-
-#################### low@org._get_manual_curation ####################
-********** No rna_degradosome file found
-
-**********Solution:
-Fill in .//building_data/rna_degradosome.txt
-
-#################### low@org._get_manual_curation ####################
-********** No rna_modification_df file found
-
-**********Solution:
-Fill in .//building_data/rna_modification.txt
-
-#################### low@org._get_manual_curation ####################
-********** No rna_modification_targets file found
-
-**********Solution:
-Fill in .//building_data/post_transcriptional_modification_of_RNA.txt
-
-#################### low@org._get_manual_curation ####################
-********** No enz_rxn_assoc_df file found
-
-**********Solution:
-Fill in .//building_data/enzyme_reaction_association.txt
-
-#################### low@org._get_manual_curation ####################
-********** No me_mets file found
-
-**********Solution:
-Fill in .//building_data/me_metabolites.txt
-
-#################### low@org._get_manual_curation ####################
-********** No subreaction_matrix file found
-
-**********Solution:
-Fill in .//building_data/subreaction_matrix.txt
-
-#################### low@org._get_manual_curation ####################
-********** No reaction_matrix file found
-
-**********Solution:
-Fill in .//building_data/reaction_matrix.txt
-
-#################### low@org._get_manual_curation ####################
-********** No orphan_and_spont_reactions file found
-
-**********Solution:
-Fill in .//building_data/orphan_and_spont_reactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No subsystem_classification file found
-
-**********Solution:
-Fill in .//building_data/subsystem_classification.txt
-
-#################### low@org._get_manual_curation ####################
-********** No translocation_pathways file found
-
-**********Solution:
-Fill in .//building_data/translocation_pathways.txt
-
-#################### low@org._get_manual_curation ####################
-********** No lipid_modifications file found
-
-**********Solution:
-Fill in .//building_data/lipid_modifications.txt
-
-#################### low@org._get_manual_curation ####################
-********** No ribosome_stoich file found
-
-**********Solution:
-Fill in .//building_data/ribosomal_proteins.txt
-
-#################### low@org._get_manual_curation ####################
-********** No ribosome_subreactions file found
-
-**********Solution:
-Fill in .//building_data/ribosome_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No generic_dict file found
-
-**********Solution:
-Fill in .//building_data/generic_dict.txt
-
-#################### low@org._get_manual_curation ####################
-********** No amino_acid_trna_synthetase file found
-
-**********Solution:
-Fill in .//building_data/amino_acid_trna_synthetase.txt
-
-#################### low@org._get_manual_curation ####################
-********** No peptide_release_factors file found
-
-**********Solution:
-Fill in .//building_data/peptide_release_factors.txt
-
-#################### low@org._get_manual_curation ####################
-********** No initiation_subreactions file found
-
-**********Solution:
-Fill in .//building_data/initiation_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No elongation_subreactions file found
-
-**********Solution:
-Fill in .//building_data/elongation_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No termination_subreactions file found
-
-**********Solution:
-Fill in .//building_data/termination_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No transcription_subreactions file found
-
-**********Solution:
-Fill in .//building_data/transcription_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No special_trna_subreactions file found
-
-**********Solution:
-Fill in .//building_data/special_trna_subreactions.txt
-
-#################### low@org._get_manual_curation ####################
-********** No special_modifications file found
-
-**********Solution:
-Fill in .//building_data/special_modifications.txt
-
-#################### low@org._get_manual_curation ####################
-********** No excision_machinery file found
-
-**********Solution:
-Fill in .//building_data/excision_machinery.txt
-
-#################### low@org._get_manual_curation ####################
-********** No folding_dict file found
-
-**********Solution:
-Fill in .//building_data/folding_dict.txt
-
-
-
-
 #################### high@org.get_rpod ####################
 ********** BSU25200-MONOMER was identified as RpoD. If this is not true, define RpoD!
 
@@ -818,44 +617,6 @@ Confirm whether the definitions or homology calls are correct in me_builder.org.
 
 
 
-#################### high@update_subreaction_matrix ####################
-********** Some metabolites in subreaction_matrix were added from reference but are not in M-model
-The following items triggered the warning:
-lipoate_c
-dad__5_c
-dad__5_c
-2tpr3dpcoa
-dad__2_c
-pg160_p
-2agpg160_p
-pe160_p
-2agpe160_p
-pe120_p
-pe140_p
-pe141_p
-pe160_p
-pe161_p
-pe180_p
-pe181_p
-pg120_p
-pg140_p
-pg141_p
-pg160_p
-pg161_p
-pg180_p
-pg181_p
-preq1_c
-nh3_c
-5fthf_c
-5fthf_c
-dad__5_c
-
-**********Solution:
-Map these metabolites or replace the subreaction
-
-
-
-
 #################### medium@check ####################
 ********** Some metabolites in me_metabolites.txt need curation
 The following items triggered the warning:
@@ -889,12 +650,12 @@ Map or remove these metabolites in me_metabolites.txt
 ********** Some metabolites are necessary for growth
 The following items triggered the warning:
 TS_pydx5p_c
-TS_zn2_c
-TS_cobalt2_c
 TS_4fe4s_c
-TS_mn2_c
-TS_fe2_c
 TS_thmpp_c
+TS_zn2_c
+TS_mn2_c
+TS_cobalt2_c
+TS_fe2_c
 TS_cbl1_c
 
 **********Solution:
