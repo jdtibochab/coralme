@@ -972,7 +972,7 @@ class MEBuilder(object):
 			if ref_cplx in ref_cplx_homolog:
 				org_cplx = ref_cplx_homolog[v]
 				defined_cplx = org_amino_acid_trna_synthetase[k]
-				if defined_cplx: continue
+				if self.configuration.get('user_data', False) and defined_cplx: continue
 # 				if not defined_cplx or defined_cplx in org_cplx or 'CPLX_dummy' in defined_cplx:
 				org_amino_acid_trna_synthetase[k] = org_cplx
 # 				else:
