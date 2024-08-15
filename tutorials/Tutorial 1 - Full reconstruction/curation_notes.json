@@ -359,173 +359,6 @@
             "to_do": "Check whether the genbank was downloaded or constructed correctly."
         }
     ],
-    "org._get_manual_curation": [
-        {
-            "msg": "No reaction_corrections file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/reaction_corrections.txt"
-        },
-        {
-            "msg": "No metabolite_corrections file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/metabolite_corrections.txt"
-        },
-        {
-            "msg": "No protein_location file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/peptide_compartment_and_pathways.txt"
-        },
-        {
-            "msg": "No translocation_multipliers file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/translocation_multipliers.txt"
-        },
-        {
-            "msg": "No lipoprotein_precursors file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/lipoprotein_precursors.txt"
-        },
-        {
-            "msg": "No cleaved_methionine file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/cleaved_methionine.txt"
-        },
-        {
-            "msg": "No manual_complexes file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/protein_corrections.txt"
-        },
-        {
-            "msg": "No sigmas file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/sigma_factors.txt"
-        },
-        {
-            "msg": "No rho_independent file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/rho_independent.txt"
-        },
-        {
-            "msg": "No rna_degradosome file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/rna_degradosome.txt"
-        },
-        {
-            "msg": "No rna_modification_df file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/rna_modification.txt"
-        },
-        {
-            "msg": "No rna_modification_targets file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/post_transcriptional_modification_of_RNA.txt"
-        },
-        {
-            "msg": "No enz_rxn_assoc_df file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/enzyme_reaction_association.txt"
-        },
-        {
-            "msg": "No me_mets file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/me_metabolites.txt"
-        },
-        {
-            "msg": "No subreaction_matrix file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/subreaction_matrix.txt"
-        },
-        {
-            "msg": "No reaction_matrix file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/reaction_matrix.txt"
-        },
-        {
-            "msg": "No orphan_and_spont_reactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/orphan_and_spont_reactions.txt"
-        },
-        {
-            "msg": "No subsystem_classification file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/subsystem_classification.txt"
-        },
-        {
-            "msg": "No translocation_pathways file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/translocation_pathways.txt"
-        },
-        {
-            "msg": "No lipid_modifications file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/lipid_modifications.txt"
-        },
-        {
-            "msg": "No ribosome_stoich file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/ribosomal_proteins.txt"
-        },
-        {
-            "msg": "No ribosome_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/ribosome_subreactions.txt"
-        },
-        {
-            "msg": "No generic_dict file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/generic_dict.txt"
-        },
-        {
-            "msg": "No amino_acid_trna_synthetase file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/amino_acid_trna_synthetase.txt"
-        },
-        {
-            "msg": "No peptide_release_factors file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/peptide_release_factors.txt"
-        },
-        {
-            "msg": "No initiation_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/initiation_subreactions.txt"
-        },
-        {
-            "msg": "No elongation_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/elongation_subreactions.txt"
-        },
-        {
-            "msg": "No termination_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/termination_subreactions.txt"
-        },
-        {
-            "msg": "No transcription_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/transcription_subreactions.txt"
-        },
-        {
-            "msg": "No special_trna_subreactions file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/special_trna_subreactions.txt"
-        },
-        {
-            "msg": "No special_modifications file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/special_modifications.txt"
-        },
-        {
-            "msg": "No excision_machinery file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/excision_machinery.txt"
-        },
-        {
-            "msg": "No folding_dict file found",
-            "importance": "low",
-            "to_do": "Fill in .//building_data/folding_dict.txt"
-        }
-    ],
     "org.get_rpod": [
         {
             "msg": "BSU25200-MONOMER was identified as RpoD. If this is not true, define RpoD!",
@@ -874,43 +707,6 @@
             "to_do": "Confirm whether the definitions or homology calls are correct in me_builder.org.ribosome_subreactions. Curate the inputs in ribosome_subreactions.txt accordingly."
         }
     ],
-    "update_subreaction_matrix": [
-        {
-            "msg": "Some metabolites in subreaction_matrix were added from reference but are not in M-model",
-            "triggered_by": [
-                "lipoate_c",
-                "dad__5_c",
-                "dad__5_c",
-                "2tpr3dpcoa",
-                "dad__2_c",
-                "pg160_p",
-                "2agpg160_p",
-                "pe160_p",
-                "2agpe160_p",
-                "pe120_p",
-                "pe140_p",
-                "pe141_p",
-                "pe160_p",
-                "pe161_p",
-                "pe180_p",
-                "pe181_p",
-                "pg120_p",
-                "pg140_p",
-                "pg141_p",
-                "pg160_p",
-                "pg161_p",
-                "pg180_p",
-                "pg181_p",
-                "preq1_c",
-                "nh3_c",
-                "5fthf_c",
-                "5fthf_c",
-                "dad__5_c"
-            ],
-            "importance": "high",
-            "to_do": "Map these metabolites or replace the subreaction"
-        }
-    ],
     "check": [
         {
             "msg": "Some metabolites in me_metabolites.txt need curation",
@@ -944,12 +740,12 @@
             "msg": "Some metabolites are necessary for growth",
             "triggered_by": [
                 "TS_pydx5p_c",
-                "TS_zn2_c",
-                "TS_cobalt2_c",
                 "TS_4fe4s_c",
-                "TS_mn2_c",
-                "TS_fe2_c",
                 "TS_thmpp_c",
+                "TS_zn2_c",
+                "TS_mn2_c",
+                "TS_cobalt2_c",
+                "TS_fe2_c",
                 "TS_cbl1_c"
             ],
             "importance": "critical",
