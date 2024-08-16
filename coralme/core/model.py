@@ -648,6 +648,10 @@ class MEModel(cobra.core.model.Model):
 	def get_troubleshooted_reactions(self):
 		return self.reactions.query('^TS_')
 
+	@property
+	def get_unbounded_reactions(self):
+		return [ x for x in self.reactions if x.bound_violation[0] ]
+
 	def add_biomass_constraints_to_model(self, biomass_types):
 		for biomass_type in tqdm.tqdm(biomass_types, 'Adding biomass constraint(s) into the ME-model...', bar_format = bar_format):
 			if '_biomass' not in biomass_type:
