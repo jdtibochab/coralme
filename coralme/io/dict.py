@@ -384,7 +384,7 @@ def _add_process_data_from_dict(model, process_data_dict):
 
 	"""
 
-	# Create process data instances. Handel certain types individually
+	# Create process data instances. Handle certain types individually
 	id = process_data_dict['id']
 	process_data_type_dict = process_data_dict['process_data_type']
 	if len(process_data_type_dict) == 1:
@@ -393,10 +393,20 @@ def _add_process_data_from_dict(model, process_data_dict):
 		print(process_data_type_dict, len(process_data_type_dict))
 		raise Exception('Only 1 reaction_type in valid json')
 
-	if process_data_type == 'TranslationData':
+	if process_data_type == 'TranscriptionData':
+		nucleotide_sequence = process_data_info['nucleotide_sequence']
+		rnap = process_data_info['RNA_polymerase']
+		rna_products = process_data_info['RNA_products']
+		organelle = process_data_info['organelle']
+		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, nucleotide_sequence, rnap, rna_products, organelle)
+	elif process_data_type == 'TranslationData':
 		mrna = process_data_info['mRNA']
 		protein = process_data_info['protein']
-		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, mrna, protein)
+		nucleotide_sequence = process_data_info['nucleotide_sequence']
+		organelle = process_data_info['organelle']
+		translation = process_data_info['translation']
+		transl_table = process_data_info['transl_table']
+		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table)
 	elif process_data_type == 'tRNAData':
 		amino_acid = process_data_info['amino_acid']
 		rna = process_data_info['RNA']
@@ -500,6 +510,27 @@ def me_model_from_dict(obj):
 	for k, v in obj.items():
 		if k in {'id', 'name', 'global_info'}:
 			setattr(model, k, v)
+
+	# If the ME-model was saved with coralME v1.0,
+	# it is missing the default_parameters from the json file.
+	# Also, the for-loop will set 'global_info' using the json file,
+	# overwriting global_info set by MEModel.__init__()
+	if not 'default_parameters' in model.global_info:
+		model.default_parameters = {
+			'kt' : obj['global_info']['kt'],
+			'r0' : obj['global_info']['r0'],
+			'k_deg' : obj['global_info']['k_deg'],
+			'm_rr' : obj['global_info']['m_rr'],
+			'm_aa' : obj['global_info']['m_aa'],
+			'm_nt' : obj['global_info']['m_nt'],
+			'f_rRNA' : obj['global_info']['f_rRNA'],
+			'f_mRNA' : obj['global_info']['f_mRNA'],
+			'f_tRNA' : obj['global_info']['f_tRNA'],
+			'm_tRNA' : obj['global_info']['m_tRNA'],
+			'kcat' : 65.0, # not stored in json with coralME v1.0
+			'temperature' : obj['global_info']['temperature'],
+			'propensity_scaling' : obj['global_info']['propensity_scaling']
+			}
 
 	model.global_info['growth_key'] = sympy.Symbol(model.global_info['growth_key'], positive = True)
 

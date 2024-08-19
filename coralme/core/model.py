@@ -294,6 +294,28 @@ class MEModel(cobra.core.model.Model):
 		self.troubleshooting = False
 
 	@property
+	def default_parameters(self):
+		return self.global_info.get('default_parameters', {})
+
+	@default_parameters.setter
+	def default_parameters(self, args):
+		self.global_info['default_parameters'] = {
+			sympy.Symbol('k_t', positive = True) : args.get('kt', 4.5),
+			sympy.Symbol('r_0', positive = True) : args.get('r0', 0.087),
+			sympy.Symbol('k^mRNA_deg', positive = True) : args.get('k_deg', 12.0),
+			sympy.Symbol('m_rr', positive = True) : args.get('m_rr', 1453.0),
+			sympy.Symbol('m_aa', positive = True) : args.get('m_aa', 0.109),
+			sympy.Symbol('m_nt', positive = True) : args.get('m_nt', 0.324),
+			sympy.Symbol('f_rRNA', positive = True) : args.get('f_rRNA', 0.86),
+			sympy.Symbol('f_mRNA', positive = True) : args.get('f_mRNA', 0.02),
+			sympy.Symbol('f_tRNA', positive = True) : args.get('f_tRNA', 0.12),
+			sympy.Symbol('m_tRNA', positive = True) : args.get('m_tRNA', 25.0),
+			sympy.Symbol('k^default_cat', positive = True) : args.get('kcat', 65.0), # not stored in json with coralME v1.0
+			sympy.Symbol('temperature', positive = True) : args.get('temperature', 37.0),
+			sympy.Symbol('propensity_scaling', positive = True) : args.get('propensity_scaling', 0.45)
+			}
+
+	@property
 	def mu(self):
 		return self._mu
 
