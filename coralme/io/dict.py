@@ -212,11 +212,7 @@ def _fix_type(value):
 	return value
 
 def _reaction_to_dict(reaction):
-	new_reaction = {
-		key: _fix_type(getattr(reaction, key))
-		for key in _REQUIRED_REACTION_ATTRIBUTES
-		if key != 'metabolites'
-		}
+	new_reaction = { key:_fix_type(getattr(reaction, key)) for key in _REQUIRED_REACTION_ATTRIBUTES if key != 'metabolites' }
 
 	reaction_type = reaction.__class__.__name__
 	new_reaction['reaction_type'] = {}
@@ -224,7 +220,6 @@ def _reaction_to_dict(reaction):
 
 	for attribute in _REACTION_TYPE_DEPENDENCIES.get(reaction_type, []):
 		reaction_attribute = getattr(reaction, attribute)
-
 		new_reaction['reaction_type'][reaction_type][attribute] = _fix_type(reaction_attribute)
 
 	# Add metabolites
@@ -530,6 +525,22 @@ def me_model_from_dict(obj):
 			'kcat' : 65.0, # not stored in json with coralME v1.0
 			'temperature' : obj['global_info']['temperature'],
 			'propensity_scaling' : obj['global_info']['propensity_scaling']
+			}
+	else:
+		model.default_parameters = {
+			'kt' : obj['global_info']['default_parameters']['k_t'],
+			'r0' : obj['global_info']['default_parameters']['r_0'],
+			'k_deg' : obj['global_info']['default_parameters']['k^mRNA_deg'],
+			'm_rr' : obj['global_info']['default_parameters']['m_rr'],
+			'm_aa' : obj['global_info']['default_parameters']['m_aa'],
+			'm_nt' : obj['global_info']['default_parameters']['m_nt'],
+			'f_rRNA' : obj['global_info']['default_parameters']['f_rRNA'],
+			'f_mRNA' : obj['global_info']['default_parameters']['f_mRNA'],
+			'f_tRNA' : obj['global_info']['default_parameters']['f_tRNA'],
+			'm_tRNA' : obj['global_info']['default_parameters']['m_tRNA'],
+			'kcat' : obj['global_info']['default_parameters']['k^default_cat'],
+			'temperature' : obj['global_info']['default_parameters']['temperature'],
+			'propensity_scaling' : obj['global_info']['default_parameters']['propensity_scaling']
 			}
 
 	model.global_info['growth_key'] = sympy.Symbol(model.global_info['growth_key'], positive = True)

@@ -2667,7 +2667,8 @@ class MEReconstruction(MEBuilder):
 				keff = sasa * median_keff / median_sasa
 				mapped_keffs[rxn] = 3000. if keff > 3000. else 0.01 if keff < 0.01 else keff
 
-			# WARNING: Do not change 'keff' unless it is fully deprecated by coupling_coefficient_enzyme or coupling_coefficient_subreaction
+			# WARNING: keff won't be deprecated by coupling_coefficient_enzyme or coupling_coefficient_subreaction properties
+			# WARNING: keff maps back to the value used to determine coupling_coefficient_enzyme or coupling_coefficient_subreaction
 			# dictionary of reaction IDs : coralme.core.reaction objects
 			rxns_to_map = { x.id:x for x in me.subreaction_data + me.reactions if hasattr(x, 'keff') }
 			# Step 3: Replace user values if they match

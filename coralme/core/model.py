@@ -299,6 +299,13 @@ class MEModel(cobra.core.model.Model):
 
 	@default_parameters.setter
 	def default_parameters(self, args):
+		"""
+		Use 'kt' instead of 'k_t'
+		Use 'r0' instead of 'r_0'
+		Use 'k_deg' instead of 'k^mRNA_deg'
+		Use 'kt' instead of 'k_t'
+		Use 'kcat' instead of 'k^default_cat'
+		"""
 		self.global_info['default_parameters'] = {
 			sympy.Symbol('k_t', positive = True) : args.get('kt', 4.5),
 			sympy.Symbol('r_0', positive = True) : args.get('r0', 0.087),

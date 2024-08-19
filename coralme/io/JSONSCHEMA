@@ -50,18 +50,6 @@
           "type": "number"
         }
       },
-      "required": [
-        "kt",
-        "r0",
-        "k_deg",
-        "m_rr",
-        "m_aa",
-        "f_rRNA",
-        "m_nt",
-        "f_mRNA",
-        "m_tRNA",
-        "f_tRNA"
-      ],
       "type": "object"
     },
     "id": {
