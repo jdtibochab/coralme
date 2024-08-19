@@ -1812,7 +1812,7 @@ class MEModel(cobra.core.model.Model):
 				<td>{len(self.reactions)}</td>
 			</tr><tr>
 				<td><strong>Number of genes</strong></td>
-				<td>{len(self.all_genes)-1}</td>
+				<td>{len(self.all_genes)}</td>
 			</tr><tr>
 				<td><strong>Number of mRNA genes</strong></td>
 				<td>{len(self.mRNA_genes)}</td>
