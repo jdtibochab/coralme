@@ -187,18 +187,37 @@ class SubreactionData(ProcessData):
 	# Backward compatibility
 	@property
 	def keff(self):
-		return self._coupling_coefficient_subreaction
+		"""
+		returns the keff value, not the coupling coefficient, in per second
+		"""
+		value = self._model.mu * sympy.Rational('1/3600') / self._coupling_coefficient_subreaction
+		try:
+			return float(value)
+		except:
+			return float(value.xreplace(self._model.global_info['default_parameters']))
 
+	# Backward compatibility
 	@keff.setter
 	def keff(self, value):
+		"""
+		value is the keff in per second, not the coupling coefficient in per hour
+		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		"""
 		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
 
 	@property
 	def coupling_coefficient_subreaction(self):
+		"""
+		returns the coupling coefficient, not the keff value, in per hour
+		"""
 		return self._coupling_coefficient_subreaction
 
 	@coupling_coefficient_subreaction.setter
 	def coupling_coefficient_subreaction(self, value):
+		"""
+		value is the keff in per second, not the coupling coefficient in per hour
+		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		"""
 		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
 
 	@property
@@ -260,7 +279,7 @@ class SubreactionData(ProcessData):
 
 			# elements lost in conversion are added to complex, protein, etc.
 			if not met_obj.elements and not isinstance(met_obj, coralme.core.component.GenerictRNA):
-				logging.warning('Metabolite \'{:s}\' does not have a formula. If it is a \'Complex\', its formula will be determined from amino acid composition and prosthetic groups. Otherwise, please set a formula in the M-model or in the metabolites.txt input file.'.format(met_obj.id))
+				logging.warning('Metabolite \'{:s}\' does not have a formula. If it is a \'Complex\', its formula will be determined from amino acid composition and prosthetic groups stoichiometry. Otherwise, please add it to the M-model.'.format(met_obj.id))
 
 			for e, n in met_obj.elements.items():
 				elements[e] -= n * coefficient
@@ -1117,11 +1136,11 @@ class tRNAData(ProcessData):
 		self.subreactions = collections.defaultdict(int)
 		self.synthetase = None
 
-		self.synthetase_keff = self._model.symbols['k^default_cat']
+		self._synthetase_keff = self._model.symbols['k^default_cat']
 
 		self._coupling_coefficient_trna_keff = self._model.symbols['k_tRNA']
-		self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._model.symbols['k_tRNA']**-1, evaluate = False)
-		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._coupling_coefficient_trna_keff**-1, evaluate = False)
+		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), self._synthetase_keff**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
 
 		self.organelle = None
 
@@ -1131,15 +1150,43 @@ class tRNAData(ProcessData):
 
 	@coupling_coefficient_trna_amount.setter
 	def coupling_coefficient_trna_amount(self, value):
-		self._coupling_coefficient_trna_amount = value
+		return NotImplemented # user should modify model.default_parameters
+
+	# Backward compatibility
+	@property
+	def synthetase_keff(self):
+		"""
+		returns the synthetase keff value, not the coupling coefficient, in per second
+		"""
+		value = self._synthetase_keff
+		try:
+			return float(value)
+		except:
+			return float(value.xreplace(self._model.global_info['default_parameters']))
+
+	# Backward compatibility
+	@synthetase_keff.setter
+	def synthetase_keff(self, value):
+		"""
+		value is the synthetase keff in per second, not the coupling coefficient in per hour
+		this returns the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount), in per hour
+		"""
+		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
 
 	@property
 	def coupling_coefficient_synthetase(self):
+		"""
+		returns the coupling coefficient, not the synthetase keff value, in per hour
+		"""
 		return self._coupling_coefficient_synthetase
 
 	@coupling_coefficient_synthetase.setter
 	def coupling_coefficient_synthetase(self, value):
-		self._coupling_coefficient_synthetase = value
+		"""
+		value is the synthetase keff in per second, not the coupling coefficient in per hour
+		this returns the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount), in per hour
+		"""
+		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
 
 class TranslocationData(ProcessData):
 	"""

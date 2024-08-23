@@ -362,3 +362,27 @@ def get_keffs_from_model(me):
 	df['mods'] = tmp.iloc[:, 1].apply(lambda x: ' AND '.join(x.split('_mod_')) if x is not None else None)
 
 	return df[['reaction', 'direction', 'complex', 'mods', 'keff']]
+
+def check_me_coverage(builder):
+	if not hasattr(builder, 'ref'):
+		return NotImplemented
+	if not hasattr(builder, 'df_data'):
+		return NotImplemented
+
+	ref_genes = [ x.id for x in builder.ref.m_model.genes ]
+	tmp = builder.df_data[['Gene Locus ID', 'Reference BBH', 'M-model Reaction ID']]
+	tmp = tmp[tmp['Reference BBH'].isin(ref_genes)]
+
+	# implementation relies on 'M-model Reaction ID' is sorted before None
+	tmp = tmp.sort_values(['Gene Locus ID', 'M-model Reaction ID']).drop_duplicates('Gene Locus ID', keep = 'first')
+	res = tmp[tmp['M-model Reaction ID'].isna()]['Gene Locus ID'].values
+
+	# store report to curation notes
+	if len(res) > 0:
+		builder.org.curation_notes['check_me_coverage'].append({
+			'msg':'Some genes show homology, but no metabolic function.',
+			'triggered_by':list(res),
+			'importance':'critical',
+			'to_do':'Manually curate the M-model to correct GPRs or incorporate new reactions.'})
+
+	return len(res)

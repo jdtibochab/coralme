@@ -973,7 +973,7 @@ class MEBuilder(object):
 			if ref_cplx in ref_cplx_homolog:
 				org_cplx = ref_cplx_homolog[v]
 				defined_cplx = org_amino_acid_trna_synthetase[k]
-				if defined_cplx: continue
+				if self.configuration.get('user_data', False) and defined_cplx: continue
 # 				if not defined_cplx or defined_cplx in org_cplx or 'CPLX_dummy' in defined_cplx:
 				org_amino_acid_trna_synthetase[k] = org_cplx
 # 				else:
@@ -2667,7 +2667,8 @@ class MEReconstruction(MEBuilder):
 				keff = sasa * median_keff / median_sasa
 				mapped_keffs[rxn] = 3000. if keff > 3000. else 0.01 if keff < 0.01 else keff
 
-			# WARNING: Do not change 'keff' unless it is fully deprecated by coupling_coefficient_enzyme or coupling_coefficient_subreaction
+			# WARNING: keff won't be deprecated by coupling_coefficient_enzyme or coupling_coefficient_subreaction properties
+			# WARNING: keff maps back to the value used to determine coupling_coefficient_enzyme or coupling_coefficient_subreaction
 			# dictionary of reaction IDs : coralme.core.reaction objects
 			rxns_to_map = { x.id:x for x in me.subreaction_data + me.reactions if hasattr(x, 'keff') }
 			# Step 3: Replace user values if they match
@@ -2729,8 +2730,18 @@ class MEReconstruction(MEBuilder):
 		ListHandler.print_and_log('Number of metabolites in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_mets, new_mets, len(me.gem.metabolites)))
 		ListHandler.print_and_log('Number of reactions in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_rxns, new_rxns, len(me.gem.reactions)))
 		ListHandler.print_and_log('Number of genes in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_genes, new_genes, len(me.gem.genes)))
+		ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
 
 		logging.shutdown()
+
+		coralme.builder.notes.save_curation_notes(
+				self.curation_notes,
+				self.configuration['out_directory'] + '/curation_notes.json'
+			)
+		coralme.builder.notes.publish_curation_notes(
+				self.curation_notes,
+				self.configuration['out_directory']+ '/curation_notes.txt'
+			)
 
 		with open('{:s}/MEReconstruction-{:s}.log'.format(log_directory, model), 'w') as outfile:
 			for filename in [
@@ -2950,6 +2961,15 @@ class METroubleshooter(object):
 			self.me_model.troubleshooted = False
 
 		logging.shutdown()
+
+		coralme.builder.notes.save_curation_notes(
+				self.curation_notes,
+				self.configuration['out_directory'] + '/curation_notes.json'
+			)
+		coralme.builder.notes.publish_curation_notes(
+				self.curation_notes,
+				self.configuration['out_directory']+ '/curation_notes.txt'
+			)
 
 		# We will remove duplicates entries in the log output
 		with open('{:s}/METroubleshooter-{:s}.log'.format(log_directory, model), 'w') as outfile:

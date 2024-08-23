@@ -72,6 +72,10 @@ def save_json_me_model(model, file_name, sort = True, compress = False):
 
 	model_dict = coralme.io.dict.me_model_to_dict(model)
 
+	# cannot be before me_model_from_dict
+	if 'default_parameters' in model.global_info:
+		model_dict['global_info']['default_parameters'] = { str(k):v for k,v in model_dict['global_info']['default_parameters'].items() }
+
 	logging.shutdown()
 
 	# Confirm that dictionary representation of model adheres to JSONSCHEMA
