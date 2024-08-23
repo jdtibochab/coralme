@@ -631,7 +631,7 @@ class MEBuilder(object):
 				continue
 			for rg in ref_complexes_df["genes"][rc].split(" AND "):
 				rg_id = re.findall('.*(?=\(\d*\))', rg)[0]
-				coeff = re.findall("(?<=\()[0-9]{1,3}", rg)
+				coeff = re.findall("(?<=\()[0-9]*{1,3}", rg)
 				if coeff:
 					coeff = coeff[0]
 				else:
