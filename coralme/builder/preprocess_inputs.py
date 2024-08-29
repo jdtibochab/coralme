@@ -35,7 +35,6 @@ def _save_to_excel(data, output):
 
 		# Close the Pandas Excel writer and output the Excel file.
 		writer.close()
-	return None
 
 def generate_organism_specific_matrix(genbank, locus_tag, model):
 	contigs = []
@@ -671,8 +670,6 @@ def get_metacomplex_stoichiometry(df, key):
 
 		tmp.loc[:, 'stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
 		return tmp
-	else:
-		return None
 
 def ribosome_stoichiometry(df):
 	tmp = get_metacomplex_stoichiometry(df, 'ribosome')
@@ -709,8 +706,6 @@ def excision_machinery_stoichiometry(df, keys):
 
 		tmp.loc[:, 'stoich'] = tmp['MetaComplex ID'].str.split(':', expand = True).iloc[:, 1]
 		return { k.split(':')[0]:int(v) for k,v in zip(tmp['Gene Locus ID'], tmp['stoich']) }
-	else:
-		return None
 
 def aa_synthetase_dict(df):
 	#tmp = df[df['Definition'].str.contains('--tRNA ligase|-tRNA synthetase') & ~df['Feature Type'].isin(['pseudo'])]
