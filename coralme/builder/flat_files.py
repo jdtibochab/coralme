@@ -164,7 +164,9 @@ def process_m_model(
 			continue
 
 		check = rxn.check_mass_balance()
-		if set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
+		if check == {}:
+			continue
+		elif set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
 			compt = rxn.get_compartments()
 			if len(compt) == 1:
 				metabolites = Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
@@ -174,6 +176,8 @@ def process_m_model(
 				logging.warning('Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
 			else:
 				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction.'.format(rxn.id))
+		else:
+			logging.warning('Reaction \'{:s}\' is not mass/charge balanced.'.format(rxn.id))
 
 	# remove unused genes
 	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
