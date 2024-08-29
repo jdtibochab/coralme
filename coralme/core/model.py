@@ -1719,7 +1719,7 @@ class MEModel(cobra.core.model.Model):
 
 	def feasibility(self, keys = { sympy.Symbol('mu', positive = True) : 0.001 }, tolerance = 1e-6, precision = 'quad', basis = None, **kwargs):
 		if not hasattr(self, 'construct_lp_problem'):
-			raise ValueError('The model is not a ME-model.')
+			raise ValueError('The model is not a coralME M-model or ME-model.')
 
 		# check options
 		tolerance = tolerance if tolerance >= 1e-15 else 1e-6
