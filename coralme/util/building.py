@@ -442,7 +442,7 @@ def build_reactions_from_genbank(
 		iterator = tqdm.tqdm(contig.features, 'Adding features from contig {:s} into the ME-model...'.format(contig.id), bar_format = bar_format) if len(contigs) < 10 else contig.features
 		for feature in iterator:
 			# Find organelle in source
-			if feature.type == 'source':
+			if feature.type in ['source', 'region']: # genbanks from gff+fna do not contain a 'source' feature
 				organelle = feature.qualifiers.get('organelle', [None])[0]
 				continue
 

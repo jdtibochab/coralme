@@ -477,7 +477,7 @@ class MEBuilder(object):
 			iterator = tqdm.tqdm(contig.features, 'Getting tRNA to codon dictionary from {}'.format(contig.id), bar_format = bar_format) if len(contigs) < 10 else contig.features
 			for feature in iterator:
 				# Find organelle in source
-				if feature.type == 'source':
+				if feature.type in ['source', 'region']: # genbanks from gff+fna do not contain a 'source' feature
 					organelle = feature.qualifiers.get('organelle', [None])[0]
 					continue
 				seq = feature.extract(contig).seq.replace('-', '')
@@ -1698,11 +1698,12 @@ class MEReconstruction(MEBuilder):
 			# detect if the genbank file was modified using biocyc data
 			gb = '{:s}/building_data/genome_modified.gb'.format(config.get('out_directory', '.'))
 			gb = gb if pathlib.Path(gb).exists() else config['genbank-path']
-
+			ListHandler.print_and_log('Writting the Organism-Specific Matrix...')
 			# generate a minimal dataframe from the genbank and m-model files
 			df_data = coralme.builder.preprocess_inputs.generate_organism_specific_matrix(gb, config.get('locus_tag', 'locus_tag'), model = m_model)
 			# complete minimal dataframe with automated info from homology
 			df_data = coralme.builder.preprocess_inputs.complete_organism_specific_matrix(self, df_data, model = m_model, output = filename)
+			ListHandler.print_and_log('Organism-Specific Matrix saved to {:s} file.'.format(filename))
 
 		# All other inputs and remove unnecessary genes from df_data
 		return (df_tus, df_rmsc, df_subs, df_mets, df_keffs), coralme.builder.preprocess_inputs.get_df_input_from_excel(df_data, df_rxns)
@@ -2544,7 +2545,7 @@ class MEReconstruction(MEBuilder):
 		me.reactions.dummy_reaction_FWD_SPONT.objective_coefficient = 1.
 
 		if update:
-			me.update()
+			me.update() # not parallelized
 
 		# ### 4. Add remaining formulas and compartments to the ME-model
 		for r in tqdm.tqdm(me.reactions.query('^formation_'), 'Updating all FormationReactions...', bar_format = bar_format):
@@ -2762,8 +2763,6 @@ class MEReconstruction(MEBuilder):
 			for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
 				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
 
-		return None
-
 class METroubleshooter(object):
 	"""
 	METroubleshooter class for troubleshooting growth in a ME-model
@@ -2980,4 +2979,3 @@ class METroubleshooter(object):
 				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
 
 		del self.me_model.troubleshooting
-		return None
