@@ -132,14 +132,17 @@ def ToExcel(model, outfile: str):
 			for data, sheet in zip([ rxns, mets, genes ], [ 'reactions', 'metabolites', 'genes' ]):
 				(max_row, max_col) = data.shape
 
-				# Get the xlsxwriter workbook and worksheet objects.
+				# Get the xlsxwriter workbook and worksheet objects
 				workbook  = writer.book
 				worksheet = writer.sheets[sheet]
 
-				# Set the autofilter.
+				# Freeze first row
+				worksheet.freeze_panes(1, 0)
+
+				# Set the autofilter
 				worksheet.autofilter(0, 0, max_row, max_col - 1)
 
-				# Make the columns wider for clarity.
+				# Make the columns wider for clarity
 				worksheet.set_column_pixels(0,  max_col - 1, 96)
 
 				# Set zoom level
