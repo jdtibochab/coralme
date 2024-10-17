@@ -166,37 +166,24 @@ def convert_gene_IDs(target, ref_model, mapping_genes, do_not_convert_gprs = ['r
 			except TypeError:
 				print(rxn.id, new_gpr)
 
-	# update_gene_from_gpr adds genes to model.genes
+	# update_genes_from_gpr adds genes to model.genes
 	cobra.manipulation.remove_genes(model, [g for g in model.genes if not g.reactions])
 	cobra.io.save_json_model(model, 'New-M-models/m_model_{:s}.json'.format(target))
 	del model
 	return (target, deleted)
 
-def run():
-	mapping_orthologues = change_model_genes.get_orthofinder_results('orthofinder-output/Results_Oct07/Orthogroups/Orthogroups.tsv')
-	genbank_features = change_model_genes.get_features_from_genbanks(
-		reference_genbank_path = 'gbffs/Ruminococcus_flavefaciens_FD_1.gbff', genbanks_target_directory = 'gbffs')
-	mapping_features = change_model_genes.map_features_between_assemblies(mapping_orthologues, genbank_features)
-	mapping_genes, genes, missing = change_model_genes.map_genes_between_models('Ruminococcus_flavefaciens_FD_1.json', mapping_features)
+def run_all(orthogroups, ref_model, new_model_ids, ref_genbank, genbanks_directory):
+	mapping_orthologues = get_orthofinder_results(orthogroups)
+	genbank_features = get_features_from_genbanks(reference_genbank_path = ref_genbank, genbanks_target_directory = genbanks_directory)
+	mapping_features = map_features_between_assemblies(mapping_orthologues, genbank_features)
+	mapping_genes, genes, missing = map_genes_between_models(ref_model, mapping_features)
 
-	return change_model_genes.convert_gene_IDs('GCF_000247525.1', 'Ruminococcus_flavefaciens_FD_1.json', mapping_genes)
+	res = []
+	for idx in new_model_ids:
+		if idx in mapping_genes.columns[1:]: # 'Original' should be position 0
+			res.append(convert_gene_IDs(idx, ref_model, mapping_genes))
+	return res
 
 if __name__ == '__main__':
-	run(path, save = False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	# to be completed
+	run_all()
