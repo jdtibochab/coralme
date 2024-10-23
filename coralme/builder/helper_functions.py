@@ -377,11 +377,15 @@ def check_me_coverage(builder):
 	tmp = tmp.sort_values(['Gene Locus ID', 'M-model Reaction ID']).drop_duplicates('Gene Locus ID', keep = 'first')
 	res = tmp[tmp['M-model Reaction ID'].isna()]['Gene Locus ID'].values
 
+	dct = builder.homology.mutual_hits
+	for idx, gene in enumerate(res):
+		res[idx] = '{:s} <-> {:s}'.format(res[idx], dct[gene])
+
 	# store report to curation notes
 	if len(res) > 0:
 		builder.org.curation_notes['check_me_coverage'].append({
 			'msg':'Some genes show homology, but no metabolic function.',
-			'triggered_by':list(res),
+			'triggered_by':sorted(res),
 			'importance':'critical',
 			'to_do':'Manually curate the M-model to correct GPRs or incorporate new reactions.'})
 

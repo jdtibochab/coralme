@@ -2154,7 +2154,7 @@ class Organism(object):
                                'GenBank')
             new_contig.features = []
             for feature in contig.features:
-                if feature.type == 'source':
+                if feature.type in ['source', 'region']: # genbanks from gff+fna do not contain a 'source' feature
                     new_contig.features.append(feature)
                     continue
                 if feature.type not in exclude_prune_types:

@@ -40,10 +40,14 @@ def get_dna_mw_no_ppi_dict(model):
 
 	dna_mw_no_ppi = {}
 	ppi_mw = model.metabolites.ppi_c.formula_weight
-	if ppi_mw == 0: ppi_mw = default['ppi']
+	if ppi_mw == 0:
+		ppi_mw = default['ppi']
+
 	for dna in ['dctp', 'dgtp', 'datp', 'dttp']:
 		dna_mw = model.metabolites.get_by_id(dna + '_c').formula_weight
-		if dna_mw == 0: dna_mw = default[dna]
+		if dna_mw == 0:
+			dna_mw = default[dna]
+
 		dna_mw_no_ppi[dna] = dna_mw - ppi_mw
 
 	return dna_mw_no_ppi

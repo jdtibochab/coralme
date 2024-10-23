@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import coralme
-from collections import defaultdict
+from collections import defaultdict, Counter
 
 def fix_id(id_str):
 	return id_str.replace('_DASH_', '__')
@@ -157,6 +157,27 @@ def process_m_model(
 	m_model.remove_reactions(rxns_to_remove)
 # 	mets_to_remove = [ m for m in m_model.metabolites if len(m.reactions) == 0 ]
 # 	m_model.remove_metabolites(mets_to_remove)
+
+	# correct stoichiometry if rxn.check_mass_balance() == {'charge': +1.0, 'H': +1.0} or integer multiples of it
+	for rxn in m_model.reactions:
+		if rxn.id.startswith(('EX_', 'DM_', 'SK_')):
+			continue
+
+		check = rxn.check_mass_balance()
+		if check == {}:
+			continue
+		elif set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
+			compt = rxn.get_compartments()
+			if len(compt) == 1:
+				metabolites = Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
+				metabolites.update(Counter({ m_model.metabolites.get_by_id('h_{:s}'.format(compt[0])) : -1 * check['H'] }))
+
+				m_model.reactions.get_by_id(rxn.id)._metabolites = { k:v for k,v in metabolites.items() if v != 0. }
+				logging.warning('Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
+			else:
+				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction.'.format(rxn.id))
+		else:
+			logging.warning('Reaction \'{:s}\' is not mass/charge balanced.'.format(rxn.id))
 
 	# remove unused genes
 	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
