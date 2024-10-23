@@ -2,7 +2,7 @@ Modified_enzyme	Core_enzyme	Modifications	Source
 ACETYL-COA-CARBOXYLMULTI-CPLX_mod_btn(1)	ACETYL-COA-CARBOXYLMULTI-CPLX	btn(1)	M_protein_recon
 ACETOLACTSYNI-CPLX_mod_mg2(1)_mod_fad(1)_mod_thmpp(1)	ACETOLACTSYNI-CPLX	mg2(1) AND fad(1) AND thmpp(1)	M_protein_recon
 PABASYN-CPLX_mod_mg2(1)	PABASYN-CPLX	mg2(1)	M_protein_recon
-2OXOGLUTARATEDEH-CPLX_mod_mg2(1)_mod_lipoyl(1)	2OXOGLUTARATEDEH-CPLX	mg2(1) AND lipoyl(1)	M_protein_recon
+2OXOGLUTARATEDEH-CPLX_mod_mg2(1)_mod_fad(1)_mod_thmpp(1)_mod_lipoyl(1)	2OXOGLUTARATEDEH-CPLX	mg2(1) AND fad(1) AND thmpp(1) AND lipoyl(1)	M_protein_recon
 ANTHRANSYN-CPLX_mod_mg2(1)	ANTHRANSYN-CPLX	mg2(1)	M_protein_recon
 ANTHRANSYN-CPLX_mod_cobalt2(1)	ANTHRANSYN-CPLX	cobalt2(1)	M_protein_recon
 ANTHRANSYN-CPLX_mod_fe2(1)	ANTHRANSYN-CPLX	fe2(1)	M_protein_recon
