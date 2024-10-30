@@ -10,7 +10,10 @@ def add_iron_sulfur_modifications(me_model):
 	#if not, FormationReaction's are modified during update(),
 	#but missing 2fe2s and 4fe4s will be added as troubleshooted reactions
 	for fes in ['2fe2s', '4fe4s']:
-		components = [ '{:s}_mod_{:s}(1)'.format(x, fes) for x in set(fes_transfers) if x != '' ]
+		# WARNING: If the organism doesn't have iron-sulfur loaders, CPLX_dummy will be added as an iron-sulfur loader
+		# WARNING: The troubleshooter will add sink reactions for 4fe4s/2fe2s, making necessary formation reactions
+		# See main.py, lines 1931-1936
+		components = [ '{:s}_mod_{:s}(1)'.format(x, fes) for x in set(fes_transfers) if x != '' and x != 'CPLX_dummy' ]
 		for component in components:
 			query = me_model.metabolites.get_by_id(component).reactions
 			query = [ x for x in query if x.metabolites[me_model.metabolites.get_by_id(component)] > 0 ]

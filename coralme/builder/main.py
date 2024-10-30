@@ -1926,12 +1926,14 @@ class MEReconstruction(MEBuilder):
 		met = coralme.core.component.Constraint('unmodeled_protein_biomass')
 		rxn.add_metabolites({'protein_biomass': -mass, 'protein_dummy': -1, met: mass})
 
+		# WARNING: DO NOT REMOVE. This is needed if troubleshooter adds sink reactions for 4fe4s/2fe2s
 		# Add CPLX_dummy_mod_2fe2s(1) and CPLX_dummy_mod_4fe4s(1) if fes_transfers is {'CPLX_dummy'}
 		if 'CPLX_dummy' in me.global_info['complex_cofactors']['fes_transfers']:
 			for fes in ['2fe2s', '4fe4s']:
 				coralme.util.building.add_complex_to_model(me, 'CPLX_dummy_mod_{:s}(1)'.format(fes), { 'protein_dummy' : 1.0, fes + '_c': 1.0})
-			me.complex_data.query('CPLX_dummy_mod_2fe2s\(1\)')[0].create_complex_formation()
-			me.complex_data.query('CPLX_dummy_mod_4fe4s\(1\)')[0].create_complex_formation()
+			# WARNING: do not change escape characters
+			me.complex_data.query(r'CPLX_dummy_mod_2fe2s\(1\)')[0].create_complex_formation()
+			me.complex_data.query(r'CPLX_dummy_mod_4fe4s\(1\)')[0].create_complex_formation()
 
 		# ### 7) Associate Complexes to Metabolic reactions and build the ME-model metabolic network
 
