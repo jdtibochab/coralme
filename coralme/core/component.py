@@ -35,6 +35,22 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	def __init__(self, id):
 		cobra.core.metabolite.Metabolite.__init__(self, id)
 
+	def get_fluxes(self,
+		only_types = (), ignore_types = (),
+		threshold = 0., flux_dict = 0, include_zeroes = True,
+		solution = None, keffs = False, verbose = False):
+		"""
+		Shortcut for coralme.util.flux_analysis.flux_based_reactions(model, met_id, [...])
+		"""
+		return coralme.util.flux_analysis.flux_based_reactions(self._model, self.id, only_types, ignore_types, threshold, flux_dict, include_zeroes, solution, keffs, verbose)
+
+	def add_boundary(self, type: str = "exchange", reaction_id = None, lb = None, ub = None, sbo_term = None):
+		"""
+		Shortcut for model.add_boundary(model.metabolites.get_by_id(met_id), [...])
+		"""
+		if self._model is not None:
+			self._model.add_boundary(self, type, reaction_id, lb, ub, sbo_term)
+
 	def remove_from_me_model(self, method = 'subtractive'):
 		"""
 		Remove metabolite from ME-model along with any relevant
