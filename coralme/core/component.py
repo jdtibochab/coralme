@@ -2,6 +2,24 @@ import cobra
 import coralme
 from collections import Counter
 
+# Extend Counter to let us multiply by a int or float
+# https://stackoverflow.com/questions/23677982/python-how-to-multiply-values-of-a-counter-object
+# Original code modified to allow multiplication by a float
+class MCounter(Counter):
+	"""This is a slight extension of the ``Collections.Counter`` class
+	to also allow multiplication with integers."""
+
+	def __mul__(self, other):
+		if not isinstance(other, (int, float)):
+			raise TypeError("Non-int factor")
+		return MCounter({k: other * v for k, v in self.items()})
+
+	def __rmul__(self, other):
+		return self * other  # call __mul__
+
+	def __add__(self, other):
+		return MCounter(super().__add__(other))
+
 class MEComponent(cobra.core.metabolite.Metabolite):
 	"""
 	coralme component representation. Inherits from
