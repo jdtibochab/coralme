@@ -2,7 +2,13 @@ from coralme.solver.solver import ME_NLP
 import cobra
 
 def get_nlp(model):
-    Sf, Se, lb, ub, b, c, cs, atoms, lambdas = model.construct_lp_problem(lambdify=True)
+    # Call construct LP problem function from model to get precursor objects.
+    # lamdify = True -> Creates lambdify functions to calculate bounds as a function of mu
+    # per_position = True -> LB and UB bounds as list of lambdify instead of a lambdify to 
+    # be able to change individual values
+    Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = model.construct_lp_problem(lambdify=True,per_position=True)
+
+    # Construct NLP object from precursor objects
     me_nlp = ME_NLP(Sf, Se,b, c, lb, ub,  cs, atoms, lambdas)
     return me_nlp
 
