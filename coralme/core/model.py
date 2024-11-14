@@ -1212,13 +1212,20 @@ class MEModel(cobra.core.model.Model):
 
 		return res
 
-	def construct_lp_problem(self, lambdify = False, as_dict = False) -> tuple:
+	def construct_lp_problem(self, lambdify = False, per_position = False, as_dict = False) -> tuple:
 		"""
 		lambdify
 		    Returns lambda functions for each symbolic stoichiometric coefficient
 
+		per_position
+			Returns a list of lambda functions instead of a single 'vectorized' lambda function.
+			The lambdify and evaluation is slower, but it allows direct manipulation of the LP.
+
+		as_dict
+			Returns a dictionary with keys matching the input of coralme.solver.solver.ME_NLP
+
 		Output:
-		    A tuple of 9 elements:
+		    A tuple of 11 elements or a dictionary with 11 keys:
 		        Dictionary with numeric stoichiometric coefficients: { (met, rxn) : float }
 		        Dictionary with symbolic stoichiometric coefficients: { (met, rxn) : symbol }
 		        List of lower bounds (numeric and symbolic)
@@ -1228,6 +1235,8 @@ class MEModel(cobra.core.model.Model):
 		        List of constraint senses (always 'E')
 		        Set of atoms (i.e., free symbols in symbolic stoichiometric coefficients)
 		        Dictionary of lambda functions for each symbolic stoichiometry coefficient
+		        List of reaction IDs (useful when only the LP exists)
+		        List of metabolites IDs (useful when only the LP exists)
 		"""
 
 		# populate empty dictionaries with stoichiometry
@@ -1258,17 +1267,25 @@ class MEModel(cobra.core.model.Model):
 		cs = [ 'E' for m in self.metabolites ]
 
 		if lambdify:
-			# fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x))
-			lb = sympy.lambdify(list(atoms), lb) # 5x faster than [ x for x in fn(lb) ]
-			ub = sympy.lambdify(list(atoms), ub) # 5x faster than [ x for x in fn(ub) ]
-			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-			lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values())))
+			if per_position:
+				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, docstring_limit = None))
+				lb = [ x for x in fn(lb) ]
+				ub = [ x for x in fn(ub) ]
+				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			else:
+				lb = sympy.lambdify(list(atoms), lb, docstring_limit = None) # 5x faster than [ x for x in fn(lb) ]
+				ub = sympy.lambdify(list(atoms), ub, docstring_limit = None) # 5x faster than [ x for x in fn(ub) ]
+				# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()), docstring_limit = None))
 		else:
 			lambdas = None
 
 		#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
 		#self.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
+
+		lb = list(lb) if isinstance(lb, tuple) else lb
+		ub = list(ub) if isinstance(ub, tuple) else ub
 		if as_dict:
 			return {
 				'Sf' : Sf,
