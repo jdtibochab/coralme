@@ -256,15 +256,23 @@ class ME_NLP:
         dct = { symbol:muf for symbol in self.mu }
 
         if self.fn is None:
+            # If lambdify == False
             xl = [ float(x.xreplace(dct)) if hasattr(x, 'subs') else x for x in self.xl ]
             xu = [ float(x.xreplace(dct)) if hasattr(x, 'subs') else x for x in self.xu ]
             Se = { k:float(x.xreplace(dct)) if hasattr(x, 'subs') else x for k,x in self.Se.items() }
             self.Sf.update(Se)
         else:
-            xl = self.xl(*[muf]*len(dct)) # [ fn(*[muf]*len(dct)) for fn in self.xl ]
-            xu = self.xu(*[muf]*len(dct)) # [ fn(*[muf]*len(dct)) for fn in self.xu ]
-            # Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
-            Se = { k:v for k,v in zip(self.fn[0], self.fn[1](*[muf]*len(dct))) }
+            # If lambdify == True
+            if isinstance(self.xl,list):
+                # If per_position == True
+                xl = [ fn(*[muf]*len(dct)) for fn in self.xl ]
+                xu = [ fn(*[muf]*len(dct)) for fn in self.xu ]
+                Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
+            else:
+                # If per_position == False
+                xl = self.xl(*[muf]*len(dct))
+                xu = self.xu(*[muf]*len(dct))
+                Se = { k:v for k,v in zip(self.fn[0], self.fn[1](*[muf]*len(dct))) }
             self.Sf.update(Se)
 
         Sp = scipy.sparse.dok_matrix((len(self.b), len(self.c)), dtype = float)
