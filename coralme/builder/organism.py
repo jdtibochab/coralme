@@ -2344,7 +2344,7 @@ class Organism(object):
             enz_rxn_assoc_dict[rxn.id] = []
             #rule_list = expand_gpr(listify_gpr(rule)).split(" or ")
             rule_list = coralme.builder.gpr.expand_gpr(rule,threshold=gpr_combination_cutoff)
-            if rule_list != "STOP":
+            if rule_list != "STOP" or len(rule_list) <= gpr_combination_cutoff:
                 enz_rxn_assoc = []
                 reaction_cplx_list = []
                 for rule_gene_list in rule_list:
