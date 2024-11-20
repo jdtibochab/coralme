@@ -56,7 +56,7 @@ def get_graph(T,G={},length=1,threshold=100):
 				d = {}
 				g,length = get_graph(i,d,threshold=threshold,length=length)
 				if g == "STOP":
-					break
+					return g,length
 				l.append(g)
 			d = concatenate_graphs(l)
 			for k,v in d.items():
@@ -70,7 +70,7 @@ def get_graph(T,G={},length=1,threshold=100):
 			for i in T['or']:
 				G,length = get_graph(i,G,threshold=threshold,length=length)
 				if G == "STOP":
-					break
+					return G,length
 		#print(get_size(G))
 		length = length*get_size(G)
 		if length > threshold:
