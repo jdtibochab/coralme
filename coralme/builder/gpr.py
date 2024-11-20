@@ -24,13 +24,9 @@ def append_graph(G,g):
 		for k,v in G.items():
 			G[k] = append_graph(v,g)
 		return G
-def concatenate_graphs(L,r=[],threshold=100):
-	if L == "STOP":
-		return L
+def concatenate_graphs(L,r=[]):
 	if r:
 		for i in r:
-			if get_size(L) > threshold:
-				return "STOP"
 			L = append_graph(L,i)
 		return L
 	elif isinstance(L,list):
@@ -39,41 +35,47 @@ def concatenate_graphs(L,r=[],threshold=100):
 		else:
 			b = L[0]
 			r = L[1:]
-			L = concatenate_graphs(b,r,threshold=threshold)
+			L = concatenate_graphs(b,r)
 		return L
-
 def get_size(G):
 	return len(re.findall("\$",str(G)))
-
-def get_graph(T,G={},threshold=100):
+def get_graph(T,G={},length=1,threshold=100):
+	#if get_size(T) > threshold:
+		#return "STOP"
 	if isinstance(T,str):
 		if T in G:
 			T = T + '_REPETITIONMARK_' + str(len(G))
 		G[T] = '$'
-		return G
+		if length > threshold:
+			G = "STOP"
+		return G,length
 	elif isinstance(T,dict):
 		if 'and' in T:
 			l = []
 			for i in T['and']:
 				d = {}
-				g = get_graph(i,d,threshold=threshold)
+				g,length = get_graph(i,d,threshold=threshold,length=length)
 				if g == "STOP":
-					return g
+					break
 				l.append(g)
-			d = concatenate_graphs(l,threshold=threshold)
-			if d == "STOP":
-				return d
+			d = concatenate_graphs(l)
 			for k,v in d.items():
 				if k in G:
 					k = k + '_REPETITIONMARK_' + str(len(G))
 				G[k] = v
-			return G
+			if length > threshold:
+				G = "STOP"
+			return G,length
 		elif 'or' in T:
 			for i in T['or']:
-				G = get_graph(i,G,threshold=threshold)
+				G,length = get_graph(i,G,threshold=threshold,length=length)
 				if G == "STOP":
-					return G
-		return G
+					break
+		#print(get_size(G))
+		length = length*get_size(G)
+		if length > threshold:
+			G = "STOP"
+		return G,length
 
 def traverse_graph(G,L = [], C = []):
 	if G == '$':
@@ -89,7 +91,7 @@ def traverse_graph(G,L = [], C = []):
 def expand_gpr(rule,threshold=100):
 	l = listify_gpr(rule)
 	T = get_tree(l,T={})
-	G = get_graph(T,G={},threshold=threshold)
+	G,_ = get_graph(T,G={},threshold=threshold)
 	if G == "STOP":
 		return G
 	return traverse_graph(G,L=[],C=[])[1]
@@ -121,7 +123,7 @@ def generify_gpr(l_gpr,rxn_id,d={},generic_gene_dict={}):
 		d[name] = ' and '.join(l)
 		return name,d
 
-def listify_gpr(expr,level = 0):
+def listify_gpr(expr,level = 0,length=0):
 	"""
 	Modified from COBRApy
 	"""
