@@ -2313,7 +2313,7 @@ class Organism(object):
                     'importance':'low',
                     'to_do':'Check whether the marked modified protein in protein_corrections.txt for replacement is correctly defined.'})
 
-    def get_enzyme_reaction_association(self, gpr_combination_cutoff = 100):
+    def get_enzyme_reaction_association(self):
         """
         Maps the M-model GPRs to the provided files and links reactions
         to enzymatic complexes
@@ -2330,6 +2330,7 @@ class Organism(object):
         generic_dict = self.generic_dict
         enz_rxn_assoc_dict = {}
         new_generics = {}
+        gpr_combination_cutoff = self.config.get("gpr_combination_cutoff",100)
 
         for rxn in tqdm.tqdm(m_model.reactions,
                     'Getting enzyme-reaction associations...',
