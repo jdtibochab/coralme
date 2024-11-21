@@ -14,7 +14,7 @@ For more information on coralME's inputs, architecture and usage, see coralME's 
 Installation
 ------------
 
-Install using pip (available upon publication)
+Install using pip
 ==============================================
 1. ``pip install coralme``
 
