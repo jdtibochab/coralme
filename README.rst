@@ -1,5 +1,13 @@
 .. image:: https://github.com/jdtibochab/coralme/blob/main/docs/logo.png
 
+.. image:: https://img.shields.io/pypi/v/coralme.svg
+   :target: https://pypi.org/project/coralme/
+   :alt: Current PyPI Version
+
+.. image:: https://img.shields.io/pypi/pyversions/coralme.svg
+   :target: https://pypi.org/project/coralme/
+   :alt: Supported Python Versions
+
 The **COmprehensive Reconstruction ALgorithm for ME-models (coralME)** is an automatic pipeline for the reconstruction of ME-models. coralME integrates existing ME-modeling packages `COBRAme`_, `ECOLIme`_, and `solveME`_, generalizes their functions for implementation on any prokaryote, and processes readily available organism-specific inputs for the automatic generation of a working ME-model.
 
 coralME has four main objectives:
