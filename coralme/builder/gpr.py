@@ -40,7 +40,7 @@ def concatenate_graphs(L,r=[]):
 def get_size(G):
 	return len(re.findall("\$",str(G)))
 def get_graph(T,G={},length=1,threshold=100):
-	print(1, G,length)
+	#print(1, G,length)
 	if G == "STOP":
 		return "STOP",length
 	if isinstance(T,str):
@@ -58,7 +58,7 @@ def get_graph(T,G={},length=1,threshold=100):
 				g,_length = get_graph(i,d,threshold=threshold,length=length)
 				if g == "STOP":
 					return "STOP",length
-				print(f"{length} * {_length} = {length*_length}")
+				#print(f"{length} * {_length} = {length*_length}")
 				length = length*_length
 				l.append(g)
 			d = concatenate_graphs(l)
