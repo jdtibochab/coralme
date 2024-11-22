@@ -195,7 +195,7 @@ class MEBuilder(object):
 
 			folder = self.org.blast_directory
 			if bool(config.get('run_bbh_blast', True)):
-				blast_threads = config.get('blast_threads', 4)
+				blast_threads = config.get('blast_threads', 1)
 				ListHandler.print_and_log("~ Running BLAST with {} threads...".format(blast_threads))
 				self.org.gb_to_faa('org', element_types = {'CDS'}, outdir = self.org.blast_directory)
 				self.ref.gb_to_faa('ref', element_types = {'CDS'}, outdir = self.org.blast_directory)
