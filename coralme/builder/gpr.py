@@ -40,7 +40,7 @@ def concatenate_graphs(L,r=[]):
 def get_size(G):
 	return len(re.findall("\$",str(G)))
 def get_graph(T,G={},length=1,threshold=100):
-	#print(1, G,length)
+	print(1, G,length)
 	if G == "STOP":
 		return "STOP",length
 	if isinstance(T,str):
@@ -49,7 +49,7 @@ def get_graph(T,G={},length=1,threshold=100):
 		G[T] = '$'
 		if length > threshold:
 			G = "STOP"
-		return G,length
+		return G,1
 	elif isinstance(T,dict):
 		if 'and' in T:
 			l = []
@@ -58,7 +58,7 @@ def get_graph(T,G={},length=1,threshold=100):
 				g,_length = get_graph(i,d,threshold=threshold,length=length)
 				if g == "STOP":
 					return "STOP",length
-				#print(f"{length} * {_length} = {length*_length}")
+				print(f"{length} * {_length} = {length*_length}")
 				length = length*_length
 				l.append(g)
 			d = concatenate_graphs(l)
@@ -97,6 +97,7 @@ def expand_gpr(rule,threshold=100):
 	l = listify_gpr(rule)
 	T = get_tree(l,T={})
 	G,_ = get_graph(T,G={},threshold=threshold)
+	print(_)
 	if G == "STOP":
 		return G
 	return traverse_graph(G,L=[],C=[])[1]
