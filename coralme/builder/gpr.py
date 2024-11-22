@@ -97,7 +97,6 @@ def expand_gpr(rule,threshold=100):
 	l = listify_gpr(rule)
 	T = get_tree(l,T={})
 	G,_ = get_graph(T,G={},threshold=threshold)
-	print(_)
 	if G == "STOP":
 		return G
 	return traverse_graph(G,L=[],C=[])[1]
