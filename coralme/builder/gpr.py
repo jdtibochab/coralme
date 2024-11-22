@@ -40,8 +40,9 @@ def concatenate_graphs(L,r=[]):
 def get_size(G):
 	return len(re.findall("\$",str(G)))
 def get_graph(T,G={},length=1,threshold=100):
-	#if get_size(T) > threshold:
-		#return "STOP"
+	#print(1, G,length)
+	if G == "STOP":
+		return "STOP",length
 	if isinstance(T,str):
 		if T in G:
 			T = T + '_REPETITIONMARK_' + str(len(G))
@@ -54,9 +55,11 @@ def get_graph(T,G={},length=1,threshold=100):
 			l = []
 			for i in T['and']:
 				d = {}
-				g,length = get_graph(i,d,threshold=threshold,length=length)
+				g,_length = get_graph(i,d,threshold=threshold,length=length)
 				if g == "STOP":
-					return g,length
+					return "STOP",length
+				#print(f"{length} * {_length} = {length*_length}")
+				length = length*_length
 				l.append(g)
 			d = concatenate_graphs(l)
 			for k,v in d.items():
@@ -68,11 +71,13 @@ def get_graph(T,G={},length=1,threshold=100):
 			return G,length
 		elif 'or' in T:
 			for i in T['or']:
-				G,length = get_graph(i,G,threshold=threshold,length=length)
-				if G == "STOP":
-					return G,length
+				G,_length = get_graph(i,G,threshold=threshold,length=length)
+				if length > threshold:
+					G = "STOP"
 		#print(get_size(G))
-		length = length*get_size(G)
+		if G == "STOP":
+			return G,length
+		length = get_size(G)
 		if length > threshold:
 			G = "STOP"
 		return G,length
