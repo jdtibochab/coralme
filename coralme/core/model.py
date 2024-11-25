@@ -1,6 +1,8 @@
+import copy
 import re
 import pickle
 import typing
+import collections
 
 import logging
 log = logging.getLogger(__name__)
@@ -220,9 +222,6 @@ class MEModel(cobra.core.model.Model):
 		for var in ['k_t', 'r_0', 'k^mRNA_deg', 'm_rr', 'm_aa', 'm_nt', 'f_rRNA', 'f_mRNA', 'f_tRNA', 'm_tRNA', 'k^default_cat', 'temperature', 'propensity_scaling']:
 			self.symbols[var] = sympy.Symbol(var, positive = True)
 
-		self.process_data = cobra.core.dictlist.DictList()
-		self.metabolites = cobra.core.dictlist.DictList()
-
 		# set growth rate symbolic variable
 		self._mu = sympy.Symbol(mu, positive = True)
 		# allows the change of symbolic variables through the ME-model object
@@ -266,6 +265,14 @@ class MEModel(cobra.core.model.Model):
 		# Remaining Macromolecular Synthesis Machinery
 		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'] / 3600.) / self._mu) # page 20, k^default_cat in 1/s
 
+		# Create basic M-model structures
+		self.reactions = cobra.core.dictlist.DictList()
+		self.metabolites = cobra.core.dictlist.DictList()
+		self.process_data = cobra.core.dictlist.DictList()
+
+		self._compartments = {}
+		self._contexts = []
+
 		# Create the biomass dilution constraint
 		self._biomass = coralme.core.component.Constraint('biomass')
 		self._biomass_dilution = coralme.core.reaction.SummaryVariable('biomass_dilution')
@@ -292,6 +299,65 @@ class MEModel(cobra.core.model.Model):
 		# troubleshooting flags
 		self.troubleshooted = False
 		self.troubleshooting = False
+
+	def minimize(self, id_or_model = 'copy', name = 'copy'):
+		new_model = coralme.core.model.MEModel(id_or_model = id_or_model, name = name)
+		# add_processdata, add_metabolites, and add_reactions take care of
+		# new memory addresses for associated data
+		new_model.add_processdata([ x.copy() for x in self.process_data ])
+		new_model.global_info = copy.deepcopy(self.global_info)
+		new_model.metabolites[0].remove_from_model()
+		new_model.add_metabolites([ x.copy() for x in self.metabolites ])
+		new_model.reactions[0].remove_from_model()
+		# reaction copies should be associated to new process data
+		# the copy includes the objective coefficient
+		new_model.add_reactions([ x.copy() for x in self.reactions ])
+		new_model.compartments = self.compartments
+		return new_model
+
+	@staticmethod
+	def from_cobra(model, objective = None):
+		def reaction_from_cobra_model(model, reaction):
+			new_reaction = MEReaction(reaction.id)
+			new_reaction.name = reaction.name
+			new_reaction.subsystem = reaction.subsystem
+			new_reaction.lower_bound = reaction.lower_bound
+			new_reaction.upper_bound = reaction.upper_bound
+			new_reaction.gpr = reaction.gpr
+			for met, stoichiometry in reaction.metabolites.items():
+				new_reaction.add_metabolites({ model.metabolites.get_by_id(met.id): stoichiometry })
+			return new_reaction
+
+		def metabolite_from_cobra_model(model, metabolite):
+			new_metabolite = Metabolite(metabolite.id)
+			new_metabolite.name = metabolite.name
+			new_metabolite.formula = metabolite.formula
+			new_metabolite.compartment = metabolite.compartment
+			new_metabolite.charge = metabolite.charge
+			new_metabolite.annotation = metabolite.annotation
+			new_metabolite.notes = metabolite.notes
+			return new_metabolite
+
+		new_model = MEModel()
+		new_model.metabolites[0].remove_from_model()
+		new_model.add_metabolites([ metabolite_from_cobra_model(model, x) for x in model.metabolites ])
+		new_model.reactions[0].remove_from_model()
+		new_model.add_reactions([ reaction_from_cobra_model(model, x) for x in model.reactions ])
+		if objective is not None:
+			new_model.reactions.get_by_id(objective).objective_coefficient = +1
+		else:
+			# bof: defaultdict = { (optlang.gurobi_interface.Variable, coeff) }
+			bof = model.objective.expression.as_coefficients_dict()
+			for variable, objective_coefficient in bof.items():
+				if 'reverse' in variable.name:
+					continue
+				new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
+		new_model.gem = copy.deepcopy(model)
+		new_model.notes = {
+			'from cobra' : True
+			}
+
+		return new_model
 
 	@property
 	def default_parameters(self):
@@ -346,7 +412,7 @@ class MEModel(cobra.core.model.Model):
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def copy(self):
-		return NotImplemented
+		return copy.deepcopy(self)
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def prune_unused_metabolites(self):
@@ -459,6 +525,22 @@ class MEModel(cobra.core.model.Model):
 
 		self.metabolites -= metabolite_list
 
+	# WARNING: New method based on add_reactions
+	def add_processdata(self, processdata_list):
+		def existing_filter(data):
+			if data.id in self.process_data:
+				return False
+			return True
+
+		# First check whether the reactions exist in the model.
+		pruned = cobra.core.dictlist.DictList(filter(existing_filter, processdata_list))
+
+		#
+		for data in pruned:
+			data._model = self
+
+		self.process_data += pruned
+
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def add_reactions(self, reaction_list):
 		"""Add reactions to the model.
@@ -485,6 +567,8 @@ class MEModel(cobra.core.model.Model):
 		# Add reactions. Also take care of genes and metabolites in the loop.
 		for reaction in pruned:
 			reaction._model = self
+
+			# WARNING: DO NOT DELETE
 			# Build a `list()` because the dict will be modified in the loop.
 			for metabolite in list(reaction.metabolites):
 				# TODO: Maybe this can happen with
@@ -500,6 +584,15 @@ class MEModel(cobra.core.model.Model):
 					model_metabolite = self.metabolites.get_by_id(metabolite.id)
 					reaction._metabolites[model_metabolite] = stoichiometry
 					model_metabolite._reaction.add(reaction)
+
+			# WARNING: coralme reactions can have process_data associated to them
+			if hasattr(reaction, 'process_data'):
+				for key, value in reaction.process_data.items():
+					if value is None:
+						setattr(reaction, key, value)
+					else:
+						setattr(reaction, key, self.process_data.get_by_id(value.id))
+				delattr(reaction, 'process_data')
 
 		self.reactions += pruned
 
@@ -1283,7 +1376,6 @@ class MEModel(cobra.core.model.Model):
 		#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
 		#self.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
-
 		lb = list(lb) if isinstance(lb, tuple) else lb
 		ub = list(ub) if isinstance(ub, tuple) else ub
 		if as_dict:
@@ -1482,7 +1574,7 @@ class MEModel(cobra.core.model.Model):
 			print('The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n')
 
 		# populate with stoichiometry, no replacement of mu's
-		if hasattr(self, 'construct_lp_problem'):
+		if hasattr(self, 'construct_lp_problem') and not self.notes.get('from cobra', False):
 			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
 		else:
 			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = coralme.core.model.MEModel.construct_lp_problem(self)
