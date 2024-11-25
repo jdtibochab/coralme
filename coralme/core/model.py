@@ -305,6 +305,15 @@ class MEModel(cobra.core.object.Object):
 		self.troubleshooted = False
 		self.troubleshooting = False
 
+	def perform_gene_knockouts(self, genes):
+		return coralme.util.essentiality.perform_gene_knockouts(self, genes)
+
+	def to_json(self, outfile):
+		coralme.io.json.save_json_me_model(self, outfile)
+
+	def to_pickle(self, outfile):
+		coralme.io.pickle.save_pickle_me_model(self, outfile)
+
 	def minimize(self, id_or_model = 'copy', name = 'copy'):
 		new_model = coralme.core.model.MEModel(id_or_model = id_or_model, name = name)
 		# add_processdata, add_metabolites, and add_reactions take care of
@@ -440,7 +449,8 @@ class MEModel(cobra.core.object.Object):
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	@property
 	def objective(self):
-		return [ x for x in self.reactions if x.objective_coefficient != 0 ]
+		# TODO: make it look like cobrapy output?
+		return [ (x, x.objective_coefficient) for x in self.reactions if x.objective_coefficient != 0 ]
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	@objective.setter
@@ -775,9 +785,24 @@ class MEModel(cobra.core.object.Object):
 	def get_troubleshooted_reactions(self):
 		return self.reactions.query('^TS_')
 
+	def remove_troubleshooted_reactions(self):
+		return self.remove_reactions(self.get_troubleshooted_reactions)
+
 	@property
 	def get_unbounded_reactions(self):
 		return [ x for x in self.reactions if x.bound_violation[0] ]
+
+	@property
+	def get_spontaneous_reactions(self):
+		return self.reactions.query('_FWD_SPONT$|_REV_SPONT$')
+
+	@property
+	def get_null_gpr_metabolic_reactions(self):
+		return [ x for x in self.reactions if self.metabolites.get_by_id('CPLX_dummy') in x.metabolites ]
+
+	@property
+	def get_mass_unbalanced_reactions(self):
+		return [ x for x in self.reactions if isinstance(x.get_me_mass_balance(), dict) and x.get_me_mass_balance() != {} ]
 
 	def add_biomass_constraints_to_model(self, biomass_types):
 		for biomass_type in tqdm.tqdm(biomass_types, 'Adding biomass constraint(s) into the ME-model...', bar_format = bar_format):
@@ -953,6 +978,11 @@ class MEModel(cobra.core.object.Object):
 	@property
 	def tRNA_genes(self):
 		lst = [ g for g in self.all_genes if g.RNA_type == 'tRNA' ]
+		return cobra.core.dictlist.DictList(lst)
+
+	@property
+	def pseudo_genes(self):
+		lst = [ self.all_genes.get_by_id('RNA_' + g.id) for g in [ g for g in self.translation_data if g.pseudo ] if g.id != 'dummy' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
@@ -1932,6 +1962,9 @@ class MEModel(cobra.core.object.Object):
 				<td><strong>Number of reactions</strong></td>
 				<td>{len(self.reactions)}</td>
 			</tr><tr>
+				<td><strong>Number of process data</strong></td>
+				<td>{len(self.process_data)}</td>
+			</tr><tr>
 				<td><strong>Number of genes</strong></td>
 				<td>{len(self.all_genes)}</td>
 			</tr><tr>
@@ -1944,8 +1977,11 @@ class MEModel(cobra.core.object.Object):
 				<td><strong>Number of tRNA genes</strong></td>
 				<td>{len(self.tRNA_genes)}</td>
 			</tr><tr>
+				<td><strong>Number of pseudogenes</strong></td>
+				<td>{len(self.pseudo_genes)}</td>
+			</tr><tr>
 				<td><strong>Objective expression</strong></td>
-				<td>{cobra.util.util.format_long_string(",".join([r.id for r in self.objective]), 100)}</td>
+				<td>{cobra.util.util.format_long_string(" + ".join([ '{:.1f}*{:s}'.format(r[1], r[0].id) for r in self.objective]), 100)}</td>
 			</tr><tr>
 				<td><strong>Compartments</strong></td>
 				<td>{", ".join(v if v else k for k, v in
