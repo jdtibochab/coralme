@@ -297,7 +297,7 @@ class ME_NLP:
 
         return m, n, ha, ka, ad, bld, bud, hs, obj_inds
 
-    def solvelp(self, muf, basis, precision, probname = 'me_lp'):
+    def solvelp(self, muf, basis = None, precision = 'quad', probname = 'me_lp', output_as_dict = False):
         """
         x, status, hs = solvelp(self, muf, basis = None, precision = 'quad')
 
@@ -372,7 +372,10 @@ class ME_NLP:
         if int(inform) == 0:
             inform = 'optimal'
 
-        return x, pi, rc, inform, hs
+        if output_as_dict:
+            return { 'fluxes' : x, 'shadow_prices' : pi, 'reduced_costs' : rc, 'status' : inform, 'basis' : hs }
+        else:
+            return x, pi, rc, inform, hs
 
     def bisectmu(
         self, mumin = 0.0, mumax = 2.0, maxIter = 100, basis = None,
