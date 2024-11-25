@@ -424,6 +424,47 @@ class MEModel(cobra.core.object.Object):
 				if hasattr(coeff, 'subs'):
 					rxn._metabolites[met] = coeff.subs({ self._mu_old : self.mu })
 
+	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
+	@property
+	def compartments(self) -> typing.Dict:
+		"""Return all metabolites' compartments.
+
+		Returns
+		-------
+		dict
+			A dictionary of metabolite compartments, where the keys are the short
+			version (one letter version) of the compartmetns, and the values are the
+			full names (if they exist).
+		"""
+		return {
+			met.compartment: self._compartments.get(met.compartment, "")
+			for met in self.metabolites
+			if met.compartment is not None
+		}
+
+	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
+	@compartments.setter
+	def compartments(self, value: typing.Dict) -> None:
+		"""Get or set the dictionary of current compartment descriptions.
+
+		Assigning a dictionary to this property updates the model's
+		dictionary of compartment descriptions with the new values.
+
+		Parameters
+		----------
+		value : dict
+			Dictionary mapping compartments abbreviations to full names.
+
+		Examples
+		--------
+		>>> from cobra.io import load_model
+		>>> model = load_model("textbook")
+		>>> model.compartments = {'c': 'the cytosol'}
+		>>> model.compartments
+		{'c': 'the cytosol', 'e': 'extracellular'}
+		"""
+		self._compartments.update(value)
+
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def copy(self):
 		return copy.deepcopy(self)
