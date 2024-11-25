@@ -85,7 +85,7 @@ def main():
 			'reconstruction'
 			],
 		install_requires=[
-			'cobra==0.26.3',
+			'cobra<=0.29.0',
 			'python-libsbml<=5.20.1',
 			'Biopython==1.80',
 			'anyconfig<=0.13.0',
