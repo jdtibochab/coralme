@@ -1594,17 +1594,23 @@ class MEModel(cobra.core.object.Object):
 		return pandas.DataFrame(fva_result).T
 
 	def _solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat, solver = 'qminos'):
+		if hasattr(self, 'reactions'):
+			Lr = [ x.id for x in self.reactions ]
+			Lm = [ x.id for x in self.metabolites ]
+		else:
+			Lr, Lm = self
+
 		if solver in ['qminos', 'gurobi']:
 			#f = sum([ rxn.objective_coefficient * xopt[idx] for idx, rxn in enumerate(self.reactions) ])
 			#x_primal = xopt[ 0:len(self.reactions) ]   # The remainder are the slacks
-			x_dict = { rxn.id : xopt[idx] for idx, rxn in enumerate(self.reactions) }
-			y_dict = { met.id : yopt[idx] for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id : zopt[idx] for idx, rxn in enumerate(self.reactions) }
+			x_dict = { rxn : float(xopt[idx]) for idx, rxn in enumerate(Lr) }
+			y_dict = { met : float(yopt[idx]) for idx, met in enumerate(Lm) }
+			z_dict = { rxn : float(zopt[idx]) for idx, rxn in enumerate(Lr) }
 		elif solver == 'cplex':
 			#x_primal =
-			x_dict = { rxn.id: xopt[rxn.id].solution_value for idx, rxn in enumerate(self.reactions) }
-			y_dict = { met.id: yopt[met.id].dual_value for idx, met in enumerate(self.metabolites) }
-			z_dict = { rxn.id: zopt[rxn.id].reduced_cost for idx, rxn in enumerate(self.reactions) }
+			x_dict = { rxn: float(xopt[rxn].solution_value) for idx, rxn in enumerate(Lr) }
+			y_dict = { met: float(yopt[met].dual_value) for idx, met in enumerate(Lm) }
+			z_dict = { rxn: float(zopt[rxn].reduced_cost) for idx, rxn in enumerate(Lr) }
 		else:
 			raise ValueError('solver output not compatible.')
 
