@@ -1,14 +1,16 @@
 import copy
+import cobra
 import coralme
 
 # Written originally by Rodrigo Santibanez for ME model
-def perform_gene_knockouts(model, genes):
-	if isinstance(genes, str):
+def perform_gene_knockouts(model, genes, mets_to_test = []):
+	if isinstance(genes, (str, coralme.core.component.TranscribedGene)):
 		genes = set([genes])
 
 	if isinstance(model, coralme.core.model.MEModel):
 		test = model.copy()
 		for gene in genes:
+			gene = gene.id if isinstance(gene, coralme.core.component.TranscribedGene) else gene
 			gene = 'RNA_{:s}'.format(gene) if not gene.startswith('RNA_') else gene # only valid for ME-models
 			if model.metabolites.has_id(gene):
 				for TU in test.transcription_data:
@@ -17,20 +19,30 @@ def perform_gene_knockouts(model, genes):
 				for rxn in test.reactions.query('transcription_'):
 					rxn.update()
 			else:
-				raise AttributeError('Gene ID \'{:s}\' not in the model.'.format(gene))
+				raise AttributeError('Gene ID \'{:s}\' is not in the model.'.format(gene))
 	else:
 		test = copy.deepcopy(model)
 		for gene in genes:
-			gene = gene.replace('RNA_', '') if gene.startswith('RNA_') else gene # only valid for M-models
+			gene = gene.id if isinstance(gene, cobra.core.gene.Gene) else gene
 			# similar to cobra.manipulation.delete.remove_genes(model, genes, remove_reactions = True)
-			test.genes.get_by_id(gene).knock_out()
+			if test.genes.has_id(gene):
+				test.genes.get_by_id(gene).knock_out()
+			else:
+				raise AttributeError('Gene ID \'{:s}\' is not in the model.'.format(gene))
+
+	for met in mets_to_test:
+		if test.metabolites.has_id(met) and not test.reactions.has_id('SK_{:s}'.format(met)):
+			test.add_boundary(test.metabolites.get_by_id(met), type = 'sink', lb = 0., ub = 0.)
+		else:
+			raise AttributeError('Metabolite ID \'{:s}\' is not in the model or a sink reaction already exists.'.format(gene))
+
 	return test
 
 def check_knockout_using_qminos(model, genes, optTol = 1e-15, feasTol = 1e-15):
 	# test = copy.deepcopy(model)
 	test = perform_gene_knockouts(model, genes)
 
-	nlp = coralme.core.model.MEModel.construct_lp_problem(test, lambdify = True, as_dict = True)
+	nlp = coralme.core.model.MEModel.construct_lp_problem(test, lambdify = True, as_dict = True, per_position = False)
 	solver = coralme.solver.solver.ME_NLP(**nlp)
 	solver.opt_realdict['lp']['Optimality tol'] = optTol
 	solver.opt_realdict['lp']['Feasibility tol'] = feasTol
@@ -42,17 +54,47 @@ def check_knockout_using_qminos(model, genes, optTol = 1e-15, feasTol = 1e-15):
 		muopt = float(sum([ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ]))
 
 	solution = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(test, muopt, xopt, yopt, zopt, stat)
-
-	#df = test.solution.to_frame()
-	# df[(df['fluxes'] < 0) & ~df.index.str.contains('^EX_')]
-
 	return solution
 
-def get_reduced_costs(model, objective_value = 0.1, target_reaction = 'biomass_dilution'):
+def create_ko_model_in_lp_format(model, genes, growth_rate, mets_to_test, *args):
+	if len(args) == 4:
+		model, genes, growth_rate, mets_to_test = args
+
+	test = perform_gene_knockouts(model, genes, mets_to_test)
+	nlp = test.construct_lp_problem(lambdify = False, as_dict = True, per_position = True)
+	nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'], nlp['mu'], keys = { test.mu : growth_rate })
+
+	indexes = { met:(test.reactions._dict['SK_{:s}'.format(met)], test.metabolites._dict[met]) for met in mets_to_test }
+
+	return nlp, indexes
+
+def check_many_mets_at_a_time(args):
+	for mid, (rxn, met) in args[1].items():
+		# print(args[0]['xl'][rxn], args[0]['xu'][rxn])
+		args[0]['xl'][rxn] = -1000.
+		args[0]['xu'][rxn] = +1000.
+		# print(args[0]['xl'][rxn], args[0]['xu'][rxn])
+
+	nlp = args[0]
+	xopt, yopt, zopt, stat, basis = coralme.solver.solver.ME_NLP(**nlp).solvelp(muf = None, basis = None, precision = 'quad')
+	muopt = [ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ][0]
+	sol = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
+	return sol
+
+def check_all_mets_at_a_time(nlp, indexes):
+	return check_many_mets_at_a_time((nlp, indexes))
+
+def get_reduced_costs_from_nlp(nlp, objective_value = 0.1):
+	xopt, yopt, zopt, stat, basis = coralme.solver.solver.ME_NLP(**nlp).solvelp(muf = objective_value, basis = None, precision = 'quad')
+	muopt = [ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ][0]
+	sol = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
+	return sol.reduced_costs
+
+def get_reduced_costs_from_model(model, objective_value = 0.1, target_reaction = 'biomass_dilution'):
 	if not model.reactions.has_id(target_reaction):
 		raise AttributeError('Model has no reaction \'{:s}\''.format(target_reaction))
 
-	nlp = model.construct_lp_problem(as_dict = True, per_position = True)
+	nlp = model.construct_lp_problem(lambdify = False, as_dict = True, per_position = True)
 
 	# change objective function and its bounds
 	rxn_id = { x:idx for idx,x in enumerate(nlp['Lr']) }
@@ -65,12 +107,7 @@ def get_reduced_costs(model, objective_value = 0.1, target_reaction = 'biomass_d
 	nlp['xu'][rxn_id[target_reaction]] = 1000.
 	nlp['c'][rxn_id[target_reaction]] = 1.
 
-	solver = coralme.solver.solver.ME_NLP(**nlp)
-	xopt, yopt, zopt, stat, basis = solver.solvelp(muf = objective_value, basis = None, precision = 'quad')
-	muopt = [ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ][0]
-	sol = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(model, muopt, xopt, yopt, zopt, stat)
-
-	return sol.reduced_costs
+	return get_reduced_costs_from_nlp(nlp, objective_value)
 
 def revert_gene_knockouts(model, genes):
 	raise NotImplementedError
