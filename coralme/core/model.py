@@ -54,6 +54,7 @@ class MEModel(cobra.core.object.Object):
 			# TODO: We should test if the user set this correctly as { codon : { amino_acid : tRNAs }}
 			'genetic_recoding' : {},
 
+			'peptide_release_factors' : {
 				'UAG': 'PrfA_mono',
 				'UGA': 'PrfB_mono',
 				'UAA': 'generic_RF',
