@@ -903,8 +903,11 @@ class MEModel(cobra.core.object.Object):
 		self._gam = value
 
 		# check stoichiometry
-		if self.reactions.GAM.check_mass_balance() == {'charge': -1.0, 'H': -1.0}:
-			self.reactions.GAM._metabolites.update({self.metabolites.h_c : +1})
+		if self.reactions.GAM.check_mass_balance().get('H', False):
+			tmp = collections.Counter(self.reactions.GAM.metabolites)
+			tmp.update({ self.metabolites.h_c : -1*self.reactions.GAM.check_mass_balance()['H'] })
+			tmp = { k:v for k,v in tmp.items() if v != 0. }
+			self.reactions.GAM._metabolites = dict(tmp)
 
 	@property
 	def ngam(self):
@@ -923,8 +926,11 @@ class MEModel(cobra.core.object.Object):
 		self._ngam = value
 
 		# check stoichiometry
-		if self.reactions.ATPM.check_mass_balance() == {'charge': -1.0, 'H': -1.0}:
-			self.reactions.ATPM._metabolites.update({self.metabolites.h_c : +1})
+		if self.reactions.ATPM.check_mass_balance().get('H', False):
+			tmp = collections.Counter(self.reactions.ATPM.metabolites)
+			tmp.update({ self.metabolites.h_c : -1*self.reactions.ATPM.check_mass_balance()['H'] })
+			tmp = { k:v for k,v in tmp.items() if v != 0. }
+			self.reactions.ATPM._metabolites = dict(tmp)
 
 	# data types generators:
 	# StoichiometricData, ComplexData, TranslationData, TranscriptionData,
