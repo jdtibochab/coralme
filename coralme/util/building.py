@@ -54,6 +54,7 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, organelle
 
 	# 3) and add TranscriptionReaction into ME-Model
 	me_model.add_reactions([transcription])
+	logging.warning('A TranscriptionReaction with ID \'transcription_{:s}\' was added to the ME-model.'.format(tu_name))
 
 	if update:
 		transcription.update()
@@ -105,10 +106,11 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 	if len(me_model.metabolites.query('^RNA_{:s}$'.format(locus_id))) != 0:
 		me_model.metabolites._replace_on_id(gene)
 		logging.warning('A Metabolite component with ID \'RNA_{:s}\' was replaced with a TranscribedGene component \'{:s}\'.'.format(locus_id, gene.id))
+	else:
+		me_model.add_metabolites([gene])
+		logging.warning('A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(locus_id))
 
-	me_model.add_metabolites([gene])
-
-def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, update = False):
+def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, update = False):
 	"""
 	Creates and adds a TranslationReaction to the ME-model as well as the
 	associated TranslationData
@@ -148,11 +150,12 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 	translation_reaction.translation_data = coralme.core.processdata.TranslationData(
 		id = locus_id, model = me_model, mrna = 'RNA_' + locus_id, protein = 'protein_' + locus_id,
 		nucleotide_sequence = dna_sequence, organelle = organelle, translation = prot_sequence,
-		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table],
+		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table], pseudo = pseudo
 		)
 
 	# 3) and add TranslationReaction into ME-Model
 	me_model.add_reactions([translation_reaction])
+	logging.warning('A TranslationReaction with ID \'translation_{:s}\' was added to the ME-model.'.format(locus_id))
 
 	if update:
 		translation_reaction.update()
@@ -184,6 +187,13 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 
 	# remove "other" tRNAs: This avoids a RuntimeError: dictionary changed size during iteration using pop
 	trna_to_aa = { k:v for k,v in trna_to_aa.items() if v.lower() != 'other' }
+
+	# update trna_to_aa and trna_to_codon dictionaries with genetic_recoding
+	if me_model.global_info['genetic_recoding']:
+		for recoded_codon, recoded_aa_to_tRNA in me_model.global_info['genetic_recoding'].items():
+			for aa, tRNA in recoded_aa_to_tRNA.items():
+				trna_to_aa.update({ tRNA : aa.replace('__L_c', '') })
+				trna_to_codon[tRNA] = [recoded_codon] if isinstance(recoded_codon, str) else recoded_codon
 
 	# convert amino acid 3 letter codes to metabolites
 	#for tRNA, aa in list(iteritems(trna_to_aa)):
@@ -228,6 +238,7 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 
 			me_model.add_reactions([charging_reaction])
 			charging_reaction.update(verbose = verbose)
+			logging.warning('A tRNAChargingReaction with ID \'tRNA_{:s}_{:s}\' was added to the ME-model.'.format(tRNA, codon))
 
 def build_reactions_from_genbank(
 	me_model, gb_filename, tu_frame = pandas.DataFrame(columns = ['genes']), genes_to_add = list(),
@@ -527,9 +538,11 @@ def build_reactions_from_genbank(
 			#if rna_type == 'mRNA' and len(seq) % 3 == 0:
 			if rna_type == 'mRNA':
 				# Add the translation table
-				prot = feature.qualifiers.get('translation', [''])[0]
+				#prot = feature.qualifiers.get('translation', [''])[0] # get translation from DNA sequence
 				transl_table = feature.qualifiers.get('transl_table', ['1'])[0]
-				add_translation_reaction(me_model, bnum, dna_sequence = str(seq), prot_sequence = str(prot), organelle = organelle, transl_table = int(transl_table), update = False)
+				prot = seq.translate(transl_table)
+				pseudo = feature.qualifiers.get('pseudo', False)
+				add_translation_reaction(me_model, bnum, dna_sequence = str(seq), prot_sequence = str(prot), organelle = organelle, transl_table = int(transl_table), pseudo = bool(pseudo), update = False)
 
 				# Add the start codon to the start_codons set
 				start_codons.add(str(seq[:3]).replace('T', 'U'))
@@ -853,8 +866,10 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	create_transcribed_gene(me_model, 'dummy', 'mRNA', seq)
 	add_transcription_reaction(me_model, 'TU_RNA_dummy', {'dummy'}, seq)
 	me_model.add_metabolites(coralme.core.component.TranslatedGene('protein_dummy'))
-	prot_sequence = str(Bio.Seq.Seq(seq).translate(table = list(me_model.global_info['transl_tables']['c'])[0]))
-	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, update = update)
+
+	transl_table = list(me_model.global_info['transl_tables']['c'])[0]
+	prot_sequence = str(Bio.Seq.Seq(seq).translate(table = transl_table))
+	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, transl_table = transl_table, pseudo = True, update = update)
 
 	try:
 		complex_data = coralme.core.processdata.ComplexData('CPLX_dummy', me_model)
