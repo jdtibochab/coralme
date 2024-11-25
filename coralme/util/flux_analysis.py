@@ -82,6 +82,7 @@ def flux_based_reactions(model,
 						 ignore_types = (),
 						 threshold = 0.,
 						 flux_dict=0,
+						 include_zeroes=True,
 						 solution = None,
 						 keffs=False,
 						 verbose=False):
@@ -138,7 +139,10 @@ def flux_based_reactions(model,
 	df['met_flux'] = df['met_flux'].astype(float)
 
 	df = df.loc[df['met_flux'].abs().sort_values(ascending=False).index]
-	return df#[df['ub'] != 0]
+	if include_zeroes:
+		return df#[df['ub'] != 0]
+	else:
+		return df[df['rxn_flux'] != 0.]
 
 def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbose = False,growth_key='mu'):
 	"""
