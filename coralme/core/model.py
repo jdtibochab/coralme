@@ -234,7 +234,7 @@ class MEModel(cobra.core.object.Object):
 
 		# derived parameters that are common throughout the ME-model
 		# WARNING: The equation are written following O'Brien 2013 paper, no COBRAme documentation
-		# https://www.embopress.org/doi/full/10.1038/msb.2013.52#supplementary-materialsZ
+		# https://www.embopress.org/doi/full/10.1038/msb.2013.52#supplementary-materials
 		# Empirical relationship between measured ratio of RNA (R) to Protein (P)
 		self.symbols['R/P'] = (self._mu / self.symbols['k_t']) + self.symbols['r_0'] # eq 1, page 15
 
