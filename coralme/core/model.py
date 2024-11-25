@@ -51,7 +51,9 @@ class MEModel(cobra.core.object.Object):
 			'include_pseudo_genes' : False,
 			'run_bbh_blast' : True,
 
-			'translation_stop_dict' : {
+			# TODO: We should test if the user set this correctly as { codon : { amino_acid : tRNAs }}
+			'genetic_recoding' : {},
+
 				'UAG': 'PrfA_mono',
 				'UGA': 'PrfB_mono',
 				'UAA': 'generic_RF',
