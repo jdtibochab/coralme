@@ -1341,13 +1341,15 @@ class MEModel(cobra.core.object.Object):
 		"""
 		Return the element with a matching id from model.reactions or model.metabolites attributes.
 		"""
-		if isinstance(x, str) or isinstance(x, cobra.core.object.Object):
+		if isinstance(x, cobra.core.object.Object):
+			x = x.id
+		if isinstance(x, str):
 			if self.metabolites.has_id(x):
 				return self.metabolites.get_by_id(x)
 			elif self.reactions.has_id(x):
 				return self.reactions.get_by_id(x)
 			else:
-				return
+				raise ValueError('Query not found.')
 		else:
 			return NotImplemented
 
