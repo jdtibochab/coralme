@@ -1,0 +1,6 @@
+Sphinx==8.1.3
+sphinxcontrib-napoleon
+sphinx-autoapi
+nbsphinx==0.9.5
+ipykernel
+matplotlib>=3.6
