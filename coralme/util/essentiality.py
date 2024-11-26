@@ -62,7 +62,7 @@ def create_ko_model_in_lp_format(model, genes, growth_rate, mets_to_test, *args)
 
 	test = perform_gene_knockouts(model, genes, mets_to_test)
 	nlp = test.construct_lp_problem(lambdify = False, as_dict = True, per_position = True)
-	nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'], nlp['mu'], keys = { test.mu : growth_rate })
+	nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'], { test.mu : growth_rate }, nlp['mu'])
 
 	indexes = { met:(test.reactions._dict['SK_{:s}'.format(met)], test.metabolites._dict[met]) for met in mets_to_test }
 
