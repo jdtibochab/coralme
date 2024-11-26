@@ -1509,6 +1509,8 @@ class MEReconstruction(MEBuilder):
 			self.df_rna_mods = builder.df_rna_mods
 			self.df_protloc = builder.df_protloc
 			self.df_transpaths = builder.df_transpaths
+		if hasattr(builder, 'debug_data'):
+			self.debug_data = builder.debug_data
 
 		self.logger = builder.logger
 		self.configuration = builder.configuration
