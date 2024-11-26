@@ -1672,7 +1672,7 @@ class MEModel(cobra.core.object.Object):
 			xopt, yopt, zopt, stat, basis = me_nlp.solvelp(.1, None, 'quad', probname = 'lp')
 
 			if stat == 'optimal':
-				muopt = [ x for x,c in zip(xopt, c) if c != 0 ][0]
+				muopt = float(sum([ x*c for x,c in zip(xopt, c) if c != 0 ]))
 				self.solution = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(self, muopt, xopt, yopt, zopt, stat)
 				return True
 			else:
