@@ -831,6 +831,9 @@ class MEReaction(cobra.core.reaction.Reaction):
 				mu = self._model.solution.objective_value
 			else:
 				mu = self._model.solution.fluxes['biomass_dilution']
+			flux = r'{:g} ($\mu$= {:g})'.format(self._model.solution.fluxes[self.id], mu)
+			cost = r'{:g} ($\mu$= {:g})'.format(self._model.solution.reduced_costs[self.id], mu)
+			viol = r'{:s} ($\Delta$= {:g})'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
 		else:
 			flux = cost = viol = 'ME-model not optimized/feasible'
 

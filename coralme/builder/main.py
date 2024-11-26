@@ -631,8 +631,8 @@ class MEBuilder(object):
 			if rc not in ref_complexes_df.index:
 				continue
 			for rg in ref_complexes_df["genes"][rc].split(" AND "):
-				rg_id = re.findall('.*(?=\(\d*\))', rg)[0]
-				coeff = re.findall("(?<=\()[0-9]{1,}", rg)
+				rg_id = re.findall(r'.*(?=\(\d*\))', rg)[0]
+				coeff = re.findall(r"(?<=\()[0-9]{1,}", rg)
 				if coeff:
 					coeff = coeff[0]
 				else:
@@ -667,8 +667,8 @@ class MEBuilder(object):
 						cofs = []
 						coeffs = []
 						for mod in mods:
-							cof = re.findall(".*(?=\()", mod)[0]
-							coeff = re.findall("(?<=\()[0-9]{1,}", mod)
+							cof = re.findall(r".*(?=\()", mod)[0]
+							coeff = re.findall(r"(?<=\()[0-9]{1,}", mod)
 							if coeff:
 								coeff = coeff[0]
 								cplx += "_mod_{}({})".format(cof, coeff)
@@ -736,12 +736,12 @@ class MEBuilder(object):
 					'Updating protein location from homology...',
 					bar_format = bar_format,
 					total=ref_protein_location.shape[0]):
-			ref_gene = re.findall('.*(?=\(.*\))', row['Protein'])[0]
+			ref_gene = re.findall(r'.*(?=\(.*\))', row['Protein'])[0]
 			if ref_gene not in mutual_hits:
 								continue
 			org_gene = mutual_hits[ref_gene]
 			ref_info = ref_protein_location[ref_protein_location['Protein'].str.contains(ref_gene)]
-			gene_string = '{}\('.format(org_gene)
+			gene_string = r'{}\('.format(org_gene)
 			org_cplxs = complexes_df[complexes_df['genes'].str.contains(gene_string)].index
 			for org_cplx in org_cplxs:
 				if protein_location.any().any() and \
@@ -2609,7 +2609,7 @@ class MEReconstruction(MEBuilder):
 
 				if mod_elements:
 					mod_elements = collections.Counter(mod_elements)
-					mod_elements = { k:v * int(re.findall('\((\d+)\)', mod)[0]) for k,v in mod_elements.items() }
+					mod_elements = { k:v * int(re.findall(r'\((\d+)\)', mod)[0]) for k,v in mod_elements.items() }
 					base_complex_elements.update(mod_elements)
 				else:
 					logging.warning('Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
@@ -2619,7 +2619,7 @@ class MEReconstruction(MEBuilder):
 			logging.warning('Setting new formula for \'{:s}\' to \'{:s}\' successfully.'.format(met.id, met.formula))
 
 		# Update a second time to incorporate all of the metabolite formulas correctly
-		for data in tqdm.tqdm(me.subreaction_data.query('(?!^\w\w\w_addition_at_\w\w\w$)'), 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
+		for data in tqdm.tqdm(me.subreaction_data.query(r'(?!^\w\w\w_addition_at_\w\w\w$)'), 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
 			data._element_contribution = data.calculate_element_contribution()
 
 		# Update reactions affected by formula update

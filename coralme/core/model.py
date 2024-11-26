@@ -1369,7 +1369,7 @@ class MEModel(cobra.core.object.Object):
 			queries = [queries]
 
 		# correct queries
-		queries = [ x.replace('(', '\(').replace(')', '\)').replace('[', '\[').replace(']', '\]') for x in queries ]
+		queries = [ x.replace('(', r'\(').replace(')', r'\)').replace('[', r'\[').replace(']', r'\]') for x in queries ]
 
 		for query in queries:
 			res.append(self.metabolites.query(query))

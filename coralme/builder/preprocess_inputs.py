@@ -170,7 +170,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 	# Restructure complexes_df to obtain the correct complex stoichiometry from the index
 	df = builder.org.complexes_df.copy(deep = True)
 	#df = df[~df.index.str.contains('MONOMER')]
-	df = df[df['genes'].str.contains('\(')]
+	df = df[df['genes'].str.contains(r'\(')]
 	df['genes'] = df['genes'].str.split(' AND ')
 	df = df.explode('genes')
 	df['stoich'] = df['genes'].apply(lambda x: '1' if x.split('(')[1][:-1] == '' else str(x.split('(')[1][:-1]))
@@ -613,7 +613,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 		tags = [ str(x).split(';') for x in tags ] # we convert here None to 'None'
 		tags = [ x for y in tags for x in y ]
 		# extra modification if compared this function to the others above
-		tags = [ '{:s}(\(\d*\)|\(\d*\:\d*\))'.format(x) for x in tags if x != 'None' ]
+		tags = [ r'{:s}(\(\d*\)|\(\d*\:\d*\))'.format(x) for x in tags if x != 'None' ]
 
 		#res = df[df['Protein'].str.match(x)][['Complex_compartment', 'Protein_compartment', 'translocase_pathway']].values
 		#query = [ '{:s}()'.format(y) for y in tags ] # sp old_locus_tag's, the query can be a string of tags separated by ';'
@@ -838,12 +838,12 @@ def _get_df_cplxs(df, generics = False):
 
 	# get enzymatic complexes with generics subunits
 	df_generics = df[df['Feature Type'].isin(['CDS'])].fillna('')
-	df_generics = df_generics[df_generics['Complex ID'].str.contains('\(')]
-	df_generics['Gene Locus ID'] = 'generic_' + df_generics['Complex ID'].str.extract('[A-Za-z0-9\_-]+:\d+\(([A-Za-z0-9\_-]+)\)', expand = True)
-	df_generics['Complex ID'] = df_generics['Complex ID'].str.extract('([A-Za-z0-9\_-]+:\d+)\([A-Za-z0-9\_-]+\)', expand = True)
+	df_generics = df_generics[df_generics['Complex ID'].str.contains(r'\(')]
+	df_generics['Gene Locus ID'] = 'generic_' + df_generics['Complex ID'].str.extract(r'[A-Za-z0-9\_-]+:\d+\(([A-Za-z0-9\_-]+)\)', expand = True)
+	df_generics['Complex ID'] = df_generics['Complex ID'].str.extract(r'([A-Za-z0-9\_-]+:\d+)\([A-Za-z0-9\_-]+\)', expand = True)
 
 	tmp = pandas.concat([tmp, df_generics])
-	tmp = tmp[~tmp['Complex ID'].str.contains('\(')]
+	tmp = tmp[~tmp['Complex ID'].str.contains(r'\(')]
 
 	fn = lambda x: '{:s} complex'.format(x['Definition']) if x['Complex Name'] == '' else x['Complex Name']
 	tmp['Complex Name'] = tmp[['Definition', 'Complex Name']].apply(fn, axis = 1)
