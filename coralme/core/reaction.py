@@ -548,7 +548,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 		"""
 		if hasattr(self._model, 'solution'):
 			try:
-				return self._model.solution.to_frame().loc[self.id].fluxes
+				return self._model.solution.fluxes[self.id]
 			except KeyError:
 				raise RuntimeError(f"reaction '{self.id}' is not part of a model")
 		else:
