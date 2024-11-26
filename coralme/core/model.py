@@ -1993,6 +1993,22 @@ class MEModel(cobra.core.object.Object):
 			elif rxn.lower_bound < 0:
 				rxn.lower_bound = -1000
 
+	def add_translocation_pathway(self, key = 'new', abbrev: str = 'n', keff: float = 65., length_dependent_energy: bool = False, stoichiometry: str = '', enzymes: dict = {}):
+		# check properties of enzymes
+		for k,v in enzymes.items():
+			if 'fixed_keff' in v and 'length_dependent' in v:
+				pass
+
+		self.global_info['translocation_pathway'][key] = {
+			'abbrev': abbrev,
+			'keff': keff,
+			'length_dependent_energy': length_dependent_energy,
+			'stoichiometry': stoichiometry if self.reactions.has_id(stoichiometry) and stoichiometry != '' else '',
+			'enzymes': enzymes
+			}
+
+		return self.global_info['translocation_pathway']
+
 	# Modified from COBRApy
 	def _repr_html_(self) -> str:
 		"""Get HTML representation of the model.
