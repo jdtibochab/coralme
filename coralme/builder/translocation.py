@@ -1,3 +1,4 @@
+import logging
 import coralme
 
 mmol = 6.022e20  # number of molecules per mmol
@@ -35,6 +36,9 @@ def add_translocation_pathways(model, pathways_df, abbreviation_to_pathway, mult
 	# We can save time here if filtering what we need to process, not iterate over all TranslationData
 	#for peptide_data in model.translation_data:
 	for idx, translocation_info in pathways_df.iterrows():
+		if not model.process_data.has_id(translocation_info['Protein']):
+			continue
+
 		peptide_data = model.process_data.get_by_id(translocation_info['Protein'])
 		# extract translocation info if peptide contained in complex stoichiometry
 		#translocation_info = pathways_df[pathways_df['Protein'].str.match(peptide_data.id)]
@@ -104,7 +108,7 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 	# loop through all proteins which need lipid modifications (lipoproteins)
 	for protein in lipoprotein_precursors.values():
 		compartment = compartment_dict.get(protein)
-		if model.metabolites.has_id('protein_' + protein):
+		if model.metabolites.has_id('protein_' + protein) and compartment is not None:
 			protein_met = model.metabolites.get_by_id('protein_' + protein)
 			mass = protein_met.formula_weight / 1000.  # in kDa
 
@@ -115,6 +119,13 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 				reaction_prefix = protein + '_lipid_modification_' + mod
 				add_lipoprotein_data_and_reaction(mod, 'pe160_p')
 				add_lipoprotein_data_and_reaction(mod, 'pg160_p')
+
+		if model.metabolites.has_id('protein_' + protein) and compartment is None:
+			logging.warning('A lipoprecursor protein \'{:s}\' has not compartment. Please check the list of IDs in \'lipoprotein_precursors\' and the compartment of the protein in the OSM.'.format(protein))
+
+		if not model.metabolites.has_id('protein_' + protein):
+			logging.warning('A lipoprecursor protein \'{:s}\' is not in the ME-model. Please check if the ID in \'lipoprotein_precursors\' are in the OSM or if the gene is a pseudogene.'.format(protein))
+
 		else:
 			continue
 			#print('problem with', 'protein_' + protein)
