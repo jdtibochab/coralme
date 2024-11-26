@@ -159,6 +159,7 @@ def process_m_model(
 # 	m_model.remove_metabolites(mets_to_remove)
 
 	# correct stoichiometry if rxn.check_mass_balance() == {'charge': +1.0, 'H': +1.0} or integer multiples of it
+	count = 0
 	for rxn in m_model.reactions:
 		if rxn.id.startswith(('EX_', 'DM_', 'SK_')):
 			continue
@@ -175,9 +176,13 @@ def process_m_model(
 				m_model.reactions.get_by_id(rxn.id)._metabolites = { k:v for k,v in metabolites.items() if v != 0. }
 				logging.warning('Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
 			else:
-				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction.'.format(rxn.id))
+				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction. Please check and correct if needed.'.format(rxn.id))
+			count += 1
 		else:
-			logging.warning('Reaction \'{:s}\' is not mass/charge balanced.'.format(rxn.id))
+			logging.warning('Reaction \'{:s}\' is not mass/charge balanced. Please check and correct if needed.'.format(rxn.id))
+			count += 1
+	if count == 0:
+		logging.warning('No mass/charge imbalance was detected in M-model (excluding prefixed EX, DM, and SK reactions).')
 
 	# remove unused genes
 	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
