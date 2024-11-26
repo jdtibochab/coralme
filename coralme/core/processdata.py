@@ -1,4 +1,5 @@
 import Bio
+import copy
 import pandas
 import sympy
 
@@ -42,6 +43,21 @@ class ProcessData(object):
 		# a parent must have an update method
 		self._parent_reactions = set()
 		model.process_data.append(self)
+
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def copy(self) -> "ProcessData":
+		"""Copy a ProcessData.
+		"""
+		# no references to model when copying
+		model = self._model
+		self._model = None
+		# now we can copy
+		new_processdata = copy.deepcopy(self)
+		# restore the references
+		self._model = model
+		if not hasattr(self, 'id'):
+			print(new_processdata)
+		return new_processdata
 
 	@property
 	def model(self):
