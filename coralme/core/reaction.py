@@ -1,3 +1,4 @@
+import copy
 import collections
 import operator
 import sympy
@@ -64,6 +65,49 @@ class MEReaction(cobra.core.reaction.Reaction):
 	def __init__(self, id = None, name = '', lower_bound = 0.0, upper_bound = None):
 		cobra.core.reaction.Reaction.__init__(self, id, name)
 		self._objective_coefficient = 0.
+
+	def copy(self) -> "Reaction":
+		"""Copy a reaction.
+
+		The referenced metabolites and genes are also copied.
+
+		Returns
+		-------
+		cobra.Reaction
+			A copy of the Reaction.
+		"""
+		# no references to model when copying
+		model = self._model
+		self._model = None
+
+		# New. Restore process_data using add_reactions
+		process_data_keys = [ x for x in self.__dict__.keys() if x in [ '_complex_data', '_posttranslation_data', '_stoichiometric_data', '_tRNA_data', '_transcription_data', '_translation_data'] ]
+
+		if len(process_data_keys) != 0:
+			process_data = {}
+			for key in process_data_keys:
+				process_data.update({ key : getattr(self, key) }) # backup
+				setattr(self, key, None) # DO NOT REMOVE: copy.deepcopy gets mad
+
+		for i in self._metabolites:
+			i._model = None
+		# now we can copy
+		new_reaction = copy.deepcopy(self)
+
+		if len(process_data_keys) != 0:
+			new_reaction.process_data = process_data
+
+		# restore the references
+		self._model = model
+		for i in self._metabolites:
+			i._model = model
+
+		if len(process_data_keys) != 0:
+			# New. Restore values in original reaction's process_data
+			for key, value in process_data.items():
+				setattr(self, key, value)
+
+		return new_reaction
 
 	@property
 	def symbolic_stoichiometry(self):
