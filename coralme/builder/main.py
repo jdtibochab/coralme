@@ -2020,18 +2020,24 @@ class MEReconstruction(MEBuilder):
 
 		# ### 3. DNA Demand Requirements
 		# Added based on growth rate dependent DNA levels as in [O'brien EJ et al 2013](https://www.ncbi.nlm.nih.gov/pubmed/24084808) (*E. coli* data)
-
-		dna_demand_bound = coralme.builder.dna_replication.return_gr_dependent_dna_demand(
-			me, me.global_info['GC_fraction'], me.global_info['percent_dna_data'], me.global_info['gr_data_doublings_per_hour'])
-
-		# Fraction of each nucleotide in DNA, based on gc_fraction
-		dna_demand_stoich = {
-			'datp_c': -((1 - me.global_info['GC_fraction']) / 2),
-			'dctp_c': -(me.global_info['GC_fraction'] / 2),
-			'dgtp_c': -(me.global_info['GC_fraction'] / 2),
-			'dttp_c': -((1 - me.global_info['GC_fraction']) / 2),
-			'ppi_c': 1
-			}
+		if me.global_info.get('flux_of_dna_constituents', False):
+			# Fraction of each nucleotide in DNA, based on M-model's BOF
+			dna_demand_stoich = {
+				'datp_c': -abs(me.global_info['flux_of_dna_constituents']['datp_c']),
+				'dctp_c': -abs(me.global_info['flux_of_dna_constituents']['dctp_c']),
+				'dgtp_c': -abs(me.global_info['flux_of_dna_constituents']['dgtp_c']),
+				'dttp_c': -abs(me.global_info['flux_of_dna_constituents']['dttp_c']),
+				}
+			dna_demand_stoich['ppi_c'] = abs(me.global_info['flux_of_dna_constituents'].get('ppi_c', sum([ v for k,v in dna_demand_stoich.items() if k != 'ppi_c'])))
+		else:
+			# Fraction of each nucleotide in DNA, based on gc_fraction
+			dna_demand_stoich = {
+				'datp_c': -((1 - me.global_info['GC_fraction']) / 2),
+				'dctp_c': -(me.global_info['GC_fraction'] / 2),
+				'dgtp_c': -(me.global_info['GC_fraction'] / 2),
+				'dttp_c': -((1 - me.global_info['GC_fraction']) / 2),
+				'ppi_c': 1
+				}
 
 		dna_replication = coralme.core.reaction.SummaryVariable('DNA_replication')
 		me.add_reactions([dna_replication])
@@ -2045,6 +2051,13 @@ class MEReconstruction(MEBuilder):
 
 		dna_biomass = coralme.core.component.Constraint('DNA_biomass')
 		dna_replication.add_metabolites({dna_biomass: dna_mw})
+
+		if me.global_info.get('flux_of_dna_constituents', False):
+			dna_demand_bound = me.mu
+		else:
+			dna_demand_bound = coralme.builder.dna_replication.return_gr_dependent_dna_demand(
+				me, me.global_info['GC_fraction'], me.global_info['percent_dna_data'], me.global_info['gr_data_doublings_per_hour'])
+
 		dna_replication.lower_bound = dna_demand_bound
 		dna_replication.upper_bound = dna_demand_bound
 
