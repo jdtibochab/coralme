@@ -1563,7 +1563,7 @@ class MEModel(cobra.core.object.Object):
 				raise ValueError('Objective reaction \'{:s}\' not in the M-model.'.format(objective))
 
 			# get mathematical representation
-			Sf, Se, lb, ub, b, c, cs, atoms, lambdas = coralme.core.model.MEModel.construct_lp_problem(self)
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = coralme.core.model.MEModel.construct_lp_problem(self)
 
 		if verbose:
 			print('Running FVA for {:d} reactions. Maximum growth rate fixed to {:g}'.format(len(reaction_list), mu_fixed))
@@ -1757,7 +1757,7 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for multiple evaluations of the LP problem, replacement in lambdify'ed Se is faster overall
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = self.construct_lp_problem(lambdify = lambdify)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
 
 		# test max_mu
 		self.check_feasibility(keys = { self.mu:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas] })
@@ -1805,7 +1805,7 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for single evaluations of the LP problem, direct replacement is faster than lambdify
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
 
 		if lambdas is None:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
@@ -1858,7 +1858,7 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for single evaluations of the LP problem, direct replacement is faster than lambdify
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
 
 		if lambdas is None:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
