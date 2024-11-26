@@ -1441,7 +1441,7 @@ class MEBuilder(object):
 	def build_me_model(self, update = True, prune = True, overwrite = False, skip = None):
 		coralme.builder.main.MEReconstruction(self).build_me_model(update = update, prune = prune, overwrite = overwrite, skip = skip)
 
-	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors=False):
+	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors = False):
 		"""
 		growth_key_and_value:
 			dictionary of Sympy.Symbol and value to replace
@@ -1520,8 +1520,6 @@ class MEReconstruction(MEBuilder):
 		else:
 			self.me_model = coralme.core.model.MEModel(self.configuration.get('ME-Model-ID', 'coralME'), self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = builder.curation_notes
-
-		return None
 
 	def input_data(self, m_model, overwrite = False):
 		if hasattr(self, 'df_data'):
@@ -2602,7 +2600,6 @@ class MEReconstruction(MEBuilder):
 					base_complex_elements.update(mod_elements)
 				else:
 					logging.warning('Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
-
 			complex_elements = { k:base_complex_elements[k] for k in sorted(base_complex_elements) if base_complex_elements[k] != 0 }
 			met.formula = ''.join([ '{:s}{:d}'.format(k, v) for k,v in complex_elements.items() ])
 			met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
