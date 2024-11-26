@@ -2799,7 +2799,7 @@ class METroubleshooter(object):
 		self.curation_notes = builder.curation_notes
 
 	def troubleshoot(self, growth_key_and_value = None, skip = set(),
-		guesses = [], met_types = [], platform = None, solver = 'gurobi', savefile = None,
+		guesses = [], met_types = [], platform = None, solver = 'qminos', savefile = None,
 		gapfill_cofactors = False):
 		"""Performs the Gap-finding step of the reconstruction.
 
@@ -2847,14 +2847,16 @@ class METroubleshooter(object):
 			self.configuration['out_directory'] = './'
 			self.configuration['log_directory'] = './'
 
-		if sys.platform in ['win32', 'darwin'] or platform in ['win32', 'darwin']:
+		if solver in ['gurobi', 'cplex']:
 			self.me_model.get_solution = self.me_model.optimize_windows
 			self.me_model.check_feasibility = self.me_model.feas_windows(solver = solver)
-		else:
+		elif solver == "qminos":
 			self.me_model.get_solution = self.me_model.optimize
 			self.me_model.check_feasibility = self.me_model.feasibility
 			self.me_model.troubleshooting = True
 			print('The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n')
+		else:
+			raise ValueError('Solver not supported.')
 
 		config = self.configuration
 		model = config.get('ME-Model-ID', 'coralME')

@@ -72,10 +72,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#Reconstruct-with-coralME">1.3. Reconstruct with coralME</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Import-packages">1.3.1. Import packages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Define-organism-and-inputs">1.3.2. Define organism and inputs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Create-builder">1.3.3. Create builder</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#coralme.builder.main.MEBuilder"><code class="docutils literal notranslate"><span class="pre">MEBuilder</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#Create-builder">1.3.3. Create builder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Generate-files">1.3.4. Generate files</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Build-ME-model">1.3.5. Build ME-model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Troubleshoot-ME-model">1.3.6. Troubleshoot ME-model</a></li>
@@ -187,7 +184,7 @@
 <section id="Import-packages">
 <h3><span class="section-number">1.3.1. </span>Import packages<a class="headerlink" href="#Import-packages" title="Link to this heading"></a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">coralme.builder.main</span> <span class="kn">import</span> <span class="n">MEBuilder</span>
@@ -198,7 +195,7 @@
 <section id="Define-organism-and-inputs">
 <h3><span class="section-number">1.3.2. </span>Define organism and inputs<a class="headerlink" href="#Define-organism-and-inputs" title="Link to this heading"></a></h3>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">dir</span> <span class="o">=</span> <span class="s2">&quot;./helper_files/tutorial&quot;</span>
@@ -207,16 +204,7 @@
 </div>
 <p>Load configuration files</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">organism</span> <span class="o">=</span> <span class="s1">&#39;organism.json&#39;</span>
@@ -227,87 +215,8 @@
 </section>
 <section id="Create-builder">
 <h3><span class="section-number">1.3.3. </span>Create builder<a class="headerlink" href="#Create-builder" title="Link to this heading"></a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">coralme.builder.main.</span></span><span class="sig-name descname"><span class="pre">MEBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder" title="Link to this definition"></a></dt>
-<dd><p>MEBuilder class to coordinate the reconstruction of ME-models.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>*args</strong> – Positional arguments are passed as paths to JSON files that
-update the configuration of the parent class.</p></li>
-<li><p><strong>**kwargs</strong> – Further keyword arguments are passed on as dictionaries
-to update the configuration of the parent class.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder.generate_files">
-<span class="sig-name descname"><span class="pre">generate_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder.generate_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder.generate_files" title="Link to this definition"></a></dt>
-<dd><p>Performs the Synchronize and Complement steps of the reconstruction.</p>
-<p>This function will read the Organism and the Reference. It will
-synchronize the input files, complement them, and finally build
-the OSM for the Organism.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, overwrite the OSM using the defined path in the configuration.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder.get_homology">
-<span class="sig-name descname"><span class="pre">get_homology</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evalue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder.get_homology"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder.get_homology" title="Link to this definition"></a></dt>
-<dd><p>Calculates homology between Organism and Reference.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>evalue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>default 1e-10</em>) – Sets the E-value cutoff for calling protein
-homologs using BLAST.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder.get_trna_to_codon">
-<span class="sig-name descname"><span class="pre">get_trna_to_codon</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder.get_trna_to_codon"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder.get_trna_to_codon" title="Link to this definition"></a></dt>
-<dd><p>Gets tRNA to codon association from the Genome.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder.prepare_model">
-<span class="sig-name descname"><span class="pre">prepare_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder.prepare_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder.prepare_model" title="Link to this definition"></a></dt>
-<dd><p>Performs initial preparation of the M-model.</p>
-<p>This function will fix some known issues that M-models can</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>overwrite</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – If True, overwrite the OSM using the defined path in the configuration.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="coralme.builder.main.MEBuilder.troubleshoot">
-<span class="sig-name descname"><span class="pre">troubleshoot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">growth_key_and_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">guesses</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">met_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">platform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gurobi'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savefile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gapfill_cofactors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/main.html#MEBuilder.troubleshoot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.main.MEBuilder.troubleshoot" title="Link to this definition"></a></dt>
-<dd><dl class="simple">
-<dt>growth_key_and_value:</dt><dd><p>dictionary of Sympy.Symbol and value to replace</p>
-</dd>
-<dt>skip:</dt><dd><p>set of ME-components to not evaluate during gapfilling</p>
-</dd>
-<dt>guesses:</dt><dd><p>set of ME-components to try first before any other set of components</p>
-</dd>
-<dt>platform:</dt><dd><p>‘win32’ to use gurobi (default) or cplex as solver</p>
-</dd>
-<dt>solver:</dt><dd><p>‘gurobi’ (default, if platform is ‘win32’) or ‘cplex’</p>
-</dd>
-<dt>savefile:</dt><dd><p>file path (absolute or relative) to save the ME-model as a pickle file</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span> <span class="o">=</span> <span class="n">MEBuilder</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">organism</span><span class="p">,</span> <span class="n">inputs</span><span class="p">])</span>
@@ -317,22 +226,13 @@ homologs using BLAST.</p>
 </section>
 <section id="Generate-files">
 <h3><span class="section-number">1.3.4. </span>Generate files<a class="headerlink" href="#Generate-files" title="Link to this heading"></a></h3>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span><span class="o">.</span><span class="n">generate_files</span><span class="p">(</span><span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Initiating file processing...
-~ Processing files for EXAMPLE-ME...
-</pre></div></div>
 </div>
 </section>
 <section id="Build-ME-model">
