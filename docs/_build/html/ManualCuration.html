@@ -78,8 +78,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.MEMetabolites"><code class="docutils literal notranslate"><span class="pre">MEMetabolites</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.SubsystemClassification"><code class="docutils literal notranslate"><span class="pre">SubsystemClassification</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.ReactionMatrix"><code class="docutils literal notranslate"><span class="pre">ReactionMatrix</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.LipidModifications"><code class="docutils literal notranslate"><span class="pre">LipidModifications</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.AminoacidtRNASynthetase"><code class="docutils literal notranslate"><span class="pre">AminoacidtRNASynthetase</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.RNAModificationTargets"><code class="docutils literal notranslate"><span class="pre">RNAModificationTargets</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.ManualComplexes"><code class="docutils literal notranslate"><span class="pre">ManualComplexes</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#coralme.builder.curation.ManualComplexes.org_data"><code class="docutils literal notranslate"><span class="pre">ManualComplexes.org_data</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.TranscriptionSubreactions"><code class="docutils literal notranslate"><span class="pre">TranscriptionSubreactions</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.GenericDict"><code class="docutils literal notranslate"><span class="pre">GenericDict</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.RibosomeSubreactions"><code class="docutils literal notranslate"><span class="pre">RibosomeSubreactions</span></code></a></li>
@@ -820,6 +825,29 @@ modifications.</p>
 </dl>
 </li>
 </ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="coralme.builder.curation.LipidModifications">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">coralme.builder.curation.</span></span><span class="sig-name descname"><span class="pre">LipidModifications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">org</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lipid_modifications'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lipid_modifications.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Lipid</span> <span class="pre">modifications'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/curation.html#LipidModifications"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.curation.LipidModifications" title="Link to this definition"></a></dt>
+<dd><p>Reads manual input to define lipid modification machinery.</p>
+<p>This class creates the property “lipid_modifications” from
+the manual inputs in lipid_modifications.txt in an
+instance of Organism.</p>
+<p>Input here will define enzymes that perform lipid
+modifications.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>org</strong> (<em>coralme.builder.organism.Organism</em>) – Organism object.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<dl class="simple">
+<dt>lipid_modifications.txt :</dt><dd><p>lipid_mod       enzymes
+pg_pe_160       Lgt_MONOMER,LspA_MONOMER
+…</p>
+</dd>
+</dl>
+</dd></dl>
+
 <ul class="simple">
 <li><dl class="simple">
 <dt>amino_acid_trna_synthetase.txt</dt><dd><p>Input here will define amino acid tRNA ligases.</p>
@@ -897,6 +925,40 @@ it with your manually added one.</p>
 </dl>
 </li>
 </ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="coralme.builder.curation.ManualComplexes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">coralme.builder.curation.</span></span><span class="sig-name descname"><span class="pre">ManualComplexes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">org</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'manual_complexes'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'protein_corrections.txt'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Protein</span> <span class="pre">corrections'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/coralme/builder/curation.html#ManualComplexes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#coralme.builder.curation.ManualComplexes" title="Link to this definition"></a></dt>
+<dd><p>Reads manual input to modify or add complexes.</p>
+<p>This class creates the property “manual_complexes” from
+the manual inputs in protein_corrections.txt in an
+instance of Organism.</p>
+<p>Input here will add, modify complexes in the ME-model,
+as well as add, modify their modifications. You can
+add a complex modification ID in the replace column,
+which will remove that modified complex and replace
+it with your manually added one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>org</strong> (<em>coralme.builder.organism.Organism</em>) – Organism object.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This example adds SufBCD with their subunits and
+modifications, while removing SufBCD_mod_2fe3s(1).</p>
+<dl class="simple">
+<dt>protein_corrections.txt :</dt><dd><p>complex_id,name,genes,mod,replace
+SufBCD,SufBC2D Fe-S cluster scaffold complex,BSU32670(1) AND BSU32710(2) AND BSU32700(1),2fe2s(1),SufBCD_mod_2fe3s(1)
+…</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="coralme.builder.curation.ManualComplexes.org_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">org_data</span></span><a class="headerlink" href="#coralme.builder.curation.ManualComplexes.org_data" title="Link to this definition"></a></dt>
+<dd><p>Final dataset stored in Organism instance</p>
+</dd></dl>
+
+</dd></dl>
+
 <ul class="simple">
 <li><dl class="simple">
 <dt>reaction_median_keffs.txt</dt><dd><p>Input here will define median Keffs for estimation of Keffs
