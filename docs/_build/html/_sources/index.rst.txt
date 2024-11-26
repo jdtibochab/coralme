@@ -29,7 +29,7 @@ Content
     
    GettingStarted
    BasicInputs
-   coralMEArquitecture
+   coralMEArchitecture
    ManualCuration
    FAQ
 

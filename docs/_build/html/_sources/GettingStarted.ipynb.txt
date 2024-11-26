@@ -15,7 +15,7 @@
    "source": [
     "For details on inputs go to [Description of Inputs](./BasicInputs.ipynb).\n",
     "\n",
-    "For information about coralME architecture go to [Arquitecture of coralME](./coralMEArquitecture.ipynb).\n"
+    "For information about coralME architecture go to [Architecture of coralME](./coralMEArchitecture.ipynb).\n"
    ]
   },
   {
@@ -223,7 +223,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 1,
    "id": "345665c4-32c3-4727-a3b5-40f38a3898f4",
    "metadata": {},
    "outputs": [],
@@ -241,12 +241,12 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 2,
    "id": "2e0e9e63-c7f1-4a69-8478-7ffe71c6bf07",
    "metadata": {},
    "outputs": [],
    "source": [
-    "org = \"./helper_files/tutorial/\""
+    "dir = \"./helper_files/tutorial\""
    ]
   },
   {
@@ -259,24 +259,24 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 3,
    "id": "f0b13719-94fe-4d1f-a71e-96348a1d17f1",
    "metadata": {},
    "outputs": [],
    "source": [
     "import os\n",
-    "os.chdir(org)"
+    "os.chdir(dir)"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 7,
    "id": "3c40401d-8820-4405-88a3-847f97907c10",
    "metadata": {},
    "outputs": [],
    "source": [
-    "organism = './organism.json'.format(org)\n",
-    "inputs = './input.json'.format(org)"
+    "organism = 'organism.json'\n",
+    "inputs = 'input.json'"
    ]
   },
   {
@@ -300,7 +300,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": null,
+   "execution_count": 8,
    "id": "f04001c0-8b9b-41fa-9a17-55ca6006af41",
    "metadata": {
     "ExecuteTime": {
@@ -331,7 +331,16 @@
     "scrolled": true,
     "tags": []
    },
-   "outputs": [],
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Initiating file processing...\n",
+      "~ Processing files for EXAMPLE-ME...\n"
+     ]
+    }
+   ],
    "source": [
     "builder.generate_files(overwrite=True)"
    ]
@@ -408,9 +417,9 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "coralme",
+   "display_name": "coralme-1.1.5",
    "language": "python",
-   "name": "coralme"
+   "name": "coralme-1.1.5"
   },
   "language_info": {
    "codemirror_mode": {
