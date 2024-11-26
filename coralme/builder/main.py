@@ -136,7 +136,8 @@ class MEBuilder(object):
 			if config.get(option, '.') == '':
 				self.configuration[option] = config.get('ME-Model-ID', 'coralME')
 
-		return None
+		# debug data
+		self.debug_data = {}
 
 	def generate_files(self, overwrite = True):
 		"""Performs the Synchronize and Complement steps of the reconstruction.
@@ -1440,7 +1441,7 @@ class MEBuilder(object):
 	def build_me_model(self, update = True, prune = True, overwrite = False, skip = None):
 		coralme.builder.main.MEReconstruction(self).build_me_model(update = update, prune = prune, overwrite = overwrite, skip = skip)
 
-	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors=False):
+	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'gurobi', savefile = None, gapfill_cofactors = False):
 		"""
 		growth_key_and_value:
 			dictionary of Sympy.Symbol and value to replace
@@ -1508,6 +1509,8 @@ class MEReconstruction(MEBuilder):
 			self.df_rna_mods = builder.df_rna_mods
 			self.df_protloc = builder.df_protloc
 			self.df_transpaths = builder.df_transpaths
+		if hasattr(builder, 'debug_data'):
+			self.debug_data = builder.debug_data
 
 		self.logger = builder.logger
 		self.configuration = builder.configuration
@@ -1517,8 +1520,6 @@ class MEReconstruction(MEBuilder):
 		else:
 			self.me_model = coralme.core.model.MEModel(self.configuration.get('ME-Model-ID', 'coralME'), self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = builder.curation_notes
-
-		return None
 
 	def input_data(self, m_model, overwrite = False):
 		if hasattr(self, 'df_data'):
@@ -2019,18 +2020,24 @@ class MEReconstruction(MEBuilder):
 
 		# ### 3. DNA Demand Requirements
 		# Added based on growth rate dependent DNA levels as in [O'brien EJ et al 2013](https://www.ncbi.nlm.nih.gov/pubmed/24084808) (*E. coli* data)
-
-		dna_demand_bound = coralme.builder.dna_replication.return_gr_dependent_dna_demand(
-			me, me.global_info['GC_fraction'], me.global_info['percent_dna_data'], me.global_info['gr_data_doublings_per_hour'])
-
-		# Fraction of each nucleotide in DNA, based on gc_fraction
-		dna_demand_stoich = {
-			'datp_c': -((1 - me.global_info['GC_fraction']) / 2),
-			'dctp_c': -(me.global_info['GC_fraction'] / 2),
-			'dgtp_c': -(me.global_info['GC_fraction'] / 2),
-			'dttp_c': -((1 - me.global_info['GC_fraction']) / 2),
-			'ppi_c': 1
-			}
+		if me.global_info.get('flux_of_dna_constituents', False):
+			# Fraction of each nucleotide in DNA, based on M-model's BOF
+			dna_demand_stoich = {
+				'datp_c': -abs(me.global_info['flux_of_dna_constituents']['datp_c']),
+				'dctp_c': -abs(me.global_info['flux_of_dna_constituents']['dctp_c']),
+				'dgtp_c': -abs(me.global_info['flux_of_dna_constituents']['dgtp_c']),
+				'dttp_c': -abs(me.global_info['flux_of_dna_constituents']['dttp_c']),
+				}
+			dna_demand_stoich['ppi_c'] = abs(me.global_info['flux_of_dna_constituents'].get('ppi_c', sum([ v for k,v in dna_demand_stoich.items() if k != 'ppi_c'])))
+		else:
+			# Fraction of each nucleotide in DNA, based on gc_fraction
+			dna_demand_stoich = {
+				'datp_c': -((1 - me.global_info['GC_fraction']) / 2),
+				'dctp_c': -(me.global_info['GC_fraction'] / 2),
+				'dgtp_c': -(me.global_info['GC_fraction'] / 2),
+				'dttp_c': -((1 - me.global_info['GC_fraction']) / 2),
+				'ppi_c': 1
+				}
 
 		dna_replication = coralme.core.reaction.SummaryVariable('DNA_replication')
 		me.add_reactions([dna_replication])
@@ -2044,6 +2051,13 @@ class MEReconstruction(MEBuilder):
 
 		dna_biomass = coralme.core.component.Constraint('DNA_biomass')
 		dna_replication.add_metabolites({dna_biomass: dna_mw})
+
+		if me.global_info.get('flux_of_dna_constituents', False):
+			dna_demand_bound = me.mu
+		else:
+			dna_demand_bound = coralme.builder.dna_replication.return_gr_dependent_dna_demand(
+				me, me.global_info['GC_fraction'], me.global_info['percent_dna_data'], me.global_info['gr_data_doublings_per_hour'])
+
 		dna_replication.lower_bound = dna_demand_bound
 		dna_replication.upper_bound = dna_demand_bound
 
@@ -2448,7 +2462,7 @@ class MEReconstruction(MEBuilder):
 			compartment_dict[idx] = compartment
 
 		lipid_modifications = me.global_info.get('lipid_modifications')
-		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors')
+		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors', [])
 
 		# Step1: assign enzymes to lipid modifications
 		for data in me.process_data.query('^mod_1st'):
@@ -2457,14 +2471,14 @@ class MEReconstruction(MEBuilder):
 			data.enzyme = me.global_info.get('other_lipids', 'CPLX_dummy')
 
 		# Step2: add reactions of lipoprotein formation
-		if bool(config.get('add_lipoproteins', False)):
+		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			coralme.builder.translocation.add_lipoprotein_formation(
 				me, compartment_dict, lipoprotein_precursors, lipid_modifications, membrane_constraints = False, update = True)
 
 		# ### 2. Correct complex formation IDs if they contain lipoproteins
 
 		#for gene in tqdm.tqdm(coralme.builder.translocation.lipoprotein_precursors.values()):
-		if bool(config.get('add_lipoproteins', False)):
+		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			for gene in tqdm.tqdm(lipoprotein_precursors.values(), 'Adding lipid precursors and lipoproteins...', bar_format = bar_format):
 				compartment = compartment_dict.get(gene)
 				if compartment is None:
@@ -2599,7 +2613,6 @@ class MEReconstruction(MEBuilder):
 					base_complex_elements.update(mod_elements)
 				else:
 					logging.warning('Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
-
 			complex_elements = { k:base_complex_elements[k] for k in sorted(base_complex_elements) if base_complex_elements[k] != 0 }
 			met.formula = ''.join([ '{:s}{:d}'.format(k, v) for k,v in complex_elements.items() ])
 			met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
@@ -2733,7 +2746,10 @@ class MEReconstruction(MEBuilder):
 		ListHandler.print_and_log('Number of metabolites in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_mets, new_mets, len(me.gem.metabolites)))
 		ListHandler.print_and_log('Number of reactions in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_rxns, new_rxns, len(me.gem.reactions)))
 		ListHandler.print_and_log('Number of genes in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_genes, new_genes, len(me.gem.genes)))
-		ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
+		if hasattr(self, 'ref'):
+			ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
+		else:
+			ListHandler.print_and_log('Number of missing genes from reconstruction cannot be determined.')
 
 		logging.shutdown()
 
@@ -2812,14 +2828,13 @@ class METroubleshooter(object):
 			'E-matrix' : [ 'GenerictRNA', 'Complex', 'TranscribedGene', 'TranslatedGene', 'ProcessedProtein', 'GenericComponent' ]
 			}
 
-		if len(met_types) > 0:
+		if hasattr(self, 'notes') and self.notes.get('from cobra', False):
+			met_types = [ ('M-matrix', 'Metabolite') ]
+		elif len(met_types) > 0:
 			met_types = [ ('M-matrix', x) if x in types['M-matrix'] else ('E-matrix', x) if x in types['E-matrix'] else None for x in set(met_types) ]
 			met_types = [ x for x in met_types if x is not None ]
-
-			if len(met_types) == 0:
-				print('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
-
-		if len(met_types) == 0:
+		else:
+			logging.warning('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
 			met_types = []
 			for x, y in types.items():
 				for met in y:
@@ -2943,20 +2958,26 @@ class METroubleshooter(object):
 
 			# final optimization
 			if self.me_model.get_solution(max_mu = 3.0, precision = 1e-6, verbose = False):
-				logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+				if hasattr(self.me_model, 'gem'):
+					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+				else:
+					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
 			else:
 				logging.warning('  '*1 + 'Error: Gapfilled ME-model is not feasible ?')
 
 			# save model as a pickle file
-			if savefile is None:
-				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-				message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+			if savefile:
+				if savefile is None:
+					savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+					message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+				else:
+					message = 'ME-model was saved to {:s}.'.format(savefile)
+				self.me_model.troubleshooted = True
+				with open(savefile, 'wb') as outfile:
+					pickle.dump(self.me_model, outfile)
+				logging.warning(message)
 			else:
-				message = 'ME-model was saved to {:s}.'.format(savefile)
-			self.me_model.troubleshooted = True
-			with open(savefile, 'wb') as outfile:
-				pickle.dump(self.me_model, outfile)
-			logging.warning(message)
+				logging.warning('Model was not saved. Please do it manually.')
 		else:
 			logging.warning('~ '*1 + 'METroubleshooter failed to determine a set of problematic metabolites.')
 			self.me_model.troubleshooted = False
