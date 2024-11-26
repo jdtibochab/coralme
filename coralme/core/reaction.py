@@ -156,7 +156,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 		mass_balance = collections.Counter()
 		for met, value in self.metabolites.items():
-			value = value if isinstance(value, float) else float(value.subs(self._model.mu, 0))
+			value = value if isinstance(value, (float, int)) else float(value.subs(self._model.mu, 0.))
 			mass_balance.update({ k:(v*value) for k,v in collections.Counter(met.elements).items() })
 		mass_balance = { k:mass_balance[k] for k in sorted(mass_balance) if mass_balance[k] != 0 }
 		return mass_balance
@@ -794,6 +794,19 @@ class MEReaction(cobra.core.reaction.Reaction):
 		else:
 			return ('ME-model not optimized/feasible')
 
+	def get_me_mass_balance(self):
+		if self.id.startswith(('DM_', 'EX_', 'SK_', 'TS_')):
+			mass_balance = False
+		elif self.id.startswith((
+			'biomass_dilution', 'biomass_constituent_demand', 'DNA_replication', 'dummy_protein_to_mass',
+			'translation_', 'transcription_', 'charging_', 'translocation_', 'dummy_reaction_')):
+			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
+		elif '_to_generic_' in self.id or 'biomass_to_biomass' in self.id:
+			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
+		else:
+			mass_balance = self.check_me_mass_balance()
+		return mass_balance
+
 	def _repr_html_(self) -> str:
 		"""Generate html representation of reaction.
 
@@ -811,11 +824,9 @@ class MEReaction(cobra.core.reaction.Reaction):
 		upper = self.upper_bound
 		rxn_type = str(type(self))[8:-2]
 
+		mass_balance = self.get_me_mass_balance()
+
 		if hasattr(self._model, 'solution') and self._model.solution.fluxes.get(self.id, None) is not None:
-			mu = self._model.solution.fluxes['biomass_dilution']
-			flux = '{:g} ($\mu$= {:g})'.format(self._model.solution.fluxes[self.id], mu)
-			cost = '{:g} ($\mu$= {:g})'.format(self._model.solution.reduced_costs[self.id], mu)
-			viol = '{:s} ($\Delta$= {:g})'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
 		else:
 			flux = cost = viol = 'ME-model not optimized/feasible'
 
@@ -836,6 +847,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			<tr><td><strong>Flux</strong></td><td>{flux}</td></tr>
 			<tr><td><strong>Reduced cost</strong></td><td>{cost}</td></tr>
 			<tr><td><strong>Bound violation</strong></td><td>{viol}</td></tr>
+			<tr><td><strong>Mass imbalance</strong></td><td>{mass_balance}</td></tr>
 		</table>
 		"""
 
