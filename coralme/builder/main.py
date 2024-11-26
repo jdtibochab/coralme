@@ -2462,7 +2462,7 @@ class MEReconstruction(MEBuilder):
 			compartment_dict[idx] = compartment
 
 		lipid_modifications = me.global_info.get('lipid_modifications')
-		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors')
+		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors', [])
 
 		# Step1: assign enzymes to lipid modifications
 		for data in me.process_data.query('^mod_1st'):
@@ -2471,14 +2471,14 @@ class MEReconstruction(MEBuilder):
 			data.enzyme = me.global_info.get('other_lipids', 'CPLX_dummy')
 
 		# Step2: add reactions of lipoprotein formation
-		if bool(config.get('add_lipoproteins', False)):
+		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			coralme.builder.translocation.add_lipoprotein_formation(
 				me, compartment_dict, lipoprotein_precursors, lipid_modifications, membrane_constraints = False, update = True)
 
 		# ### 2. Correct complex formation IDs if they contain lipoproteins
 
 		#for gene in tqdm.tqdm(coralme.builder.translocation.lipoprotein_precursors.values()):
-		if bool(config.get('add_lipoproteins', False)):
+		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			for gene in tqdm.tqdm(lipoprotein_precursors.values(), 'Adding lipid precursors and lipoproteins...', bar_format = bar_format):
 				compartment = compartment_dict.get(gene)
 				if compartment is None:
