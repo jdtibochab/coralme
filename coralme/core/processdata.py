@@ -1173,7 +1173,7 @@ class TranslationData(ProcessData):
 			else:
 				self.subreactions[termination_subreaction_id] = 1.
 		else:
-			logging.warning('No termination enzyme for \'{:s}\'.'.format(self.mRNA))
+			logging.warning('No termination enzyme for \'{:s}\'. Please review if the gene is a pseudogene.'.format(self.mRNA))
 
 class tRNAData(ProcessData):
 	"""
