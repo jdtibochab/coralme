@@ -827,6 +827,10 @@ class MEReaction(cobra.core.reaction.Reaction):
 		mass_balance = self.get_me_mass_balance()
 
 		if hasattr(self._model, 'solution') and self._model.solution.fluxes.get(self.id, None) is not None:
+			if self._model.notes.get('from cobra', False):
+				mu = self._model.solution.objective_value
+			else:
+				mu = self._model.solution.fluxes['biomass_dilution']
 		else:
 			flux = cost = viol = 'ME-model not optimized/feasible'
 
