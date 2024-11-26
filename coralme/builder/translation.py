@@ -1,4 +1,7 @@
 import Bio
+import logging
+log = logging.getLogger(__name__)
+
 import coralme
 
 #from functools import reduce
@@ -75,7 +78,15 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		me_model.global_info['amino_acid_loader'] = 'CPLX_dummy'
 
 	#for codon, aa in { k:v for k,v in me_model.global_info['codon_table'].forward_table.items() if 'U' not in k }.items():
-	for codon, aa in { k:v for k,v in codon_table.forward_table.items() if 'U' not in k }.items():
+	dct = { k:v for k,v in codon_table.forward_table.items() if 'U' not in k }
+	if me_model.global_info.get('genetic_recoding', {}):
+		# codon_table is codon to one-letter code amino acid
+		for codon, tRNA_to_aa in me_model.global_info['genetic_recoding'].items():
+			for aa, tRNA in tRNA_to_aa.items():
+				dct.update({ codon : aa })
+				logging.warning('Genetic recoding dictionary added to internal codon table.')
+
+	for codon, aa in dct.items():
 		if not me_model.process_data.has_id('atp_hydrolysis_trna_loading'):
 			stoichiometry = { 'atp_c': -1.0, 'h2o_c': -1.0, 'amp_c': +1.0, 'h_c': +1.0, 'ppi_c': +1.0 }
 			coralme.util.building.add_subreaction_data(
@@ -87,9 +98,13 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 				me_model, modification_id = 'gtp_hydrolysis', modification_stoichiometry = stoichiometry, modification_enzyme = None)
 
 		#full_aa = coralme.util.dogma.amino_acids[coralme.util.dogma.codon_table[codon]]
-		full_aa = coralme.util.dogma.amino_acids[aa] # now without the compartment code (e.g., gly; not gly_c)
+		if aa in coralme.util.dogma.amino_acids:
+			full_aa = coralme.util.dogma.amino_acids[aa] # now without the compartment code (e.g., full_aa = gly; not gly_c)
+		else:
+			full_aa = aa.replace('_c', '') # do not add compartment (e.g., full_aa = ala__L; not ala__L_c)
 
 		if not me_model.metabolites.has_id(full_aa + '_' + organelle):
+			logging.warning('The amino acid \'{:s}\' in not in the ME-model.'.format(full_aa + '_' + organelle))
 			continue
 
 		#full_aa = full_aa.split('_')[0]
@@ -107,6 +122,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('atp_hydrolysis_trna_loading').stoichiometry)
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('gtp_hydrolysis').stoichiometry)
 		subreaction_data._element_contribution = me_model.metabolites.get_by_id(full_aa + '_' + organelle).elements # subreaction_data.calculate_element_contribution()
+		logging.warning('A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format(subreaction_id))
 
 	# Add subreactions for selenocysteine
 	if me_model.metabolites.has_id('generic_tRNA_UGA_ser__L_c'):
@@ -114,3 +130,4 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		subreaction_data.enzyme = selenocysteine_enzymes # Do not add brackets [] here, it is already a list
 		subreaction_data.stoichiometry = { 'generic_tRNA_UGA_ser__L_c': -1.0, 'selnp_c': -1.0, 'h_c': +1.0, 'pi_c': +1.0 }
 		subreaction_data._element_contribution = subreaction_data.calculate_element_contribution()
+		logging.warning('A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format('sec_addition_at_UGA'))
