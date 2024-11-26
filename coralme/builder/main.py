@@ -136,7 +136,8 @@ class MEBuilder(object):
 			if config.get(option, '.') == '':
 				self.configuration[option] = config.get('ME-Model-ID', 'coralME')
 
-		return None
+		# debug data
+		self.debug_data = {}
 
 	def generate_files(self, overwrite = True):
 		"""Performs the Synchronize and Complement steps of the reconstruction.
