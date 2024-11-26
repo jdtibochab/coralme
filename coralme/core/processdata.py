@@ -1,4 +1,5 @@
 import Bio
+import copy
 import pandas
 import sympy
 
@@ -42,6 +43,21 @@ class ProcessData(object):
 		# a parent must have an update method
 		self._parent_reactions = set()
 		model.process_data.append(self)
+
+	# WARNING: MODIFIED FUNCTION FROM COBRAPY
+	def copy(self) -> "ProcessData":
+		"""Copy a ProcessData.
+		"""
+		# no references to model when copying
+		model = self._model
+		self._model = None
+		# now we can copy
+		new_processdata = copy.deepcopy(self)
+		# restore the references
+		self._model = model
+		if not hasattr(self, 'id'):
+			print(new_processdata)
+		return new_processdata
 
 	@property
 	def model(self):
@@ -820,7 +836,7 @@ class TranslationData(ProcessData):
 		being translated
 
 	"""
-	def __init__(self, id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table):
+	def __init__(self, id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table, pseudo):
 		ProcessData.__init__(self, id, model)
 		self.mRNA = mrna
 		self.protein = protein
@@ -828,6 +844,8 @@ class TranslationData(ProcessData):
 		self.organelle = organelle
 		self.translation = translation
 		self.transl_table = transl_table
+		self.pseudo = pseudo
+		self.notes = []
 
 		self.subreactions = collections.defaultdict(int)
 		self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
@@ -842,35 +860,6 @@ class TranslationData(ProcessData):
 	@translational_efficiency.setter
 	def translational_efficiency(self, value):
 		self._translational_efficiency = value
-
-	@property
-	def amino_acid_sequence(self):
-		"""
-		Get amino acid sequence from mRNA's nucleotide sequence
-
-		Returns
-		-------
-		str
-			Amino acid sequence
-
-		"""
-		#codons = (self.nucleotide_sequence[i: i + 3] for i in range(0, (len(self.nucleotide_sequence)), 3))
-		#amino_acid_sequence = ''.join(coralme.util.dogma.codon_table[i] for i in codons)
-		#amino_acid_sequence = str(Bio.Seq.Seq(self.nucleotide_sequence).translate(self._model.global_info['codon_table']))
-		amino_acid_sequence = str(Bio.Seq.Seq(self.nucleotide_sequence).translate(self.transl_table))
-		amino_acid_sequence = amino_acid_sequence.rstrip('*')
-		if self.id != 'dummy':
-			if amino_acid_sequence != self.translation:
-				logging.warning('Protein sequence for \'{:s}\' from the GenBank file differs from the inferred from nucleotide sequence and translation table.'.format(self.id))
-		if not amino_acid_sequence.startswith('M'):
-			# alternate start codons translated as methionine
-			amino_acid_sequence = 'M' + ''.join(amino_acid_sequence[1:])
-		if '*' in amino_acid_sequence or 'U' in amino_acid_sequence: # translation of selenocysteine
-			#amino_acid_sequence = amino_acid_sequence.replace('*', 'C') # Cysteine?
-			amino_acid_sequence = amino_acid_sequence.replace('*', 'S') # Ser-tRNA is the precursor of Sec-tRNA
-			amino_acid_sequence = amino_acid_sequence.replace('U', 'S') # Ser-tRNA is the precursor of Sec-tRNA
-
-		return amino_acid_sequence
 
 	@property
 	def last_codon(self):
@@ -906,26 +895,75 @@ class TranslationData(ProcessData):
 		yield [i for i in self.codon_count]
 
 	@property
-	def codon_count(self):
+	def sequence_as_codons(self):
+		return [ self.nucleotide_sequence[i:i+3] for i in range(0, len(self.nucleotide_sequence), 3) ]
+
+	@property
+	def amino_acid_sequence(self):
 		"""
-		Get the number of each codon contained within the gene sequence
+		Get amino acid sequence from mRNA's nucleotide sequence
 
 		Returns
 		-------
-		dict
-			{codon_sequence: number_of_occurrences}
+		str
+			Amino acid sequence
 
 		"""
-		#codons = (self.nucleotide_sequence[i: i+3] for i in range(0, len(self.nucleotide_sequence), 3))
-		#codon_count = collections.defaultdict(int)
-		#for i in codons:
-			#codon_count[i.replace('T', 'U')] += 1
+		#codons = (self.nucleotide_sequence[i: i + 3] for i in range(0, (len(self.nucleotide_sequence)), 3))
+		#amino_acid_sequence = ''.join(coralme.util.dogma.codon_table[i] for i in codons)
+		#amino_acid_sequence = str(Bio.Seq.Seq(self.nucleotide_sequence).translate(self._model.global_info['codon_table']))
 
-		codons = [self.nucleotide_sequence[i: i+3] for i in range(0, len(self.nucleotide_sequence), 3)]
-		codons = [ x.replace('T', 'U') for x in codons if len(x) == 3 ]
-		codon_count = collections.Counter(codons)
+		codons = self.sequence_as_codons # it includes the stop codon
 
-		return codon_count
+		# translate first codon
+		amino_acid_sequence = Bio.Seq.Seq('M')
+		if codons[0] not in self.transl_table.start_codons:
+			logging.warning('First codon in \'{:s}\' does not encode a start methionine. A methionine replaces the first amino acid.'.format(self.id))
+			self.notes.append('Codon at position 0 does not encode a start methionine.')
+
+		# translate rest of the sequence
+		for idx, codon in enumerate(codons[1:-1]): # avoid start and stop codon
+			if codon == 'TGA' and self.transl_table.id == 11:
+				# Ser-tRNA is the precursor of Sec-tRNA.
+				# Reaction Ser-tRNA(Sec) => Sec-tRNA(Sec) is added as a subreaction in translation reactions
+				aa = 'S'
+				logging.warning('Internal stop codon UGA identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
+				self.notes.append('Codon at position {:d} encodes Selenocysteine.'.format(idx+1))
+			elif codon in self._model.global_info['genetic_recoding'].keys():
+				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
+				logging.warning('Internal stop codon \'{:s}\' identified in \'{:s}\' following user input.'.format(codon, self.id))
+				self.notes.append('Codon at position {:d} encodes a recoded stop codon.'.format(idx+1))
+			elif codon in self.transl_table.stop_codons:
+				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
+				logging.warning('Internal stop codon \'{:s}\' identified in \'{:s}\'. Translation will not proceed. Please check if the gene is a pseudogene.'.format(codon, self.id))
+				self.notes.append('Codon at position {:d} encodes an internal stop codon (\'{:s}\') not recoded.'.format(idx+1, codon))
+				#break
+			else:
+				aa = Bio.Seq.Seq(codon).translate(self.transl_table)
+			# append the translated nucleotide
+			amino_acid_sequence += aa
+
+		# last codon does not need translation unless is not a stop codon
+		if codons[-1] not in self.transl_table.stop_codons:
+			logging.warning('Last codon in \'{:s}\' does not encode a stop codon.'.format(self.id))
+			self.notes.append('Codon at position {:d} does not encode a stop codon.'.format(idx+2))
+			amino_acid_sequence += Bio.Seq.Seq(codons[-1]).translate(self.transl_table)
+
+		self.notes = sorted(set(self.notes))
+
+		#amino_acid_sequence = amino_acid_sequence.rstrip('*')
+
+		if self.id != 'dummy':
+			if amino_acid_sequence != self.translation.rstrip('*'):
+				logging.warning('Protein sequence for \'{:s}\' from the GenBank file differs from the inferred from nucleotide sequence and translation table.'.format(self.id))
+
+		# WARNING: This was replaced by code above
+		#if '*' in amino_acid_sequence or 'U' in amino_acid_sequence: # translation of selenocysteine
+			##amino_acid_sequence = amino_acid_sequence.replace('*', 'C') # Cysteine?
+			#amino_acid_sequence = amino_acid_sequence.replace('*', 'S') # Ser-tRNA is the precursor of Sec-tRNA
+			#amino_acid_sequence = amino_acid_sequence.replace('U', 'S') # Ser-tRNA is the precursor of Sec-tRNA
+
+		return amino_acid_sequence
 
 	@property
 	def amino_acid_count(self):
@@ -950,7 +988,43 @@ class TranslationData(ProcessData):
 		elif self.organelle.lower() in ['chloroplast', 'plastid']:
 			compartment = '_h'
 
-		return { coralme.util.dogma.amino_acids[k] + compartment:v for k,v in collections.Counter(self.amino_acid_sequence).items() }
+		#return { coralme.util.dogma.amino_acids[k] + compartment:v for k,v in collections.Counter(self.amino_acid_sequence).items() }
+
+		precount = []
+		# WARNING: sequence_as_codons includes the stop codon, therefor it is +1 longer that amino_acid_sequence
+		for idx, (codon, amino_acid) in enumerate(zip(self.sequence_as_codons, self.amino_acid_sequence)):
+			if amino_acid == '_' and codon == '' and self.transl_table.id == 11:
+				precount.append('ser__L_c') # Ser in the precursor for Selenocysteine
+			elif amino_acid == '_' and codon in self._model.global_info['genetic_recoding']:
+				# TODO: set compartment of the recoded stop codon?
+				precount.append(list(self._model.global_info['genetic_recoding'][codon].keys())[0])
+			elif amino_acid == '_' and codon not in self._model.global_info['genetic_recoding']:
+				logging.warning('Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
+			else:
+				precount.append(coralme.util.dogma.amino_acids[amino_acid] + compartment)
+		return collections.Counter(precount)
+
+	@property
+	def codon_count(self):
+		"""
+		Get the number of each codon contained within the gene sequence
+
+		Returns
+		-------
+		dict
+			{codon_sequence: number_of_occurrences}
+
+		"""
+		#codons = (self.nucleotide_sequence[i: i+3] for i in range(0, len(self.nucleotide_sequence), 3))
+		#codon_count = collections.defaultdict(int)
+		#for i in codons:
+			#codon_count[i.replace('T', 'U')] += 1
+
+		codons = self.sequence_as_codons
+		codons = [ x.replace('T', 'U') for x in codons if len(x) == 3 ]
+		codon_count = collections.Counter(codons)
+
+		return codon_count
 
 	@property
 	def subreactions_from_sequence(self):
@@ -980,17 +1054,27 @@ class TranslationData(ProcessData):
 
 			codon = codon.replace('U', 'T')
 			#if codon == 'TGA' and table == 11:
-			if codon == 'TGA' and self.transl_table.id == 11:
-				logging.warning('Adding selenocysteine for \'{:s}\', following translation table {:d} (See more https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG{:d}).'.format(self.id, self.transl_table.id, self.transl_table.id))
-				aa = 'sec'
-			else:
-				#abbreviated_aa = coralme.util.dogma.codon_table[codon]
-				#abbreviated_aa = Bio.Seq.Seq(codon).translate(self._model.global_info['codon_table'])
-				abbreviated_aa = Bio.Seq.Seq(codon).translate(self.transl_table)
-				if abbreviated_aa == '*':
-					break
-				# Filter out the compartment and stereochemistry from aa id
-				aa = coralme.util.dogma.amino_acids[abbreviated_aa].split('_')[0]
+
+			#abbreviated_aa = coralme.util.dogma.codon_table[codon]
+			#abbreviated_aa = Bio.Seq.Seq(codon).translate(self._model.global_info['codon_table'])
+			abbreviated_aa = Bio.Seq.Seq(codon).translate(self.transl_table)
+			# Filter out the compartment and stereochemistry from aa id
+			aa = coralme.util.dogma.amino_acids.get(abbreviated_aa, 'STOP_CODON').split('_')[0]
+
+			if aa == 'STOP':
+				if str(abbreviated_aa) == '*' and codon in self._model.global_info.get('genetic_recoding', {}).keys():
+					# perform recoding of internal stop codons
+					aa = list(self._model.global_info['genetic_recoding'][codon].keys())[0].replace('__L_c', '')
+					logging.warning('Recoded stop codon \'{:s}\' to \'{:s}__L_c\' in \'{:s}\'.'.format(codon, aa, self.id))
+				elif str(abbreviated_aa) == '*' and codon == 'TGA' and self.transl_table.id == 11:
+					logging.warning('Adding selenocysteine for \'{:s}\', following translation table {:d} (See more https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG{:d}).'.format(self.id, self.transl_table.id, self.transl_table.id))
+					aa = 'sec'
+				else:
+					logging.warning('Internal stop codon \'{:s}\' detected in \'{:s}\'. Please review if the gene is a pseudogene.'.format(codon, self.id))
+
+			if aa == 'STOP':
+				break # do not remove break or STOP_addition_at_UAA or similar will be added
+
 			codon = codon.replace('T', 'U')
 			subreaction_id = aa + '_addition_at_' + codon
 			#try:
@@ -1089,7 +1173,7 @@ class TranslationData(ProcessData):
 			else:
 				self.subreactions[termination_subreaction_id] = 1.
 		else:
-			logging.warning('No termination enzyme for \'{:s}\'.'.format(self.mRNA))
+			logging.warning('No termination enzyme for \'{:s}\'. Please review if the gene is a pseudogene.'.format(self.mRNA))
 
 class tRNAData(ProcessData):
 	"""
