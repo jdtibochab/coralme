@@ -2746,7 +2746,10 @@ class MEReconstruction(MEBuilder):
 		ListHandler.print_and_log('Number of metabolites in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_mets, new_mets, len(me.gem.metabolites)))
 		ListHandler.print_and_log('Number of reactions in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_rxns, new_rxns, len(me.gem.reactions)))
 		ListHandler.print_and_log('Number of genes in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_genes, new_genes, len(me.gem.genes)))
-		ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
+		if hasattr(self, 'ref'):
+			ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
+		else:
+			ListHandler.print_and_log('Number of missing genes from reconstruction cannot be determined.')
 
 		logging.shutdown()
 
