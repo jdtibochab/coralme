@@ -2812,14 +2812,13 @@ class METroubleshooter(object):
 			'E-matrix' : [ 'GenerictRNA', 'Complex', 'TranscribedGene', 'TranslatedGene', 'ProcessedProtein', 'GenericComponent' ]
 			}
 
-		if len(met_types) > 0:
+		if hasattr(self, 'notes') and self.notes.get('from cobra', False):
+			met_types = [ ('M-matrix', 'Metabolite') ]
+		elif len(met_types) > 0:
 			met_types = [ ('M-matrix', x) if x in types['M-matrix'] else ('E-matrix', x) if x in types['E-matrix'] else None for x in set(met_types) ]
 			met_types = [ x for x in met_types if x is not None ]
-
-			if len(met_types) == 0:
-				print('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
-
-		if len(met_types) == 0:
+		else:
+			logging.warning('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
 			met_types = []
 			for x, y in types.items():
 				for met in y:
@@ -2943,20 +2942,26 @@ class METroubleshooter(object):
 
 			# final optimization
 			if self.me_model.get_solution(max_mu = 3.0, precision = 1e-6, verbose = False):
-				logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+				if hasattr(self.me_model, 'gem'):
+					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+				else:
+					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
 			else:
 				logging.warning('  '*1 + 'Error: Gapfilled ME-model is not feasible ?')
 
 			# save model as a pickle file
-			if savefile is None:
-				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-				message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+			if savefile:
+				if savefile is None:
+					savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+					message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+				else:
+					message = 'ME-model was saved to {:s}.'.format(savefile)
+				self.me_model.troubleshooted = True
+				with open(savefile, 'wb') as outfile:
+					pickle.dump(self.me_model, outfile)
+				logging.warning(message)
 			else:
-				message = 'ME-model was saved to {:s}.'.format(savefile)
-			self.me_model.troubleshooted = True
-			with open(savefile, 'wb') as outfile:
-				pickle.dump(self.me_model, outfile)
-			logging.warning(message)
+				logging.warning('Model was not saved. Please do it manually.')
 		else:
 			logging.warning('~ '*1 + 'METroubleshooter failed to determine a set of problematic metabolites.')
 			self.me_model.troubleshooted = False
