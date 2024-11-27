@@ -3333,7 +3333,6 @@
 "name":"Calcium",
 "compartment":"c",
 "charge":2,
-"formula":"Ca",
 "notes":{
 "original_bigg_ids":[
 "ca2_c"
@@ -3345,7 +3344,6 @@
 "name":"Calcium",
 "compartment":"e",
 "charge":2,
-"formula":"Ca",
 "notes":{
 "original_bigg_ids":[
 "ca2_e"
@@ -3403,7 +3401,6 @@
 "name":"Cadmium",
 "compartment":"c",
 "charge":2,
-"formula":"Cd",
 "notes":{
 "original_bigg_ids":[
 "cd2_c"
@@ -3415,7 +3412,6 @@
 "name":"Cadmium",
 "compartment":"e",
 "charge":2,
-"formula":"Cd",
 "notes":{
 "original_bigg_ids":[
 "cd2_e"
@@ -3739,7 +3735,6 @@
 "name":"Co2+",
 "compartment":"c",
 "charge":2,
-"formula":"Co",
 "notes":{
 "original_bigg_ids":[
 "cobalt2_c"
@@ -3751,7 +3746,6 @@
 "name":"Co2+",
 "compartment":"e",
 "charge":2,
-"formula":"Co",
 "notes":{
 "original_bigg_ids":[
 "cobalt2_e"
@@ -3881,7 +3875,6 @@
 "name":"Copper",
 "compartment":"c",
 "charge":2,
-"formula":"Cu",
 "notes":{
 "original_bigg_ids":[
 "cu2_c"
@@ -3893,7 +3886,6 @@
 "name":"Copper",
 "compartment":"e",
 "charge":2,
-"formula":"Cu",
 "notes":{
 "original_bigg_ids":[
 "cu2_e"
@@ -5142,7 +5134,6 @@
 "name":"Fe2+ mitochondria",
 "compartment":"c",
 "charge":2,
-"formula":"Fe",
 "notes":{
 "original_bigg_ids":[
 "fe2_c"
@@ -5154,7 +5145,6 @@
 "name":"Fe2+ mitochondria",
 "compartment":"e",
 "charge":2,
-"formula":"Fe",
 "notes":{
 "original_bigg_ids":[
 "fe2_e"
@@ -5166,7 +5156,6 @@
 "name":"Iron (Fe3+)",
 "compartment":"c",
 "charge":3,
-"formula":"Fe",
 "notes":{
 "original_bigg_ids":[
 "fe3_c"
@@ -5178,7 +5167,6 @@
 "name":"Iron (Fe3+)",
 "compartment":"e",
 "charge":3,
-"formula":"Fe",
 "notes":{
 "original_bigg_ids":[
 "fe3_e"
@@ -6873,7 +6861,6 @@
 "name":"Heme O C49H56FeN4O5",
 "compartment":"c",
 "charge":-2,
-"formula":"C49H56FeN4O5",
 "notes":{
 "original_bigg_ids":[
 "hemeO_c"
@@ -6933,7 +6920,6 @@
 "name":"Mercury  charged 2  Hg",
 "compartment":"c",
 "charge":2,
-"formula":"Hg",
 "notes":{
 "original_bigg_ids":[
 "hg2_c"
@@ -6945,7 +6931,6 @@
 "name":"Mercury  charged 2  Hg",
 "compartment":"e",
 "charge":2,
-"formula":"Hg",
 "notes":{
 "original_bigg_ids":[
 "hg2_e"
@@ -8253,7 +8238,6 @@
 "name":"Magnesium",
 "compartment":"c",
 "charge":2,
-"formula":"Mg",
 "notes":{
 "original_bigg_ids":[
 "mg2_c"
@@ -8265,7 +8249,6 @@
 "name":"Magnesium",
 "compartment":"e",
 "charge":2,
-"formula":"Mg",
 "notes":{
 "original_bigg_ids":[
 "mg2_e"
@@ -8361,7 +8344,6 @@
 "name":"Manganese",
 "compartment":"c",
 "charge":2,
-"formula":"Mn",
 "notes":{
 "original_bigg_ids":[
 "mn2_c"
@@ -8373,7 +8355,6 @@
 "name":"Manganese",
 "compartment":"e",
 "charge":2,
-"formula":"Mn",
 "notes":{
 "original_bigg_ids":[
 "mn2_e"
@@ -8409,7 +8390,6 @@
 "name":"Molybdate",
 "compartment":"c",
 "charge":-2,
-"formula":"MoO4",
 "notes":{
 "original_bigg_ids":[
 "mobd_c"
@@ -8421,7 +8401,6 @@
 "name":"Molybdate",
 "compartment":"e",
 "charge":-2,
-"formula":"MoO4",
 "notes":{
 "original_bigg_ids":[
 "mobd_e"
@@ -8529,7 +8508,6 @@
 "name":"Sodium",
 "compartment":"c",
 "charge":1,
-"formula":"Na",
 "notes":{
 "original_bigg_ids":[
 "na1_c"
@@ -8541,7 +8519,6 @@
 "name":"Sodium",
 "compartment":"e",
 "charge":1,
-"formula":"Na",
 "notes":{
 "original_bigg_ids":[
 "na1_e"
@@ -8673,7 +8650,6 @@
 "name":"Nickel",
 "compartment":"c",
 "charge":2,
-"formula":"Ni",
 "notes":{
 "original_bigg_ids":[
 "ni2_c"
@@ -8685,7 +8661,6 @@
 "name":"Nickel",
 "compartment":"e",
 "charge":2,
-"formula":"Ni",
 "notes":{
 "original_bigg_ids":[
 "ni2_e"
@@ -9201,7 +9176,6 @@
 "name":"Protoheme C34H30FeN4O4",
 "compartment":"c",
 "charge":-1,
-"formula":"C34H30FeN4O4",
 "notes":{
 "original_bigg_ids":[
 "pheme_c"
@@ -10174,7 +10148,6 @@
 "name":"Selenide",
 "compartment":"c",
 "charge":-1,
-"formula":"HSe",
 "notes":{
 "original_bigg_ids":[
 "seln_c"
@@ -10378,7 +10351,6 @@
 "name":"Siroheme C42H36FeN4O16",
 "compartment":"c",
 "charge":-8,
-"formula":"C42H36FeN4O16",
 "notes":{
 "original_bigg_ids":[
 "sheme_c"
@@ -11842,7 +11814,6 @@
 "name":"Zinc",
 "compartment":"c",
 "charge":2,
-"formula":"Zn",
 "notes":{
 "original_bigg_ids":[
 "zn2_c"
@@ -11854,7 +11825,6 @@
 "name":"Zinc",
 "compartment":"e",
 "charge":2,
-"formula":"Zn",
 "notes":{
 "original_bigg_ids":[
 "zn2_e"

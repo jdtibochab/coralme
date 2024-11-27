@@ -35,6 +35,7 @@ Content
    ReconstructionOSM
    LoadingMEmodels
    InspectingFluxes
+   EfficientSolving
    FAQ
 
 Indices and tables

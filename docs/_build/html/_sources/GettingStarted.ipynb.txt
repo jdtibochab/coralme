@@ -214,7 +214,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": null,
    "id": "1f347e0a-7f7b-4d09-9c31-acf78befd22a",
    "metadata": {
     "ExecuteTime": {
@@ -243,7 +243,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Read LP format model from file /tmp/tmpirhyqfrz.lp\n",
+      "Read LP format model from file /tmp/tmp6wx5hvsz.lp\n",
       "Reading time = 0.00 seconds\n",
       ": 990 rows, 2500 columns, 10478 nonzeros\n"
      ]
@@ -259,7 +259,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Read LP format model from file /tmp/tmp8c0jj4ty.lp\n",
+      "Read LP format model from file /tmp/tmp053a6_ir.lp\n",
       "Reading time = 0.00 seconds\n",
       ": 990 rows, 2496 columns, 10342 nonzeros\n"
      ]
@@ -303,45 +303,7 @@
       "Processing StoichiometricData in SubReactionData...                        : 0.0%|          |     0/    0 [00:00<?]\n",
       "Adding reaction subsystems from M-model into the ME-model...               : 100.0%|██████████|  1248/ 1248 [00:00<00:00]\n",
       "Processing StoichiometricData in ME-model...                               : 100.0%|██████████|  1020/ 1020 [00:00<00:00]\n",
-      "Updating ME-model Reactions...                                             : 100.0%|██████████| 16069/16069 [01:10<00:00]\n",
-      "Updating all FormationReactions...                                         : 100.0%|██████████|  4365/ 4365 [00:00<00:00]\n",
-      "Recalculation of the elemental contribution in SubReactions...             : 100.0%|██████████|    82/   82 [00:00<00:00]\n",
-      "Updating all FormationReactions...                                         : 100.0%|██████████|  4365/ 4365 [00:00<00:00]\n",
-      "Updating FormationReactions involving a lipoyl prosthetic group...         : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Updating FormationReactions involving a glycyl radical...                  : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Estimating effective turnover rates for reactions using the SASA method... : 100.0%|██████████|  2658/ 2658 [00:00<00:00]\n",
-      "Mapping effective turnover rates from user input...                        : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Setting the effective turnover rates using user input...                   : 100.0%|██████████|  2424/ 2424 [00:00<00:00]\n",
-      "Pruning unnecessary ComplexData reactions...                               : 100.0%|██████████|  4365/ 4365 [00:05<00:00]\n",
-      "Pruning unnecessary FoldedProtein reactions...                             : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Pruning unnecessary ProcessedProtein reactions...                          : 100.0%|██████████|  4239/ 4239 [00:00<00:00]\n",
-      "Pruning unnecessary TranslatedGene reactions...                            : 100.0%|██████████|  4239/ 4239 [00:08<00:00]\n",
-      "Pruning unnecessary TranscribedGene reactions...                           : 100.0%|██████████|  4450/ 4450 [00:04<00:00]\n",
-      "Pruning unnecessary Transcriptional Units...                               : 100.0%|██████████|  4449/ 4449 [00:03<00:00]\n",
-      "Pruning unnecessary ComplexData reactions...                               : 100.0%|██████████|   776/  776 [00:00<00:00]\n",
-      "Pruning unnecessary FoldedProtein reactions...                             : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Pruning unnecessary ProcessedProtein reactions...                          : 100.0%|██████████|   948/  948 [00:00<00:00]\n",
-      "Pruning unnecessary TranslatedGene reactions...                            : 100.0%|██████████|   948/  948 [00:00<00:00]\n",
-      "Pruning unnecessary TranscribedGene reactions...                           : 100.0%|██████████|  1064/ 1064 [00:01<00:00]\n",
-      "Pruning unnecessary Transcriptional Units...                               : 100.0%|██████████|  1063/ 1063 [00:01<00:00]\n",
-      "Pruning unnecessary ComplexData reactions...                               : 100.0%|██████████|   760/  760 [00:00<00:00]\n",
-      "Pruning unnecessary FoldedProtein reactions...                             : 0.0%|          |     0/    0 [00:00<?]\n",
-      "Pruning unnecessary ProcessedProtein reactions...                          : 100.0%|██████████|   932/  932 [00:00<00:00]\n",
-      "Pruning unnecessary TranslatedGene reactions...                            : 100.0%|██████████|   932/  932 [00:00<00:00]\n",
-      "Pruning unnecessary TranscribedGene reactions...                           : 100.0%|██████████|  1048/ 1048 [00:01<00:00]\n",
-      "Pruning unnecessary Transcriptional Units...                               : 100.0%|██████████|  1047/ 1047 [00:01<00:00]\n"
-     ]
-    },
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "ME-model was saved in the ./helper_files/ directory as MEModel-step2-EXAMPLE-BACILLUS-ME.pkl\n",
-      "ME-model reconstruction is done.\n",
-      "Number of metabolites in the ME-model is 3808 (+284.65%, from 990)\n",
-      "Number of reactions in the ME-model is 7031 (+462.48%, from 1250)\n",
-      "Number of genes in the ME-model is 1046 (+23.93%, from 844)\n",
-      "Number of missing genes from reconstruction cannot be determined.\n"
+      "Updating ME-model Reactions...                                             : 39.4%|███▉      |  6325/16069 [00:51<01:18]"
      ]
     }
    ],
@@ -359,37 +321,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": null,
    "id": "d6d2e94e-08d7-4ba8-ab81-bccb22a5b025",
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "~ Troubleshooting started...\n",
-      "  Checking if the ME-model can simulate growth without gapfilling reactions...\n",
-      "  Original ME-model is not feasible with a tested growth rate of 0.001000 1/h\n",
-      "  Step 1. Gapfill reactions to provide components of type 'ME-Deadends' using brute force.\n",
-      "          Finding gaps in the ME-model...\n",
-      "          Finding gaps from the M-model only...\n",
-      "          0 metabolites were identified as deadends.\n",
-      "          Adding sink reactions for 0 metabolites...\n",
-      "          Provided metabolites through sink reactions cannot recover growth. Proceeding to next set of metabolites.\n",
-      "  Step 2. Gapfill reactions to provide components of type 'Cofactors' using brute force.\n",
-      "          Adding sink reactions for 2 metabolites...\n",
-      "            Sink reactions shortlisted to 2 metabolites.\n",
-      "             Processed: 1/2, Gaps: 1. The ME-model is not feasible if TS_zn2_c is closed.\n",
-      "             Processed: 2/2, Gaps: 1. The ME-model is feasible if TS_mg2_c is closed.\n",
-      "~ Troubleshooter added the following sinks: TS_zn2_c.\n",
-      "~ Final step. Fully optimizing with precision 1e-6 and save solution into the ME-model...\n",
-      "The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n",
-      "\n",
-      "  Gapfilled ME-model is feasible with growth rate 0.102178 (M-model: 0.117966).\n",
-      "Model was not saved. Please do it manually.\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "builder.troubleshoot(growth_key_and_value = { builder.me_model.mu : 0.001 })"
    ]

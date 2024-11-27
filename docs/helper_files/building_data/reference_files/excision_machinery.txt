@@ -1,4 +1,4 @@
 type	enzymes
-rRNA_containing	generic_RNase,BSU15930-MONOMER_mod_mg2(2)
-monocistronic	generic_RNase
-polycistronic_wout_rRNA	generic_RNase,BSU15930-MONOMER
+monocistronic	CPLX_dummy
+polycistronic_wout_rRNA	CPLX_dummy
+rRNA_containing	CPLX_dummy

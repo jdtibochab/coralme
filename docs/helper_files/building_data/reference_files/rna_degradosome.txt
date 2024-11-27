@@ -1,3 +1,2 @@
 rna_degradosome
-BSU33900-MONOMER_mod_mg2(4)
-BSU16690-MONOMER
+CPLX_dummy

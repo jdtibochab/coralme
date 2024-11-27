@@ -76,290 +76,239 @@ Correct the formulas of the listed metabolites. Some metabolite formulas are cri
 
 
 
-#################### medium@org.read_gene_dictionary ####################
-********** Some genes are missing Accession-1 IDs in genes.txt
-The following items triggered the warning:
-G8J2-183
-G8J2-184
-G8J2-180
-G8J2-181
-G8J2-182
+#################### high@org.read_optional_file ####################
+********** No genes file was found. Initializing an empty one.
 
 **********Solution:
-Complete Accession-1 IDs in genes.txt if those genes are important.
+Download genes from BioCyc if available
 
-
-
-
-#################### medium@org.generate_complexes_df ####################
-********** Some proteins have no genes in proteins.txt
-The following items triggered the warning:
-EG50003-MONOMER
+#################### high@org.read_optional_file ####################
+********** No proteins file was found. Initializing an empty one.
 
 **********Solution:
-Fill genes in proteins.txt
+Download proteins from BioCyc if available
 
-
-
-
-#################### medium@org.sync_files ####################
-********** The types of some genes (e.g. CDS, RNA...) could not be identified. Is Product or Gene Name missing?
-The following items triggered the warning:
-BSU13299
-BSU13299
-BSU23060
-BSU23060
-BSU29679
-BSU29679
-BSU07540
-BSU07540
-BSU36668
-BSU36668
-BSU26039
-BSU26039
-BSU11381
-BSU11381
-BSU06033
-BSU06033
-BSU35679
-BSU35679
-BSU21670
-BSU21670
-BSU07170
-BSU07170
-BSU05344
-BSU05344
-BSU35239
-BSU35239
-BSU19810
-BSU19810
-BSU06078
-BSU06078
-BSU03569
-BSU03569
-BSU40574
-BSU40574
-BSU32960
-BSU32960
-BSU18819
-BSU18819
-BSU06074
-BSU06074
-G8J2-184
-G8J2-184
-BSU39129
-BSU39129
-BSU26748
-BSU26748
-BSU17266
-BSU17266
-BSU06038
-BSU06038
-BSU23836
-BSU23836
-BSU36669
-BSU36669
-BSU26040
-BSU26040
-BSU11382
-BSU11382
-BSU06034
-BSU06034
-BSU35698
-BSU35698
-BSU23329
-BSU23329
-BSU07180
-BSU07180
-BSU05890
-BSU05890
-BSU35609
-BSU35609
-BSU21598
-BSU21598
-BSU06079
-BSU06079
-BSU03570
-BSU03570
-BSU40578
-BSU40578
-BSU32970
-BSU32970
-BSU18909
-BSU18909
-BSU06076
-BSU06076
-BSU40359
-BSU40359
-BSU26749
-BSU26749
-BSU17267
-BSU17267
-BSU06049
-BSU06049
-BSU23837
-BSU23837
-BSU39029
-BSU39029
-BSU26558
-BSU26558
-BSU16890
-BSU16890
-BSU06036
-BSU06036
-BSU35699
-BSU35699
-BSU23330
-BSU23330
-BSU09259
-BSU09259
-BSU05899
-BSU05899
-BSU35610
-BSU35610
-BSU21599
-BSU21599
-BSU06083
-BSU06083
-BSU05343
-BSU05343
-BSU40579
-BSU40579
-BSU35230
-BSU35230
-BSU18979
-BSU18979
-BSU06077
-BSU06077
-BSU40573
-BSU40573
-BSU26750
-BSU26750
-BSU17678
-BSU17678
-BSU06073
-BSU06073
-BSU26829
-BSU26829
-BSU39030
-BSU39030
-BSU26559
-BSU26559
-BSU16900
-BSU16900
-BSU06037
-BSU06037
+#################### high@org.read_optional_file ####################
+********** No RNAs file was found. Initializing an empty one.
 
 **********Solution:
-Manually fill the products (with types) of these genes in genes.txt
+Download RNAs from BioCyc if available
 
-
-
-
-#################### medium@org.update_genbank_from_files ####################
-********** Could not add some genes in genes.txt to genbank.gb since they lack sequence information. Are your BioCyc files from the same database version?
-The following items triggered the warning:
-BSU_misc_RNA_38
+#################### high@org.read_optional_file ####################
+********** No TUs file was found. Initializing an empty one.
 
 **********Solution:
-Add gene sequence in sequences.fasta. Check whether you downloaded the database files from the same BioCyc version.
+Download TUs from BioCyc if available
 
-#################### high@org.update_genbank_from_files ####################
-********** Some feature in genbank are CDS but have no translation qualifier. Translated sequences from Biopython were filled in instead
-The following items triggered the warning:
-BSU02180
-BSU02181
-BSU03569
-BSU03570
-BSU05343
-BSU05344
-BSU05890
-BSU05899
-BSU06033
-BSU06034
-BSU06036
-BSU06037
-BSU06038
-BSU06049
-BSU06050
-BSU06073
-BSU06074
-BSU06076
-BSU06077
-BSU06078
-BSU06079
-BSU06083
-BSU07170
-BSU07180
-BSU09259
-BSU11381
-BSU11382
-BSU11798
-BSU13790
-BSU13799
-BSU16640
-BSU16890
-BSU16900
-BSU17266
-BSU17267
-BSU17678
-BSU18109
-BSU18110
-BSU18819
-BSU18909
-BSU18930
-BSU18940
-BSU18979
-BSU19810
-BSU20030
-BSU21598
-BSU21599
-BSU21670
-BSU22660
-BSU23329
-BSU23330
-BSU23349
-BSU23836
-BSU23837
-BSU25760
-BSU26039
-BSU26040
-BSU26390
-BSU26558
-BSU26559
-BSU26748
-BSU26749
-BSU26750
-BSU26829
-BSU28509
-BSU32960
-BSU32970
-BSU34410
-BSU34420
-BSU35150
-BSU35230
-BSU35239
-BSU35609
-BSU35610
-BSU35679
-BSU35690
-BSU35698
-BSU35699
-BSU36499
-BSU36669
-BSU39029
-BSU39030
-BSU39129
-BSU40359
-BSU40573
-BSU40574
-BSU40578
-BSU40579
-G8J2-180
-G8J2-182
+
+
+
+#################### critical@org.check_gene_overlap ####################
+********** M-model has a 0 gene overlap with optional files (BioCyc)
 
 **********Solution:
-Check whether the genbank was downloaded or constructed correctly.
+Check whether optional files where downloaded correctly.
+
+
+
+
+#################### low@org._get_manual_curation ####################
+********** No reaction_corrections file found
+
+**********Solution:
+Fill in ./helper_files//building_data/reaction_corrections.txt
+
+#################### low@org._get_manual_curation ####################
+********** No metabolite_corrections file found
+
+**********Solution:
+Fill in ./helper_files//building_data/metabolite_corrections.txt
+
+#################### low@org._get_manual_curation ####################
+********** No protein_location file found
+
+**********Solution:
+Fill in ./helper_files//building_data/peptide_compartment_and_pathways.txt
+
+#################### low@org._get_manual_curation ####################
+********** No translocation_multipliers file found
+
+**********Solution:
+Fill in ./helper_files//building_data/translocation_multipliers.txt
+
+#################### low@org._get_manual_curation ####################
+********** No lipoprotein_precursors file found
+
+**********Solution:
+Fill in ./helper_files//building_data/lipoprotein_precursors.txt
+
+#################### low@org._get_manual_curation ####################
+********** No cleaved_methionine file found
+
+**********Solution:
+Fill in ./helper_files//building_data/cleaved_methionine.txt
+
+#################### low@org._get_manual_curation ####################
+********** No manual_complexes file found
+
+**********Solution:
+Fill in ./helper_files//building_data/protein_corrections.txt
+
+#################### low@org._get_manual_curation ####################
+********** No sigmas file found
+
+**********Solution:
+Fill in ./helper_files//building_data/sigma_factors.txt
+
+#################### low@org._get_manual_curation ####################
+********** No rho_independent file found
+
+**********Solution:
+Fill in ./helper_files//building_data/rho_independent.txt
+
+#################### low@org._get_manual_curation ####################
+********** No rna_degradosome file found
+
+**********Solution:
+Fill in ./helper_files//building_data/rna_degradosome.txt
+
+#################### low@org._get_manual_curation ####################
+********** No rna_modification_df file found
+
+**********Solution:
+Fill in ./helper_files//building_data/rna_modification.txt
+
+#################### low@org._get_manual_curation ####################
+********** No rna_modification_targets file found
+
+**********Solution:
+Fill in ./helper_files//building_data/post_transcriptional_modification_of_RNA.txt
+
+#################### low@org._get_manual_curation ####################
+********** No enz_rxn_assoc_df file found
+
+**********Solution:
+Fill in ./helper_files//building_data/enzyme_reaction_association.txt
+
+#################### low@org._get_manual_curation ####################
+********** No me_mets file found
+
+**********Solution:
+Fill in ./helper_files//building_data/me_metabolites.txt
+
+#################### low@org._get_manual_curation ####################
+********** No subreaction_matrix file found
+
+**********Solution:
+Fill in ./helper_files//building_data/subreaction_matrix.txt
+
+#################### low@org._get_manual_curation ####################
+********** No reaction_matrix file found
+
+**********Solution:
+Fill in ./helper_files//building_data/reaction_matrix.txt
+
+#################### low@org._get_manual_curation ####################
+********** No orphan_and_spont_reactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/orphan_and_spont_reactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No subsystem_classification file found
+
+**********Solution:
+Fill in ./helper_files//building_data/subsystem_classification.txt
+
+#################### low@org._get_manual_curation ####################
+********** No translocation_pathways file found
+
+**********Solution:
+Fill in ./helper_files//building_data/translocation_pathways.txt
+
+#################### low@org._get_manual_curation ####################
+********** No lipid_modifications file found
+
+**********Solution:
+Fill in ./helper_files//building_data/lipid_modifications.txt
+
+#################### low@org._get_manual_curation ####################
+********** No ribosome_stoich file found
+
+**********Solution:
+Fill in ./helper_files//building_data/ribosomal_proteins.txt
+
+#################### low@org._get_manual_curation ####################
+********** No ribosome_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/ribosome_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No generic_dict file found
+
+**********Solution:
+Fill in ./helper_files//building_data/generic_dict.txt
+
+#################### low@org._get_manual_curation ####################
+********** No amino_acid_trna_synthetase file found
+
+**********Solution:
+Fill in ./helper_files//building_data/amino_acid_trna_synthetase.txt
+
+#################### low@org._get_manual_curation ####################
+********** No peptide_release_factors file found
+
+**********Solution:
+Fill in ./helper_files//building_data/peptide_release_factors.txt
+
+#################### low@org._get_manual_curation ####################
+********** No initiation_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/initiation_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No elongation_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/elongation_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No termination_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/termination_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No transcription_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/transcription_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No special_trna_subreactions file found
+
+**********Solution:
+Fill in ./helper_files//building_data/special_trna_subreactions.txt
+
+#################### low@org._get_manual_curation ####################
+********** No special_modifications file found
+
+**********Solution:
+Fill in ./helper_files//building_data/special_modifications.txt
+
+#################### low@org._get_manual_curation ####################
+********** No excision_machinery file found
+
+**********Solution:
+Fill in ./helper_files//building_data/excision_machinery.txt
+
+#################### low@org._get_manual_curation ####################
+********** No folding_dict file found
+
+**********Solution:
+Fill in ./helper_files//building_data/folding_dict.txt
 
 
 
@@ -373,11 +322,11 @@ Check whether you need to correct RpoD by running me_builder.org.rpod = correct_
 
 
 
-#################### high@org.get_rna_polymerase ####################
-********** CPLX8J2-30 was identified as RNA polymerase
+#################### medium@org.get_rna_polymerase ####################
+********** RNAP was identified with subunits BSU01070, BSU01080, BSU01430, BSU37160
 
 **********Solution:
-Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)
+Check whether the correct proteins were called as subunits of RNAP. If not find correct RNAP complex and run me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)
 
 
 
@@ -385,71 +334,68 @@ Check whether you need to correct RNAP by running me_builder.org.get_rna_polymer
 #################### high@org.update_ribosome_stoich ####################
 ********** Some ribosomal proteins do not contain subunit information (30S, 50S). Check whether they are ribosomal proteins!
 The following items triggered the warning:
-BSU25450-MONOMER
-BSU15080-MONOMER
 BSU00520-MONOMER
-BSU01230-MONOMER
-BSU01240-MONOMER
+BSU00990-MONOMER
+BSU01020-MONOMER
+BSU01030-MONOMER
 BSU01040-MONOMER
 BSU01050-MONOMER
-BSU28860-MONOMER
-BSU28850-MONOMER
-BSU24900-MONOMER
-BSU16680-MONOMER
-BSU01320-MONOMER
-BSU01210-MONOMER
-BSU01160-MONOMER
-BSU01020-MONOMER
-BSU08880-MONOMER
-BSU37070-MONOMER
-BSU05610-MONOMER
-BSU01200-MONOMER
-BSU01490-MONOMER
-BSU01340-MONOMER
-BSU01180-MONOMER
-BSU00990-MONOMER
-BSU22880-MONOMER
-BSU16490-MONOMER
-BSU41060-MONOMER
-BSU40910-MONOMER
-BSU16040-MONOMER
-BSU01440-MONOMER
-BSU01310-MONOMER
-BSU01290-MONOMER
-BSU01150-MONOMER
-BSU25410-MONOMER
-BSU01100-MONOMER
-BSU05930-MONOMER
-BSU27950-MONOMER
-BSU01330-MONOMER
-BSU01170-MONOMER
-BSU01280-MONOMER
 BSU01090-MONOMER
-BSU01030-MONOMER
-BSU27940-MONOMER
-BSU04210-MONOMER
-BSU15990-MONOMER
-BSU15820-MONOMER
-BSU01410-MONOMER
-BSU01400-MONOMER
+BSU01100-MONOMER
+BSU01110-MONOMER
+BSU01150-MONOMER
+BSU01160-MONOMER
+BSU01170-MONOMER
+BSU01180-MONOMER
+BSU01190-MONOMER
+BSU01200-MONOMER
+BSU01210-MONOMER
+BSU01220-MONOMER
+BSU01230-MONOMER
+BSU01240-MONOMER
 BSU01250-MONOMER
 BSU01260-MONOMER
-BSU25550-MONOMER
-BSU01300-MONOMER
-BSU01110-MONOMER
-BSU27960-MONOMER
-BSU30700-MONOMER
-BSU29660-MONOMER
-BSU40890-MONOMER
-BSU01500-MONOMER
-BSU01220-MONOMER
-BSU40500-MONOMER
-BSU01420-MONOMER
-BSU01350-MONOMER
 BSU01270-MONOMER
-BSU01190-MONOMER
-G8J2-165-MONOMER
-G8J2-166-MONOMER
+BSU01280-MONOMER
+BSU01290-MONOMER
+BSU01300-MONOMER
+BSU01310-MONOMER
+BSU01320-MONOMER
+BSU01330-MONOMER
+BSU01340-MONOMER
+BSU01350-MONOMER
+BSU01400-MONOMER
+BSU01410-MONOMER
+BSU01420-MONOMER
+BSU01440-MONOMER
+BSU01490-MONOMER
+BSU01500-MONOMER
+BSU04210-MONOMER
+BSU05930-MONOMER
+BSU08880-MONOMER
+BSU15080-MONOMER
+BSU15820-MONOMER
+BSU15990-MONOMER
+BSU16040-MONOMER
+BSU16490-MONOMER
+BSU16680-MONOMER
+BSU22880-MONOMER
+BSU24900-MONOMER
+BSU25410-MONOMER
+BSU25450-MONOMER
+BSU25550-MONOMER
+BSU27940-MONOMER
+BSU27950-MONOMER
+BSU27960-MONOMER
+BSU28850-MONOMER
+BSU28860-MONOMER
+BSU29660-MONOMER
+BSU30700-MONOMER
+BSU37070-MONOMER
+BSU40500-MONOMER
+BSU40890-MONOMER
+BSU40910-MONOMER
+BSU41060-MONOMER
 
 **********Solution:
 Curate them in ribosomal_proteins.txt
@@ -471,7 +417,10 @@ Check whether your organism should have a ligase for these amino acids, or if yo
 #################### high@org.purge_genes_in_model ####################
 ********** Some genes in M-model were not found in genes.txt or genome.gb. These genes will be skipped in reconstruction.
 The following items triggered the warning:
+BSU22660
 BG12900
+BSU35690
+BSU35609
 
 **********Solution:
 Confirm the gene is correct in the m_model. If so, add it to genes.txt
@@ -479,251 +428,16 @@ Confirm the gene is correct in the m_model. If so, add it to genes.txt
 
 
 
-#################### medium@org.get_complex_homology ####################
-********** Some complexes were partial hits in the BLAST
-The following items triggered the warning:
-
-{"complex": "BSU32750-MONOMER", "reference_complex": "METNIQ-METHIONINE-ABC-CPLX"}
-
-{"complex": "BSU34870-MONOMER", "reference_complex": "GLUTAMIDOTRANS-CPLX"}
-
-{"complex": "BSU22680-MONOMER", "reference_complex": "ANTHRANSYN-CPLX"}
-
-{"complex": "BSU39270-MONOMER", "reference_complex": "CPLX-154"}
-
-{"complex": "BSU41010-MONOMER", "reference_complex": "MnmEG_cplx"}
-
-{"complex": "BSU37270-MONOMER", "reference_complex": "NITRATREDUCTA-CPLX"}
-
-{"complex": "BSU33430-MONOMER", "reference_complex": "SULFITE-REDUCT-CPLX"}
-
-{"complex": "BSU32800-MONOMER", "reference_complex": "GCVMULTI-CPLX"}
-
-{"complex": "BSU35960-MONOMER", "reference_complex": "ABC-28-CPLX_EG10817-MONOMER"}
-
-{"complex": "BSU38990-MONOMER", "reference_complex": "ACETOACETYL-COA-TRANSFER-CPLX"}
-
-{"complex": "BSU34040-MONOMER", "reference_complex": "G6176-MONOMER_G6177-MONOMER_G6178-MONOMER"}
-
-{"complex": "BSU13890-MONOMER", "reference_complex": "CPLX-157"}
-
-{"complex": "BSU16100-MONOMER", "reference_complex": "SUCCCOASYN"}
-
-{"complex": "BSU01680-MONOMER", "reference_complex": "CPLX0-7"}
-
-{"complex": "BSU25270-MONOMER", "reference_complex": "Gly_RS_tetra"}
-
-{"complex": "BSU11430-MONOMER", "reference_complex": "CPLX0-3970"}
-
-{"complex": "BSU17380-MONOMER", "reference_complex": "RIBONUCLEOSIDE-DIP-REDUCTII-CPLX"}
-
-{"complex": "BSU19370-MONOMER", "reference_complex": "2OXOGLUTARATEDEH-CPLX"}
-
-{"complex": "BSU24340-MONOMER", "reference_complex": "ACETYL-COA-CARBOXYLMULTI-CPLX"}
-
-{"complex": "BSU22630-MONOMER", "reference_complex": "TRYPSYN"}
-
-{"complex": "BSU38750-MONOMER", "reference_complex": "CYT-D-UBIOX-CPLX"}
-
-{"complex": "BSU28640-MONOMER", "reference_complex": "Phe_RS_tetra"}
-
-{"complex": "BSU27050-MONOMER", "reference_complex": "CPLX-165"}
-
-{"complex": "BSU28310-MONOMER", "reference_complex": "ACETOLACTSYNIII-CPLX"}
-
-{"complex": "BSU05960-MONOMER", "reference_complex": "EG11595-MONOMER_EG11666-MONOMER"}
-
-{"complex": "BSU18450-MONOMER", "reference_complex": "GLUTAMATESYN-CPLX"}
-
-{"complex": "BSU38740-MONOMER", "reference_complex": "ABC-6-CPLX"}
-
-{"complex": "CPLX8J2-24", "reference_complex": "transGroES_hepta"}
-
-{"complex": "CPLX8J2-24", "reference_complex": "cisGroES_hepta"}
-
-{"complex": "CPLX8J2-24", "reference_complex": "GroL_14"}
-
-{"complex": "BSU28260-MONOMER", "reference_complex": "3-ISOPROPYLMALISOM-CPLX"}
-
-{"complex": "CPLX8J2-29", "reference_complex": "PABASYN-COMPI-MONOMER"}
-
-{"complex": "BSU03981-MONOMER", "reference_complex": "CPLX-166"}
-
-{"complex": "BSU01430-MONOMER", "reference_complex": "hRNAP"}
-
-{"complex": "CPLX8J2-124", "reference_complex": "CPLX0-3952"}
-
-{"complex": "CPLX8J2-124", "reference_complex": "LUMAZINESYN-CPLX"}
-
-{"complex": "BSU15520-MONOMER", "reference_complex": "CARBPSYN-CPLX"}
-
-{"complex": "BSU02860-MONOMER", "reference_complex": "ABC-63-CPLX"}
-
-{"complex": "CPLX8J2-206", "reference_complex": "EG11597-MONOMER"}
-
-{"complex": "CPLX8J2-206", "reference_complex": "EG11598-MONOMER"}
-
-{"complex": "CPLX-7603", "reference_complex": "APO-ENTB"}
-
-{"complex": "CPLX-7603", "reference_complex": "ENTE-CPLX"}
-
-{"complex": "CPLX-7603", "reference_complex": "ENTF-MONOMER"}
-
-{"complex": "BSU22230-MONOMER", "reference_complex": "CPLX-168"}
-
-{"complex": "CPLX8J2-252", "reference_complex": "PABASYN-CPLX"}
-
-{"complex": "BSU13910-MONOMER", "reference_complex": "CPLX-167"}
-
-{"complex": "CPLX_AIRC1-0", "reference_complex": "PURE-CPLX"}
-
-{"complex": "CPLX_AIRC1-0", "reference_complex": "PURK-CPLX"}
-
-**********Solution:
-Curate these manually in protein_corrections.txt
-
-
-
-
-#################### medium@update_me_mets ####################
-********** Some metabolites in me_metabolites.txt are not in m_model, so they were skipped.
-The following items triggered the warning:
-sufbcd_2fe2s_c
-sufbcd_2fe2s2_c
-sufbcd_4fe4s_c
-iscu_2fe2s_c
-iscu_2fe2s2_c
-iscu_4fe4s_c
-
-**********Solution:
-Confirm these metabolites are correctly defined in me_metabolites.txt
-
-
-
-
-#################### medium@update_ribosome_subreactions_from_homology ####################
-********** Some enzymes defined in me_builder.org.ribosome_subreactions are different from the ones inferred from homology
-The following items triggered the warning:
-
-{"subreaction": "gtp_bound_30S_assembly_factor_phase1", "defined_complex": "", "inferred_complex": "BSU25290-MONOMER"}
-
-{"subreaction": "RbfA_mono_assembly_factor_phase1", "defined_complex": "", "inferred_complex": "BSU16650-MONOMER"}
-
-{"subreaction": "RimM_mono_assembly_factor_phase1", "defined_complex": "", "inferred_complex": "BSU16020-MONOMER"}
-
-**********Solution:
-Confirm whether the definitions or homology calls are correct in me_builder.org.ribosome_subreactions. Curate the inputs in ribosome_subreactions.txt accordingly.
-
-
-
-
-#################### medium@update_amino_acid_trna_synthetases_from_homology ####################
-********** Some enzymes defined in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology
-The following items triggered the warning:
-
-{"amino_acid": "ala__L_c", "defined_ligase": "BSU27410-MONOMER", "inferred_ligase": "BSU27410-MONOMER_mod_zn2(4)"}
-
-{"amino_acid": "arg__L_c", "defined_ligase": "BSU37330-MONOMER", "inferred_ligase": "BSU37330-MONOMER_mod_mg2(1)"}
-
-{"amino_acid": "asn__L_c", "defined_ligase": "BSU22360-MONOMER", "inferred_ligase": "BSU22360-MONOMER"}
-
-{"amino_acid": "asp__L_c", "defined_ligase": "BSU27550-MONOMER", "inferred_ligase": "BSU27550-MONOMER"}
-
-{"amino_acid": "cys__L_c", "defined_ligase": "BSU00940-MONOMER", "inferred_ligase": "BSU00940-MONOMER_mod_zn2(1)"}
-
-{"amino_acid": "glu__L_c", "defined_ligase": "BSU00920-MONOMER", "inferred_ligase": "BSU00920-MONOMER_mod_mg2(1)_mod_zn2(1)"}
-
-{"amino_acid": "gly_c", "defined_ligase": "CPLX8J2-12", "inferred_ligase": "CPLX8J2-12"}
-
-{"amino_acid": "his__L_c", "defined_ligase": "BSU27560-MONOMER", "inferred_ligase": "BSU27560-MONOMER_mod_mg2(4)"}
-
-{"amino_acid": "ile__L_c", "defined_ligase": "BSU15430-MONOMER", "inferred_ligase": "BSU15430-MONOMER_mod_zn2(2)"}
-
-{"amino_acid": "leu__L_c", "defined_ligase": "BSU30320-MONOMER", "inferred_ligase": "BSU30320-MONOMER"}
-
-{"amino_acid": "lys__L_c", "defined_ligase": "BSU00820-MONOMER", "inferred_ligase": "generic_LYSINEaaRS"}
-
-{"amino_acid": "met__L_c", "defined_ligase": "BSU00380-MONOMER", "inferred_ligase": "BSU00380-MONOMER_mod_zn2(2)"}
-
-{"amino_acid": "phe__L_c", "defined_ligase": "CPLX8J2-11", "inferred_ligase": "CPLX8J2-11_mod_mg2(1)"}
-
-{"amino_acid": "pro__L_c", "defined_ligase": "BSU16570-MONOMER", "inferred_ligase": "BSU16570-MONOMER"}
-
-{"amino_acid": "ser__L_c", "defined_ligase": "BSU00130-MONOMER", "inferred_ligase": "BSU00130-MONOMER_mod_mg2(1)"}
-
-{"amino_acid": "thr__L_c", "defined_ligase": "generic_thr_ligase", "inferred_ligase": "BSU37560-MONOMER_mod_zn2(1)"}
-
-{"amino_acid": "trp__L_c", "defined_ligase": "BSU11420-MONOMER", "inferred_ligase": "BSU11420-MONOMER_mod_mg2(1)"}
-
-{"amino_acid": "tyr__L_c", "defined_ligase": "generic_tyr_ligase", "inferred_ligase": "BSU29670-MONOMER"}
-
-{"amino_acid": "val__L_c", "defined_ligase": "BSU28090-MONOMER", "inferred_ligase": "BSU28090-MONOMER_mod_mg2(1)"}
-
-**********Solution:
-Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.
-
-
-
-
-#################### high@update_subreaction_matrix ####################
-********** Some metabolites in subreaction_matrix were added from reference but are not in M-model
-The following items triggered the warning:
-lipoate_c
-dad_5_c
-dad_5_c
-2tpr3dpcoa
-pg160_p
-2agpg160_p
-pe160_p
-2agpe160_p
-pe120_p
-pe140_p
-pe141_p
-pe160_p
-pe161_p
-pe180_p
-pe181_p
-pg120_p
-pg140_p
-pg141_p
-pg160_p
-pg161_p
-pg180_p
-pg181_p
-preq1_c
-nh3_c
-5fthf_c
-5fthf_c
-dad_5_c
-
-**********Solution:
-Map these metabolites or replace the subreaction
-
-
-
-
 #################### medium@check ####################
 ********** Some metabolites in me_metabolites.txt need curation
 The following items triggered the warning:
-LI_c
-sufbcd_c
-sufse_c
-sufsesh_c
-dsbard_p
-dsbaox_p
-dsbcrd_p
-dsbcox_p
-dsbdrd_c
-dsbdox_c
-dsbgrd_p
-dsbgox_p
-lpp_p
-alpp_p
-3hcpalm9eACP_c
-3ocpalm9eACP_c
-grxrd_c
-grxox_c
-iscssh_c
+ACP_c
+apoACP_c
+fmettrna_c
+glutrna_c
+mettrna_c
+trnaglu_c
+trnamet_c
 
 **********Solution:
 Map or remove these metabolites in me_metabolites.txt
@@ -731,117 +445,13 @@ Map or remove these metabolites in me_metabolites.txt
 
 
 
-#################### critical@check_me_coverage ####################
-********** Some genes show homology, but no metabolic function.
+#################### critical@troubleshoot ####################
+********** Some metabolites are necessary for growth
 The following items triggered the warning:
-BSU00580 <-> b2781
-BSU00820 <-> b4129
-BSU01660 <-> b1107
-BSU01700 <-> b2428
-BSU02410 <-> b0261
-BSU02690 <-> b2957
-BSU03460 <-> b4196
-BSU03630 <-> b2311
-BSU03640 <-> b3843
-BSU03670 <-> b1634
-BSU04140 <-> b0635
-BSU04440 <-> b3579
-BSU05470 <-> b3915
-BSU05480 <-> b1008
-BSU05620 <-> b4208
-BSU05960 <-> b0783
-BSU06300 <-> b0123
-BSU06620 <-> b2411
-BSU07330 <-> b4374
-BSU07340 <-> b1296
-BSU07640 <-> b0968
-BSU08690 <-> b0914
-BSU09620 <-> b3449
-BSU10250 <-> b4386
-BSU10340 <-> b4395
-BSU10390 <-> b1301
-BSU10500 <-> b0347
-BSU10900 <-> b0349
-BSU10910 <-> b2750
-BSU11140 <-> b0766
-BSU11390 <-> b3543
-BSU11400 <-> b0832
-BSU11430 <-> b1329
-BSU11440 <-> b1244
-BSU11450 <-> b1245
-BSU11570 <-> b4392
-BSU11630 <-> b0049
-BSU11690 <-> b3991
-BSU12320 <-> b0517
-BSU12860 <-> b3370
-BSU12970 <-> b1192
-BSU12980 <-> b1325
-BSU13000 <-> b1247
-BSU13010 <-> b0767
-BSU13040 <-> b2552
-BSU13720 <-> b0444
-BSU13750 <-> b2794
-BSU14260 <-> b3857
-BSU14280 <-> b0827
-BSU15170 <-> b0084
-BSU15780 <-> b4161
-BSU17640 <-> b4053
-BSU18070 <-> b3059
-BSU18350 <-> b3182
-BSU19400 <-> b1646
-BSU22230 <-> b2417
-BSU22320 <-> b3396
-BSU23480 <-> b0839
-BSU23780 <-> b1539
-BSU24550 <-> b2903
-BSU24570 <-> b2905
-BSU24890 <-> b2912
-BSU28360 <-> b2954
-BSU28690 <-> b4467
-BSU29880 <-> b1479
-BSU29930 <-> b3431
-BSU29970 <-> b2421
-BSU30670 <-> b2687
-BSU30810 <-> b2263
-BSU31440 <-> b1622
-BSU31960 <-> b0586
-BSU32050 <-> b4260
-BSU32530 <-> b0516
-BSU32550 <-> b3450
-BSU32570 <-> b3374
-BSU32590 <-> b3452
-BSU32610 <-> b3371
-BSU32800 <-> b2904
-BSU32810 <-> b3503
-BSU32940 <-> b0588
-BSU34030 <-> b0308
-BSU34040 <-> b0307
-BSU34050 <-> b0306
-BSU34620 <-> b0403
-BSU34680 <-> b3553
-BSU34730 <-> b1463
-BSU34740 <-> b2415
-BSU34970 <-> b3385
-BSU35830 <-> b2943
-BSU36530 <-> b0841
-BSU36700 <-> b0781
-BSU37090 <-> b3925
-BSU37250 <-> b1227
-BSU37510 <-> b0149
-BSU37630 <-> b0813
-BSU37810 <-> b2038
-BSU37820 <-> b2040
-BSU37830 <-> b3788
-BSU37840 <-> b3789
-BSU37890 <-> b2253
-BSU38370 <-> b1651
-BSU38430 <-> b3627
-BSU38730 <-> b0886
-BSU38740 <-> b0887
-BSU39520 <-> b1012
+TS_zn2_c
 
 **********Solution:
-Manually curate the M-model to correct GPRs or incorporate new reactions.
+Fix the gaps by adding reactions or solving other warnings. If some items are from the E-matrix, fix these first!
 
 
 
