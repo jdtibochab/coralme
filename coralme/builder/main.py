@@ -2847,13 +2847,13 @@ class METroubleshooter(object):
 			self.configuration['out_directory'] = './'
 			self.configuration['log_directory'] = './'
 
+		self.me_model.troubleshooting = True
 		if solver in ['gurobi', 'cplex']:
 			self.me_model.get_solution = self.me_model.optimize_windows
 			self.me_model.check_feasibility = self.me_model.feas_windows(solver = solver)
 		elif solver == "qminos":
 			self.me_model.get_solution = self.me_model.optimize
 			self.me_model.check_feasibility = self.me_model.feasibility
-			self.me_model.troubleshooting = True
 			print('The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n')
 		else:
 			raise ValueError('Solver not supported.')
@@ -2968,18 +2968,21 @@ class METroubleshooter(object):
 				logging.warning('  '*1 + 'Error: Gapfilled ME-model is not feasible ?')
 
 			# save model as a pickle file
-			if savefile:
-				if savefile is None:
-					savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-					message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-				else:
-					message = 'ME-model was saved to {:s}.'.format(savefile)
-				self.me_model.troubleshooted = True
+			if savefile is None:
+				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+				message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+			elif pathlib.Path(savefile).parent.exists():
+				message = 'ME-model was saved to {:s}.'.format(savefile)
+			else:
+				message = False
+				logging.warning('Model was not saved. Please do it manually.')
+
+			self.me_model.troubleshooted = True
+			if message:
 				with open(savefile, 'wb') as outfile:
 					pickle.dump(self.me_model, outfile)
 				logging.warning(message)
-			else:
-				logging.warning('Model was not saved. Please do it manually.')
+
 		else:
 			logging.warning('~ '*1 + 'METroubleshooter failed to determine a set of problematic metabolites.')
 			self.me_model.troubleshooted = False
@@ -3003,4 +3006,4 @@ class METroubleshooter(object):
 			for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
 				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
 
-		del self.me_model.troubleshooting
+		self.me_model.troubleshooting = False
