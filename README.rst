@@ -17,7 +17,8 @@ coralME has four main objectives:
 3. **Reconstruct** a ME-model.
 4. **Troubleshoot** the ME-model to make it functional.
 
-For more information on coralME's inputs, architecture and usage, see coralME's documentation.
+For more information on coralME's inputs, architecture and usage, see coralME's documentation available online at `readthedocs
+<https://coralme.readthedocs.org/en/latest/>`_
 
 Installation
 ------------
