@@ -79,7 +79,8 @@ _PROCESS_DATA_TYPE_DEPENDENCIES = {
 		'protein',
 		'transl_table',
 		'translation',
-		'organelle'
+		'organelle',
+		'pseudo'
 		],
 	'tRNAData': [
 		'subreactions',
@@ -401,7 +402,8 @@ def _add_process_data_from_dict(model, process_data_dict):
 		organelle = process_data_info['organelle']
 		translation = process_data_info['translation']
 		transl_table = process_data_info['transl_table']
-		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table)
+		pseudo = process_data_info['pseudo']
+		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table, pseudo)
 	elif process_data_type == 'tRNAData':
 		amino_acid = process_data_info['amino_acid']
 		rna = process_data_info['RNA']

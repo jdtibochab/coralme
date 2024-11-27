@@ -434,6 +434,9 @@
                       "protein": {
                         "type": "string"
                       },
+                      "pseudo": {
+                        "type": "boolean"
+                      },
                       "subreactions": {
                         "patternProperties": {
                           ".*": {
