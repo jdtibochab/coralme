@@ -917,6 +917,9 @@ class TranslationData(ProcessData):
 
 		# translate first codon
 		amino_acid_sequence = Bio.Seq.Seq('M')
+		if isinstance(self.transl_table, str): # from JSON
+			self.transl_table = Bio.Data.CodonTable.generic_by_id[int(list(self.transl_table)[0])]
+
 		if codons[0] not in self.transl_table.start_codons:
 			logging.warning('First codon in \'{:s}\' does not encode a start methionine. A methionine replaces the first amino acid.'.format(self.id))
 			self.notes.append('Codon at position 0 does not encode a start methionine.')
