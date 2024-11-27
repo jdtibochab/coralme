@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4. How to manually curate a ME-model using coralME &mdash; coralME 1.1 documentation</title>
+  <title>5. How to manually curate a ME-model using coralME &mdash; coralME 1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css?v=572af1d6" />
@@ -27,8 +27,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="5. Frequently Asked Questions" href="FAQ.html" />
-    <link rel="prev" title="3. Architecture of coralME" href="coralMEArchitecture.html" /> 
+    <link rel="next" title="6. Frequently Asked Questions" href="FAQ.html" />
+    <link rel="prev" title="4. Architecture of coralME" href="coralMEArchitecture.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,9 +53,10 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">1. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="BasicInputs.html">2. Description of Inputs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">3. Architecture of coralME</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">4. How to manually curate a ME-model using coralME</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Manual-input-files">4.1. Manual input files</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="AddingBioCycDatabase.html">3. Adding annotation from a BioCyc Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">4. Architecture of coralME</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. How to manually curate a ME-model using coralME</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Manual-input-files">5.1. Manual input files</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.TerminationSubreactions"><code class="docutils literal notranslate"><span class="pre">TerminationSubreactions</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.PeptideReleaseFactors"><code class="docutils literal notranslate"><span class="pre">PeptideReleaseFactors</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.RNADegradosome"><code class="docutils literal notranslate"><span class="pre">RNADegradosome</span></code></a></li>
@@ -91,10 +92,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#coralme.builder.curation.ReactionCorrections"><code class="docutils literal notranslate"><span class="pre">ReactionCorrections</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#How-to-curate?">4.2. How to curate?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#How-to-curate?">5.2. How to curate?</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">6. Frequently Asked Questions</a></li>
 </ul>
 
         </div>
@@ -111,7 +112,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">4. </span>How to manually curate a ME-model using coralME</li>
+      <li class="breadcrumb-item active"><span class="section-number">5. </span>How to manually curate a ME-model using coralME</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/ManualCuration.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -122,9 +123,9 @@
            <div itemprop="articleBody">
              
   <section id="How-to-manually-curate-a-ME-model-using-coralME">
-<h1><span class="section-number">4. </span>How to manually curate a ME-model using coralME<a class="headerlink" href="#How-to-manually-curate-a-ME-model-using-coralME" title="Link to this heading"></a></h1>
+<h1><span class="section-number">5. </span>How to manually curate a ME-model using coralME<a class="headerlink" href="#How-to-manually-curate-a-ME-model-using-coralME" title="Link to this heading"></a></h1>
 <section id="Manual-input-files">
-<h2><span class="section-number">4.1. </span>Manual input files<a class="headerlink" href="#Manual-input-files" title="Link to this heading"></a></h2>
+<h2><span class="section-number">5.1. </span>Manual input files<a class="headerlink" href="#Manual-input-files" title="Link to this heading"></a></h2>
 <p>After you run coralME for the first time the following files are generated in building_data/&lt;/code&gt;. Most of them are also automatically filled by the algorithm and saved in building_data/reference_files/&lt;/code&gt;. These _reference <a href="#id1"><span class="problematic" id="id2">files_</span></a> are meant to guide manual curation as they contain all information mapped by coralME formatted as manual input files.</p>
 <p>__coralME does not overwrite any file in building_data/&lt;/code&gt;, but it will always overwrite files in building_data/reference_files/&lt;/code&gt;__</p>
 <ul class="simple">
@@ -1098,7 +1099,7 @@ COBALT2tpp,cobalt transport in via permease (no H+),BSU24740,cobalt2_e –&gt; c
 </ul>
 </section>
 <section id="How-to-curate?">
-<h2><span class="section-number">4.2. </span>How to curate?<a class="headerlink" href="#How-to-curate?" title="Link to this heading"></a></h2>
+<h2><span class="section-number">5.2. </span>How to curate?<a class="headerlink" href="#How-to-curate?" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p>If you have not run coralME yet, go back to <a class="reference internal" href="GettingStarted.html"><span class="doc">GettingStarted.ipynb</span></a>.</p></li>
 <li><p><strong>Copy</strong> all of the generated <em>reference files</em> in building_data/reference_files and replace accordingly in building_data/</p></li>
@@ -1113,8 +1114,8 @@ COBALT2tpp,cobalt transport in via permease (no H+),BSU24740,cobalt2_e –&gt; c
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="coralMEArchitecture.html" class="btn btn-neutral float-left" title="3. Architecture of coralME" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="FAQ.html" class="btn btn-neutral float-right" title="5. Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="coralMEArchitecture.html" class="btn btn-neutral float-left" title="4. Architecture of coralME" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="FAQ.html" class="btn btn-neutral float-right" title="6. Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

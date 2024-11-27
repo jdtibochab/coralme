@@ -1,0 +1,67 @@
+complex,name,genes,source
+BSU25450-MONOMER,ribosomal protein L11 methyltransferase,BSU25450(),BioCyc
+BSU15080-MONOMER,ribosomal protein L32,BSU15080(),BioCyc
+BSU00520-MONOMER,"ribosomal protein BL25 (Ctc), binding 5S RNA",BSU00520(),BioCyc
+BSU01230-MONOMER,ribosomal protein L16,BSU01230(),BioCyc
+BSU01240-MONOMER,ribosomal protein L29,BSU01240(),BioCyc
+BSU01040-MONOMER,ribosomal protein L10 (BL5),BSU01040(),BioCyc
+BSU01050-MONOMER,ribosomal protein L12 (BL9),BSU01050(),BioCyc
+BSU28860-MONOMER,ribosomal protein L35,BSU28860(),BioCyc
+BSU28850-MONOMER,ribosomal protein L20,BSU28850(),BioCyc
+BSU24900-MONOMER,ribosomal protein L33,BSU24900(),BioCyc
+BSU16680-MONOMER,ribosomal protein S15 (BS18),BSU16680(),BioCyc
+BSU01320-MONOMER,ribosomal protein L18,BSU01320(),BioCyc
+BSU01210-MONOMER,ribosomal protein L22 (BL17),BSU01210(),BioCyc
+BSU01160-MONOMER,ribosomal protein L3 (BL3),BSU01160(),BioCyc
+BSU01020-MONOMER,ribosomal protein L11 (BL11),BSU01020(),BioCyc
+BSU08880-MONOMER,alternative ribosomal protein S14,BSU08880(),BioCyc
+BSU37070-MONOMER,ribosomal protein L31,BSU37070(),BioCyc
+BSU05610-MONOMER,ribosomal protection protein VmlR,BSU05610(),BioCyc
+BSU01200-MONOMER,ribosomal protein S19 (BS19),BSU01200(),BioCyc
+BSU01490-MONOMER,ribosomal protein L13,BSU01490(),BioCyc
+BSU01340-MONOMER,ribosomal protein L30 (BL27),BSU01340(),BioCyc
+BSU01180-MONOMER,ribosomal protein L23,BSU01180(),BioCyc
+BSU00990-MONOMER,ribosomal protein L33,BSU00990(),BioCyc
+BSU22880-MONOMER,RNA degradation presenting factor (ribosomal protein S1 homolog),BSU22880(),BioCyc
+BSU16490-MONOMER,ribosomal protein S2,BSU16490(),BioCyc
+BSU41060-MONOMER,ribosomal protein L34,BSU41060(),BioCyc
+BSU40910-MONOMER,ribosomal protein S6 (BS9),BSU40910(),BioCyc
+BSU16040-MONOMER,ribosomal protein L19,BSU16040(),BioCyc
+BSU01440-MONOMER,ribosomal protein L17 (BL15),BSU01440(),BioCyc
+BSU01310-MONOMER,ribosomal protein L6 (BL8),BSU01310(),BioCyc
+BSU01290-MONOMER,ribosomal protein S14,BSU01290(),BioCyc
+BSU01150-MONOMER,ribosomal protein S10 (BS13); transcription antitermination factor,BSU01150(),BioCyc
+BSU25410-MONOMER,ribosomal protein S21,BSU25410(),BioCyc
+BSU01100-MONOMER,ribosomal protein S12 (BS12),BSU01100(),BioCyc
+BSU05930-MONOMER,ribosomal protein S18 alanine N-acetyltransferase,BSU05930(),BioCyc
+BSU27950-MONOMER,ribosomal protein L27 specific N-terminal end cysteine protease,BSU27950(),BioCyc
+BSU01330-MONOMER,ribosomal protein S5,BSU01330(),BioCyc
+BSU01170-MONOMER,ribosomal protein L4,BSU01170(),BioCyc
+BSU01280-MONOMER,ribosomal protein L5 (BL6),BSU01280(),BioCyc
+BSU01090-MONOMER,K-turn RNA binding protein; alternative ribosomal protein L7A,BSU01090(),BioCyc
+BSU01030-MONOMER,ribosomal protein L1 (BL1),BSU01030(),BioCyc
+BSU27940-MONOMER,ribosomal protein L27 (BL24),BSU27940(),BioCyc
+BSU04210-MONOMER,putative ribosomal protein N-acetyltransferase,BSU04210(),BioCyc
+BSU15990-MONOMER,ribosomal protein S16 (BS17),BSU15990(),BioCyc
+BSU15820-MONOMER,ribosomal protein L28,BSU15820(),BioCyc
+BSU01410-MONOMER,ribosomal protein S13,BSU01410(),BioCyc
+BSU01400-MONOMER,ribosomal protein L36 (ribosomal protein B),BSU01400(),BioCyc
+BSU01250-MONOMER,ribosomal protein S17 (BS16),BSU01250(),BioCyc
+BSU01260-MONOMER,ribosomal protein L14,BSU01260(),BioCyc
+BSU25550-MONOMER,ribosomal protein S20 (BS20),BSU25550(),BioCyc
+BSU01300-MONOMER,ribosomal protein S8 (BS8),BSU01300(),BioCyc
+BSU01110-MONOMER,ribosomal protein S7 (BS7),BSU01110(),BioCyc
+BSU00590-MONOMER,ribosomal RNA binding protein involved in 50S recycling; heat shock protein,BSU00590(),BioCyc
+BSU27960-MONOMER,ribosomal protein L21 (BL20),BSU27960(),BioCyc
+BSU30700-MONOMER,ribosomal protein L31,BSU30700(),BioCyc
+BSU29660-MONOMER,ribosomal protein S4 (BS4),BSU29660(),BioCyc
+BSU40890-MONOMER,ribosomal protein S18,BSU40890(),BioCyc
+BSU01500-MONOMER,ribosomal protein S9,BSU01500(),BioCyc
+BSU01220-MONOMER,ribosomal protein S3 (BS3),BSU01220(),BioCyc
+BSU40500-MONOMER,ribosomal protein L9,BSU40500(),BioCyc
+BSU01420-MONOMER,ribosomal protein S11 (BS11),BSU01420(),BioCyc
+BSU01350-MONOMER,ribosomal protein L15,BSU01350(),BioCyc
+BSU01270-MONOMER,ribosomal protein L24 (BL23),BSU01270(),BioCyc
+BSU01190-MONOMER,ribosomal protein L2 (BL2),BSU01190(),BioCyc
+G8J2-165-MONOMER,ribosomal protein L33* pseudogene,BSU23836(),GenBank
+G8J2-166-MONOMER,ribosomal protein L33C pseudogene,BSU23837(),GenBank

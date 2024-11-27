@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>5. Frequently Asked Questions &mdash; coralME 1.1 documentation</title>
+  <title>8. Frequently Asked Questions &mdash; coralME 1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css?v=572af1d6" />
@@ -27,7 +27,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="4. How to manually curate a ME-model using coralME" href="ManualCuration.html" /> 
+    <link rel="prev" title="7. Loading and inspecting ME-models" href="LoadingMEmodels.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,12 +52,15 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">1. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="BasicInputs.html">2. Description of Inputs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">3. Architecture of coralME</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ManualCuration.html">4. How to manually curate a ME-model using coralME</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Frequently Asked Questions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#My-gene-identifiers-are-not-consistent,-what-should-I-do?">5.1. My gene identifiers are not consistent, what should I do?</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#1.-M-model-and-Genbank-are-consistent,-but-they-are-not-consistent-with-the-BioCyc-files.">5.1.1. 1. M-model and Genbank are consistent, but they are not consistent with the BioCyc files.</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#2.-M-model-and-Genbank-are-not-consistent">5.1.2. 2. M-model and Genbank are not consistent</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AddingBioCycDatabase.html">3. Adding annotation from a BioCyc Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">4. Architecture of coralME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FullReconstruction.html">5. Reconstructing with BioCyc information and curated files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ReconstructionOSM.html">6. Reconstructing a ME-model from the OSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoadingMEmodels.html">7. Loading and inspecting ME-models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">8. Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#My-gene-identifiers-are-not-consistent,-what-should-I-do?">8.1. My gene identifiers are not consistent, what should I do?</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-M-model-and-Genbank-are-consistent,-but-they-are-not-consistent-with-the-BioCyc-files.">8.1.1. 1. M-model and Genbank are consistent, but they are not consistent with the BioCyc files.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-M-model-and-Genbank-are-not-consistent">8.1.2. 2. M-model and Genbank are not consistent</a></li>
 </ul>
 </li>
 </ul>
@@ -78,7 +81,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active"><span class="section-number">5. </span>Frequently Asked Questions</li>
+      <li class="breadcrumb-item active"><span class="section-number">8. </span>Frequently Asked Questions</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/FAQ.ipynb.txt" rel="nofollow"> View page source</a>
       </li>
@@ -89,9 +92,9 @@
            <div itemprop="articleBody">
              
   <section id="Frequently-Asked-Questions">
-<h1><span class="section-number">5. </span>Frequently Asked Questions<a class="headerlink" href="#Frequently-Asked-Questions" title="Link to this heading"></a></h1>
+<h1><span class="section-number">8. </span>Frequently Asked Questions<a class="headerlink" href="#Frequently-Asked-Questions" title="Link to this heading"></a></h1>
 <section id="My-gene-identifiers-are-not-consistent,-what-should-I-do?">
-<h2><span class="section-number">5.1. </span>My gene identifiers are not consistent, what should I do?<a class="headerlink" href="#My-gene-identifiers-are-not-consistent,-what-should-I-do?" title="Link to this heading"></a></h2>
+<h2><span class="section-number">8.1. </span>My gene identifiers are not consistent, what should I do?<a class="headerlink" href="#My-gene-identifiers-are-not-consistent,-what-should-I-do?" title="Link to this heading"></a></h2>
 <p>We know that consistent gene ID conventions are a problem across all platforms of bioinformatics. We tried to generalize as much as possible what the gene conventions could be, but often different genome assemblies or M-model reconstructions yield inconsistent files.</p>
 <p>What you should do depends on your problem, so we will classify the gene ID convention issues considering there are three main sources of information that must be consistent:</p>
 <ul class="simple">
@@ -101,7 +104,7 @@
 </ul>
 <p>Overall, you can assume that modifying the genome genbank file is the hardest approach and thus, the last resort.</p>
 <section id="1.-M-model-and-Genbank-are-consistent,-but-they-are-not-consistent-with-the-BioCyc-files.">
-<h3><span class="section-number">5.1.1. </span>1. M-model and Genbank are consistent, but they are not consistent with the BioCyc files.<a class="headerlink" href="#1.-M-model-and-Genbank-are-consistent,-but-they-are-not-consistent-with-the-BioCyc-files." title="Link to this heading"></a></h3>
+<h3><span class="section-number">8.1.1. </span>1. M-model and Genbank are consistent, but they are not consistent with the BioCyc files.<a class="headerlink" href="#1.-M-model-and-Genbank-are-consistent,-but-they-are-not-consistent-with-the-BioCyc-files." title="Link to this heading"></a></h3>
 <p>Make sure that you looked for the correct BioCyc database, which corresponds to the M-model reconstruction. One quick way to ensure that is to copy one gene from your genbank or M-model and paste it in the search bar of BioCyc. Best case scenario, you microbe will appear in the list. Download the files from there and your problems are solved!</p>
 <p><strong>That didn’t help?</strong></p>
 <p>It is possible that even when ensuring the BioCyc database is correct, the <strong>Accession-1</strong> column of genes.txt is still not consistent. However, you can assume that the correct IDs are somewhere in the database, since you found it looking for a gene id that follows your conventions (see <a class="reference internal" href="GettingStarted.html"><span class="doc">Getting Started</span></a>).</p>
@@ -112,7 +115,7 @@
 </ul>
 </section>
 <section id="2.-M-model-and-Genbank-are-not-consistent">
-<h3><span class="section-number">5.1.2. </span>2. M-model and Genbank are not consistent<a class="headerlink" href="#2.-M-model-and-Genbank-are-not-consistent" title="Link to this heading"></a></h3>
+<h3><span class="section-number">8.1.2. </span>2. M-model and Genbank are not consistent<a class="headerlink" href="#2.-M-model-and-Genbank-are-not-consistent" title="Link to this heading"></a></h3>
 <p>Make sure that you downloaded the same genbank file that was used to reconstruct the M-model, that is critical! If this is happening, you probably have the wrong genbank.</p>
 <p>If you have a gene dictionary to convert between conventions, change the files to the IDs that are consistent with BioCyc.</p>
 </section>
@@ -123,7 +126,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="ManualCuration.html" class="btn btn-neutral float-left" title="4. How to manually curate a ME-model using coralME" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="LoadingMEmodels.html" class="btn btn-neutral float-left" title="7. Loading and inspecting ME-models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

@@ -1,0 +1,48 @@
+{
+  "growth_key": "mu",
+  "complex_cofactors": {
+    "fes_transfers": [],
+    "biotin_subreactions": {
+      "mod_btn_c": [
+        "biotin_ligase"
+      ]
+    },
+    "lipoate_subreactions": {
+      "mod_lipoyl_c": [
+        "lipoyl_denovo",
+        "lipoyl_scavenging"
+      ]
+    },
+    "fes_chaperones": {},
+    "bmocogdp_chaperones": {},
+    "FeFe/NiFe": {
+      "mod_FeFe_cofactor_c": "",
+      "mod_NiFe_cofactor_c": ""
+    }
+  },
+  "lipoprotein_precursors": {},
+  "lipid_modifications": [],
+  "unmodeled_protein_fraction": 0.36,
+  "flux_of_biomass_constituents": {},
+  "flux_of_lipid_constituents": {},
+  "braun's_lipoprotein": [],
+  "braun's_lpp_flux": -0.0,
+  "braun's_murein_flux": -0.0,
+  "gr_data_doublings_per_hour": [
+    0,
+    0.6,
+    1.0,
+    1.5,
+    2.0,
+    2.5
+  ],
+  "percent_dna_data": [
+    0.0592,
+    0.0512,
+    0.033,
+    0.0252,
+    0.0222,
+    0.0208
+  ],
+  "defer_to_rxn_matrix": []
+}

@@ -1,0 +1,121 @@
+Reaction	Metabolites	Stoichiometry
+# Regeneration of the Sulfur donor SufS
+# No sufE https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2832514/
+# sufE only enhances https://doi.org/10.1146/annurev.biochem.74.082803.133518
+# sufU replaces sufE in B. subtilis. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7510350/
+SCYSDS1	SufSU_mod_pydx5p(1)	-1.0
+SCYSDS1	cys__L_c	-1.0
+SCYSDS1	SufSU_mod_pydx5p(1)_mod_SH(1)	1.0
+SCYSDS1	ala__L_c	1.0
+
+# Loading of iron and sulfur into SufBCD
+S_transfer_to_SufBCD_mod_2Fe1S(1)	SufBCD_mod_2fe1s(1)	-1.0
+S_transfer_to_SufBCD_mod_2Fe1S(1)	SufSU_mod_pydx5p(1)_mod_SH(1)	-1.0
+S_transfer_to_SufBCD_mod_2Fe1S(1)	SufBCD_mod_2fe2s(1)	1.0
+S_transfer_to_SufBCD_mod_2Fe1S(1)	SufSU_mod_pydx5p(1)	1.0
+S_transfer_to_SufBCD_mod_2Fe1S(1)	h_c	4.0
+
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_2Fe1S(1)	SufBCD_mod_2fe2s(1)_mod_2fe1s(1)	-1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_2Fe1S(1)	SufSU_mod_pydx5p(1)_mod_SH(1)	-1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_2Fe1S(1)	SufBCD_mod_2fe2s(2)	1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_2Fe1S(1)	SufSU_mod_pydx5p(1)	1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_2Fe1S(1)	h_c	4.0
+
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_fe2(2)	SufBCD_mod_2fe2s(1)_mod_fe2(2)	-1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_fe2(2)	SufSU_mod_pydx5p(1)_mod_SH(1)	-1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_fe2(2)	SufBCD_mod_2fe2s(1)_mod_2fe1s(1)	1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_fe2(2)	SufSU_mod_pydx5p(1)	1.0
+S_transfer_to_SufBCD_mod_2Fe2S(1)_mod_fe2(2)	h_c	4.0
+
+S_transfer_to_SufBCD_mod_fe2(2)	SufBCD_mod_fe2(2)	-1.0
+S_transfer_to_SufBCD_mod_fe2(2)	SufSU_mod_pydx5p(1)_mod_SH(1)	-1.0
+S_transfer_to_SufBCD_mod_fe2(2)	SufBCD_mod_2fe1s(1)	1.0
+S_transfer_to_SufBCD_mod_fe2(2)	SufSU_mod_pydx5p(1)	1.0
+S_transfer_to_SufBCD_mod_fe2(2)	h_c	4.0
+
+# 2x[2Fe2S] -> 1x[4Fe4S]
+SufBCD_2fe2s(2)_to_SufBCD_4fe4s(1)	SufBCD_mod_2fe2s(2)	-1.0
+SufBCD_2fe2s(2)_to_SufBCD_4fe4s(1)	SufBCD_mod_4fe4s(1)	1.0
+
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	SufBCD_mod_2fe2s(1)	-1.0
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	atp_c	-1.0
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	fe2_c	-1.0
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	SufBCD_mod_2fe2s(1)_mod_fe2(1)	1.0
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	adp_c	1.0
+SufBCD_mod_2Fe2S(1)_atp_mediated_FE_loading	pi_c	1.0
+
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	SufBCD_mod_2fe2s(1)_mod_fe2(1)	-1.0
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	atp_c	-1.0
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	fe2_c	-1.0
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	SufBCD_mod_2fe2s(1)_mod_fe2(2)	1.0
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	adp_c	1.0
+SufBCD_mod_2Fe2S(1)_mod_fe2(1)_atp_mediated_FE_loading	pi_c	1.0
+
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	SufBCD_mod_fe2(1)	-1.0
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	atp_c	-1.0
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	fe2_c	-1.0
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	SufBCD_mod_fe2(2)	1.0
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	adp_c	1.0
+SufBCD_mod_fe2(1)_atp_mediated_FE_loading	pi_c	1.0
+
+SufBCDatp_mediated_FE_loading	SufBCD	-1.0
+SufBCDatp_mediated_FE_loading	atp_c	-1.0
+SufBCDatp_mediated_FE_loading	fe2_c	-1.0
+SufBCDatp_mediated_FE_loading	SufBCD_mod_fe2(1)	1.0
+SufBCDatp_mediated_FE_loading	adp_c	1.0
+SufBCDatp_mediated_FE_loading	pi_c	1.0
+
+4Fe4S_to_SufSU_by_SufBCD	SufBCD_mod_4fe4s(1)	-1.0
+4Fe4S_to_SufSU_by_SufBCD	SufSU	-1.0
+4Fe4S_to_SufSU_by_SufBCD	SufBCD	1.0
+4Fe4S_to_SufSU_by_SufBCD	SufSU_mod_4fe4s(1)	1.0
+
+2Fe2S_to_SufSU_by_SufBCD	SufBCD_mod_2fe2s(1)	-1.0
+2Fe2S_to_SufSU_by_SufBCD	SufSU	-1.0
+2Fe2S_to_SufSU_by_SufBCD	SufBCD	1.0
+2Fe2S_to_SufSU_by_SufBCD	SufSU_mod_2fe2s(1)	1.0
+
+# Loading of sulfur into IscS
+ICYSDS1	IscS_mod_pydx5p(2)	-1.0
+ICYSDS1	cys__L_c	-1.0
+ICYSDS1	IscS_mod_pydx5p(2)_mod_SH(1)	1.0
+ICYSDS1	ala__L_c	1.0
+
+# Thiamine synthesis
+THZPSN31	dxyl5p_c	-1.0
+THZPSN31	h_c	-1.0
+THZPSN31	nadph_c	-1.0
+THZPSN31	co2_c	1.0
+THZPSN31	dhgly_c	-1.0
+THZPSN31	atp_c	-1.0
+THZPSN31	nadp_c	1.0
+THZPSN31	h2o_c	2.0
+THZPSN31	amp_c	1.0
+THZPSN31	ppi_c	1.0
+THZPSN31	4mpetz_c	1.0
+THZPSN31	IscS_mod_pydx5p(2)_mod_SH(1)	-1.0
+THZPSN31	IscS_mod_pydx5p(2)	1.0
+
+# ATP + L-glutamyl-tRNAGln + L-glutamine => ADP + phosphate + L-glutaminyl-tRNAGln + L-glutamate (overall reaction)
+GLNTRATa	atp_c	-1.0
+GLNTRATa	gln__L_c	-1.0
+GLNTRATa	generic_tRNA_CAA_glu__L_c	-1.0
+GLNTRATa	h2o_c	-1.0
+GLNTRATa	adp_c	1.0
+GLNTRATa	generic_tRNA_CAA_gln__L_c	1.0
+GLNTRATa	glu__L_c	1.0
+GLNTRATa	pi_c	1.0
+
+GLNTRATb	atp_c	-1.0
+GLNTRATb	gln__L_c	-1.0
+GLNTRATb	generic_tRNA_CAG_glu__L_c	-1.0
+GLNTRATb	h2o_c	-1.0
+GLNTRATb	adp_c	1.0
+GLNTRATb	generic_tRNA_CAG_gln__L_c	1.0
+GLNTRATb	glu__L_c	1.0
+GLNTRATb	pi_c	1.0
+
+# LipA regeneration
+LipA_mod_4fe4s_regeneration(1)	BSU32330-MONOMER_mod_2fe2s(1)_mod_4fe4s(1)	-1.0
+LipA_mod_4fe4s_regeneration(1)	2fe2s_c	-1.0
+LipA_mod_4fe4s_regeneration(1)	BSU32330-MONOMER_mod_4fe4s(2)	1.0

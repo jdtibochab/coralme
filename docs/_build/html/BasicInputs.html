@@ -27,7 +27,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="3. Architecture of coralME" href="coralMEArchitecture.html" />
+    <link rel="next" title="3. Adding annotation from a BioCyc Database" href="AddingBioCycDatabase.html" />
     <link rel="prev" title="1. Getting started" href="GettingStarted.html" /> 
 </head>
 
@@ -109,9 +109,12 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">3. Architecture of coralME</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ManualCuration.html">4. How to manually curate a ME-model using coralME</a></li>
-<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AddingBioCycDatabase.html">3. Adding annotation from a BioCyc Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">4. Architecture of coralME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FullReconstruction.html">5. Reconstructing with BioCyc information and curated files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ReconstructionOSM.html">6. Reconstructing a ME-model from the OSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoadingMEmodels.html">7. Loading and inspecting ME-models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">8. Frequently Asked Questions</a></li>
 </ul>
 
         </div>
@@ -190,7 +193,7 @@
 <li><p>Genbank-compliant file. Must be read by BioPython correctly.</p></li>
 <li><p>It must contain the entire genome sequence. Make sure to enable <strong>Customize View</strong>&gt;<strong>Show Sequence</strong> before downloading the genbank file from NCBI.</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/genome.gb">genome.gb</a> and <a class="reference external" href="./helper_files/tutorial/inputs/sequences.fasta">sequences.fasta</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/genome.gb">genome.gb</a> and <a class="reference external" href="./helper_files/inputs/sequences.fasta">sequences.fasta</a></p>
 </section>
 </section>
 <section id="M-model-(m_model.json)">
@@ -213,7 +216,7 @@
 <li><p>Has name <strong>m_model.json</strong>.</p></li>
 <li><p>COBRApy-compliant. Must be read by cobrapy-0.25.0.</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/m_model.json">m_model.json</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/m_model.json">m_model.json</a></p>
 </section>
 </section>
 <section id="Gene-dictionary-(genes.txt)-[optional]">
@@ -251,7 +254,7 @@
 </li>
 <li><p>Must be tab-separated</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/genes.txt">genes.txt</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/genes.txt">genes.txt</a></p>
 <div class="admonition note">
 <p><strong>Note:</strong> <strong>Requirement 2</strong> regarding ID consistency should be directly met if the files are downloaded from the correct BioCyc database.</p>
 </div>
@@ -283,7 +286,7 @@
 </li>
 <li><p>Must be tab-separated</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/proteins.txt">proteins.txt</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/proteins.txt">proteins.txt</a></p>
 <div class="admonition note">
 <p><strong>Note:</strong> <strong>Requirements 2, 3 and 4</strong> regarding ID consistency should be directly met if the files are downloaded from the same BioCyc database.</p>
 </div>
@@ -316,7 +319,7 @@
 </li>
 <li><p>Must be tab-separated</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/RNAs.txt">RNAs.txt</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/RNAs.txt">RNAs.txt</a></p>
 <div class="admonition note">
 <p><strong>Note:</strong> <strong>Requirements 2, 3 and 4</strong> regarding ID consistency should be directly met if the files are downloaded from the same BioCyc database.</p>
 </div>
@@ -345,7 +348,7 @@
 </li>
 <li><p>Must be tab-separated</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/TUs.txt">TUs.txt</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/TUs.txt">TUs.txt</a></p>
 <div class="admonition note">
 <p><strong>Note:</strong> <strong>Requirements 2 and 3</strong> regarding ID consistency should be directly met if the files are downloaded from the same BioCyc database.</p>
 </div>
@@ -371,7 +374,7 @@
 </li>
 <li><p>Must be tab-separated</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/inputs/sequences.fasta">sequences.fasta</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/inputs/sequences.fasta">sequences.fasta</a></p>
 <div class="admonition note">
 <p><strong>Note:</strong> <strong>Requirements 1, 2 and 3</strong> regarding ID consistency should be directly met if the files are downloaded from the same BioCyc database.</p>
 </div>
@@ -394,7 +397,7 @@
 <li><p>Must contain paths to required files (M-model and Genome).</p></li>
 <li><p>All defined files must exist.</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/input.json">input.json</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/input.json">input.json</a></p>
 </section>
 </section>
 <section id="Configuration-of-parameters-(organism.json)">
@@ -413,7 +416,7 @@
 <li><p>Must be JSON-compliant</p></li>
 <li><p>Must contain the standard fields.</p></li>
 </ol>
-<p>See an example of <a class="reference external" href="./helper_files/tutorial/organism.json">organism.json</a></p>
+<p>See an example of <a class="reference external" href="./helper_files/organism.json">organism.json</a></p>
 </section>
 </section>
 </section>
@@ -424,7 +427,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="GettingStarted.html" class="btn btn-neutral float-left" title="1. Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="coralMEArchitecture.html" class="btn btn-neutral float-right" title="3. Architecture of coralME" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="AddingBioCycDatabase.html" class="btn btn-neutral float-right" title="3. Adding annotation from a BioCyc Database" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

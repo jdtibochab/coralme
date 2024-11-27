@@ -1,0 +1,4 @@
+,value
+RbfA_mono_assembly_factor_phase1,{'enzyme': 'BSU16650-MONOMER'}
+RimM_mono_assembly_factor_phase1,{'enzyme': 'BSU16020-MONOMER'}
+gtp_bound_30S_assembly_factor_phase1,{'enzyme': 'BSU25290-MONOMER'}

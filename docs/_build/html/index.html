@@ -52,9 +52,12 @@
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">1. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="BasicInputs.html">2. Description of Inputs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">3. Architecture of coralME</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ManualCuration.html">4. How to manually curate a ME-model using coralME</a></li>
-<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AddingBioCycDatabase.html">3. Adding annotation from a BioCyc Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">4. Architecture of coralME</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FullReconstruction.html">5. Reconstructing with BioCyc information and curated files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ReconstructionOSM.html">6. Reconstructing a ME-model from the OSM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LoadingMEmodels.html">7. Loading and inspecting ME-models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">8. Frequently Asked Questions</a></li>
 </ul>
 
         </div>
@@ -106,10 +109,9 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="GettingStarted.html">1. Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Download-files-from-BioCyc">1.1. Download files from BioCyc</a></li>
-<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Initialize-the-folder-for-your-organism">1.2. Initialize the folder for your organism</a></li>
-<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Reconstruct-with-coralME">1.3. Reconstruct with coralME</a></li>
-<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Curate-manually">1.4. Curate manually</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Reconstruct-with-coralME">1.1. Reconstruct with coralME</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Understanding-the-file-structure">1.2. Understanding the file structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="GettingStarted.html#Curate-manually">1.3. Curate manually</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="BasicInputs.html">2. Description of Inputs</a><ul>
@@ -117,20 +119,45 @@
 <li class="toctree-l2"><a class="reference internal" href="BasicInputs.html#Description">2.2. Description</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">3. Architecture of coralME</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#Organism()">3.1. Organism()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#MEBuilder()">3.2. MEBuilder()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#MEReconstruction()">3.3. MEReconstruction()</a></li>
-<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#Homology()">3.4. Homology()</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AddingBioCycDatabase.html">3. Adding annotation from a BioCyc Database</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="AddingBioCycDatabase.html#Download-files-from-BioCyc">3.1. Download files from BioCyc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="AddingBioCycDatabase.html#Initialize-the-folder-for-your-organism">3.2. Initialize the folder for your organism</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ManualCuration.html">4. How to manually curate a ME-model using coralME</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ManualCuration.html#Manual-input-files">4.1. Manual input files</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ManualCuration.html#How-to-curate?">4.2. How to curate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coralMEArchitecture.html">4. Architecture of coralME</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#Organism()">4.1. Organism()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#MEBuilder()">4.2. MEBuilder()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#MEReconstruction()">4.3. MEReconstruction()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#Homology()">4.4. Homology()</a></li>
+<li class="toctree-l2"><a class="reference internal" href="coralMEArchitecture.html#Curation()">4.5. Curation()</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="FAQ.html">5. Frequently Asked Questions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="FAQ.html#My-gene-identifiers-are-not-consistent,-what-should-I-do?">5.1. My gene identifiers are not consistent, what should I do?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FullReconstruction.html">5. Reconstructing with BioCyc information and curated files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Import-libraries">5.1. Import libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Path-to-configuration-files">5.2. Path to configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Create-MEBuilder-instance">5.3. Create MEBuilder instance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Generate-files">5.4. Generate files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Build-ME-model">5.5. Build ME-model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Troubleshoot-ME-model">5.6. Troubleshoot ME-model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="FullReconstruction.html#Save-as-a-JSON">5.7. Save as a JSON</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ReconstructionOSM.html">6. Reconstructing a ME-model from the OSM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ReconstructionOSM.html#Import-libraries">6.1. Import libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReconstructionOSM.html#Path-to-configuration-files">6.2. Path to configuration files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReconstructionOSM.html#Create-MEBuilder-instance">6.3. Create MEBuilder instance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReconstructionOSM.html#Build-ME-model">6.4. Build ME-model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReconstructionOSM.html#Troubleshoot-ME-model">6.5. Troubleshoot ME-model</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="LoadingMEmodels.html">7. Loading and inspecting ME-models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="LoadingMEmodels.html#Import-libraries">7.1. Import libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LoadingMEmodels.html#Load">7.2. Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="LoadingMEmodels.html#Inspecting-ME-model-properties">7.3. Inspecting ME-model properties</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">8. Frequently Asked Questions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="FAQ.html#My-gene-identifiers-are-not-consistent,-what-should-I-do?">8.1. My gene identifiers are not consistent, what should I do?</a></li>
 </ul>
 </li>
 </ul>

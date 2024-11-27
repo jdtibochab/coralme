@@ -1,0 +1,10 @@
+subreaction	enzymes
+DnaK_dependent_folding	BSU25470-MONOMER,BSU25460-MONOMER,BSU25480-MONOMER
+GroEL_dependent_folding	CPLX8J2-24
+N_terminal_methionine_cleavage	BSU01380-MONOMER
+PrfA_mono_mediated_termination	BSU37010-MONOMER
+PrfB_mono_mediated_termination	BSU35290-MONOMER
+generic_RF_mediated_termination	generic_RF
+peptide_chain_release	BSU35290-MONOMER
+peptide_deformylase_processing	BSU15720-MONOMER
+ribosome_recycler	BSU16520-MONOMER

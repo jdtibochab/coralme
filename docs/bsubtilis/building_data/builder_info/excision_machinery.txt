@@ -1,0 +1,5 @@
+,value
+RNA_degradosome,"{'enzymes': ['BSU16960-MONOMER', 'CPLX8J2-39', 'BSU16690-MONOMER', 'BSU33900-MONOMER', 'BSU29190-MONOMER']}"
+monocistronic,"{'enzymes': ['BSU41050-MONOMER', 'BSU23840-MONOMER', 'generic_RNase']}"
+polycistronic_wout_rRNA,"{'enzymes': ['BSU41050-MONOMER', 'BSU23840-MONOMER', 'generic_RNase']}"
+rRNA_containing,"{'enzymes': ['BSU14530-MONOMER', 'BSU15930-MONOMER', 'BSU00410-MONOMER']}"

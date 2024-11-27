@@ -1,0 +1,21 @@
+{
+  "m-model-path": "./bsubtilis/inputs/m_model.json",
+  "genbank-path": "./bsubtilis/inputs/genome.gb",
+  "biocyc.genes": "./bsubtilis/inputs/genes.txt",
+  "biocyc.prots": "./bsubtilis/inputs/proteins.txt",
+  "biocyc.TUs": "./bsubtilis/inputs/TUs.txt",
+  "biocyc.RNAs": "./bsubtilis/inputs/RNAs.txt",
+  "biocyc.seqs": "./bsubtilis/inputs/sequences.fasta",
+  "df_gene_cplxs_mods_rxns": "./bsubtilis/building_data/automated-org-with-refs.xlsx",
+  "df_TranscriptionalUnits": "./bsubtilis/inputs/TUs_from_biocyc.txt",
+  "df_matrix_stoichiometry": "./bsubtilis/inputs/reaction_matrix.txt",
+  "df_matrix_subrxn_stoich": "./bsubtilis/inputs/subreaction_matrix.txt",
+  "df_metadata_orphan_rxns": "./bsubtilis/inputs/orphan_and_spont_reactions.txt",
+  "df_metadata_metabolites":"./bsubtilis/inputs/me_metabolites.txt",
+  "out_directory": "./bsubtilis/",
+  "log_directory": "./bsubtilis/",
+  "run_bbh_blast": true,
+  "dev_reference": true,
+  "include_pseudo_genes": true,
+  "locus_tag" : "old_locus_tag"
+}

@@ -29,8 +29,12 @@ Content
     
    GettingStarted
    BasicInputs
+   AddingBioCycDatabase
    coralMEArchitecture
-   ManualCuration
+   FullReconstruction
+   ReconstructionOSM
+   LoadingMEmodels
+   InspectingFluxes
    FAQ
 
 Indices and tables

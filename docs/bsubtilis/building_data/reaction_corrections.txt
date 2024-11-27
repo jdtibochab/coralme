@@ -1,0 +1,51 @@
+reaction_id,name,gene_reaction_rule,reaction,notes
+
+# Cobalt(II) import
+COBALT2tpp,cobalt transport in via permease (no H+),BSU24740,cobalt2_e --> cobalt2_c,
+EX_cobalt2_e,Cobalt(II) exchange,,cobalt2_e <=>,
+
+# Manganese(II) transport
+MNt2pp,manganese (Mn+2) transport in via proton symport (periplasm),BSU04360,h_e + mn2_e --> h_c + mn2_c,
+MN2t3pp,manganese (Mn+2) transport out via proton antiport (periplasm),BSU05470 or BSU26650,h_e + mn2_c --> h_c + mn2_e,
+EX_mn2_e,Manganese(II) exchange,,mn2_e <=>,
+
+# Zinc(II) transport
+EX_zn2_e,Zinc(II) exchange,,zn2_e <=>,
+
+# Iron(II) transport
+EX_fe2_e,Iron(II) exchange,,fe2_e <=>,
+
+# Pyridoxal-5-phosphate synthesis
+PYRIS,Pyridoxal 5 phsophate synthase,BSU00110 and BSU00120,g3p_c + gln__L_c + r5p_c --> glu__L_c + pydx5p_c + pi_c + 3 h2o_c + h_c,"{'original_bigg_ids': ['PYRIS']}"
+
+# Thiamine biosynthesis
+TYRL,tyrosine lyase,BSU11690,amet_c + nadph_c + tyr__L_c --> 4crsol_c + dad__5_c + dhgly_c + h_c + met__L_c + nadp_c,
+DM_4CRSOL,Sink needed to allow p-Cresol to leave system,,4crsol_c -->,
+5DOAN,5'-deoxyadenosine nuclosidase,BSU27270,dad__5_c + h2o_c --> 5drib_c + ade_c,
+DM_5DRIB,Sink needed to allow 5'-deoxyribose to leave system,,5drib_c -->,
+
+# From paper
+CUt1,"Cu+ exporting P-type ATPase",BSU33500,cu_e <=> cu_c,
+CU2abc1,"Cu+2 transport",BSU33500,cu2_e + atp_c + h2o_c <=> cu2_c + adp_c + h_c + pi_c,
+ETOHtex,"Ethanol transport via diffusion",,etoh_e --> etoh_c,
+CBLtex,"Cobalamine+ transport",BSU33170,cbl1_e --> cbl1_c,
+EX_cbl1_e, "Cobalamine+ exchange",,cbl1_e <=>,
+F6Pt6_2,,BSU12010 or BSU14400,,
+GLCpts,,BSU13890 or (BSU38570 and BSU38580 and BSU38590),,
+MAN6Pt6,,BSU10520,,
+NAt3_1,,BSU31600 and BSU31610 and BSU31620 and BSU31630 and BSU31640 and BSU31650 and BSU31660 or BSU09680 or BSU33420 or BSU11640 or BSU09850,,
+PGL,,BSU13010,,
+PRFGS_1,,BSU06480 or BSU06470,,
+AIRC1,,BSU06420 or BSU06430,,
+Kt3r,,BSU31610 and BSU31660 and BSU31600 and BSU31620 and BSU31630 and BSU31650 and BSU31640,,
+PYRt2,,BSU28900 and BSU28910,,
+ASPt2r,,BSU10220,,
+ACTD2,,BSU08060 and BSU08070,,
+RNDR4,,BSU17380 and BSU17390,,
+RNDR3,,BSU17380 and BSU17390,,
+RNDR2,,BSU17380 and BSU17390,,
+RNDR1,,BSU17380 and BSU17390,,
+ANS,,BSU00750 or BSU22680,,
+HCO3E,,BSU30690,,
+ACt2r,,BSU38240,,
+RIBFLVt2,,BSU23050,,

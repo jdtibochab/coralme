@@ -1,0 +1,18 @@
+{
+  "m-model-path": "./helper_files/inputs/m_model.json",
+  "genbank-path": "./helper_files/inputs/genome.gb",
+  "biocyc.genes": "./helper_files/inputs/genes.txt",
+  "biocyc.prots": "./helper_files/inputs/proteins.txt",
+  "biocyc.TUs": "./helper_files/inputs/TUs.txt",
+  "biocyc.RNAs": "./helper_files/inputs/RNAs.txt",
+  "biocyc.seqs": "./helper_files/inputs/sequences.fasta",
+  "df_gene_cplxs_mods_rxns": "./helper_files/building_data/automated-org-with-refs.xlsx",
+  "df_TranscriptionalUnits": "",
+  "out_directory": "./helper_files/",
+  "log_directory": "./helper_files/",
+  "run_bbh_blast": true,
+  "e_value_cutoff": 1e-10,
+  "dev_reference": true,
+  "include_pseudo_genes": true,
+  "locus_tag" : "old_locus_tag"
+}

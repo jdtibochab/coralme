@@ -1,0 +1,8 @@
+code,interpretation,gram
+CCI-CW-BAC-POS-GP,Cell_Wall,pos
+CCI-OUTER-MEM-GN,Outer_Membrane,neg
+CCI-PM-BAC-NEG-GN,Inner_Membrane,neg
+CCI-PERI-BAC-GN,Periplasm,neg
+CCI-PM-BAC-POS-GP,Plasma_Membrane,pos
+CCI-EXTRACELLULAR-GP,Extracellular_Space,pos
+CCO-MEMBRANE,Membrane,

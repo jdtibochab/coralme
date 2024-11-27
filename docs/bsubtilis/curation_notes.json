@@ -1,0 +1,844 @@
+{
+    "org.check_m_model": [
+        {
+            "msg": "Some metabolites are missing their formula",
+            "triggered_by": [
+                "antim_c",
+                "antim_e",
+                "arsenb_c",
+                "arsenb_e",
+                "arsna_c",
+                "arsna_e",
+                "arsni2_c",
+                "arsni2_e",
+                "ca2_c",
+                "ca2_e",
+                "cbl2_c",
+                "cbl2_e",
+                "cd2_c",
+                "cd2_e",
+                "cobalt2_c",
+                "cobalt2_e",
+                "cro4_c",
+                "cro4_e",
+                "cu2_c",
+                "cu2_e",
+                "fe2_c",
+                "fe2_e",
+                "fe3_c",
+                "fe3_e",
+                "ferrich_c",
+                "ferrich_e",
+                "ferxa_c",
+                "ferxa_e",
+                "ficytcc_c",
+                "focytcc_c",
+                "hemeA_c",
+                "hemeC_c",
+                "hemeD_c",
+                "hemeO_c",
+                "hg2_c",
+                "hg2_e",
+                "mg2_c",
+                "mg2_e",
+                "mn2_c",
+                "mn2_e",
+                "mobd_c",
+                "mobd_e",
+                "na1_c",
+                "na1_e",
+                "ni2_c",
+                "ni2_e",
+                "pheme_c",
+                "seln_c",
+                "sheme_c",
+                "zn2_c",
+                "zn2_e"
+            ],
+            "importance": "critical",
+            "to_do": "Correct the formulas of the listed metabolites. Some metabolite formulas are critical for the completion of this pipeline. If homology is ON, this pipeline will try to fill in the formulas from the reference."
+        },
+        {
+            "msg": "Some metabolites have a problematic formula. If these metabolites are used in protein modifications, or other subreactions, it will cause an error.",
+            "triggered_by": [
+                "ACP_c",
+                "apoACP_c",
+                "fmettrna_c",
+                "glutrna_c",
+                "mettrna_c",
+                "trdox_c",
+                "trdrd_c",
+                "trnaglu_c",
+                "trnamet_c"
+            ],
+            "importance": "critical",
+            "to_do": "Correct the formulas of the listed metabolites. Some metabolite formulas are critical for the completion of this pipeline. If homology is ON, this pipeline will try to fill in the formulas from the reference."
+        }
+    ],
+    "org.read_gene_dictionary": [
+        {
+            "msg": "Some genes are missing Accession-1 IDs in genes.txt",
+            "triggered_by": [
+                "G8J2-183",
+                "G8J2-184",
+                "G8J2-180",
+                "G8J2-181",
+                "G8J2-182"
+            ],
+            "importance": "medium",
+            "to_do": "Complete Accession-1 IDs in genes.txt if those genes are important."
+        }
+    ],
+    "org.generate_complexes_df": [
+        {
+            "msg": "Some proteins have no genes in proteins.txt",
+            "triggered_by": [
+                "EG50003-MONOMER"
+            ],
+            "importance": "medium",
+            "to_do": "Fill genes in proteins.txt"
+        }
+    ],
+    "org.sync_files": [
+        {
+            "msg": "The types of some genes (e.g. CDS, RNA...) could not be identified. Is Product or Gene Name missing?",
+            "triggered_by": [
+                "BSU13299",
+                "BSU13299",
+                "BSU23060",
+                "BSU23060",
+                "BSU29679",
+                "BSU29679",
+                "BSU07540",
+                "BSU07540",
+                "BSU36668",
+                "BSU36668",
+                "BSU26039",
+                "BSU26039",
+                "BSU11381",
+                "BSU11381",
+                "BSU06033",
+                "BSU06033",
+                "BSU35679",
+                "BSU35679",
+                "BSU21670",
+                "BSU21670",
+                "BSU07170",
+                "BSU07170",
+                "BSU05344",
+                "BSU05344",
+                "BSU35239",
+                "BSU35239",
+                "BSU19810",
+                "BSU19810",
+                "BSU06078",
+                "BSU06078",
+                "BSU03569",
+                "BSU03569",
+                "BSU40574",
+                "BSU40574",
+                "BSU32960",
+                "BSU32960",
+                "BSU18819",
+                "BSU18819",
+                "BSU06074",
+                "BSU06074",
+                "G8J2-184",
+                "G8J2-184",
+                "BSU39129",
+                "BSU39129",
+                "BSU26748",
+                "BSU26748",
+                "BSU17266",
+                "BSU17266",
+                "BSU06038",
+                "BSU06038",
+                "BSU23836",
+                "BSU23836",
+                "BSU36669",
+                "BSU36669",
+                "BSU26040",
+                "BSU26040",
+                "BSU11382",
+                "BSU11382",
+                "BSU06034",
+                "BSU06034",
+                "BSU35698",
+                "BSU35698",
+                "BSU23329",
+                "BSU23329",
+                "BSU07180",
+                "BSU07180",
+                "BSU05890",
+                "BSU05890",
+                "BSU35609",
+                "BSU35609",
+                "BSU21598",
+                "BSU21598",
+                "BSU06079",
+                "BSU06079",
+                "BSU03570",
+                "BSU03570",
+                "BSU40578",
+                "BSU40578",
+                "BSU32970",
+                "BSU32970",
+                "BSU18909",
+                "BSU18909",
+                "BSU06076",
+                "BSU06076",
+                "BSU40359",
+                "BSU40359",
+                "BSU26749",
+                "BSU26749",
+                "BSU17267",
+                "BSU17267",
+                "BSU06049",
+                "BSU06049",
+                "BSU23837",
+                "BSU23837",
+                "BSU39029",
+                "BSU39029",
+                "BSU26558",
+                "BSU26558",
+                "BSU16890",
+                "BSU16890",
+                "BSU06036",
+                "BSU06036",
+                "BSU35699",
+                "BSU35699",
+                "BSU23330",
+                "BSU23330",
+                "BSU09259",
+                "BSU09259",
+                "BSU05899",
+                "BSU05899",
+                "BSU35610",
+                "BSU35610",
+                "BSU21599",
+                "BSU21599",
+                "BSU06083",
+                "BSU06083",
+                "BSU05343",
+                "BSU05343",
+                "BSU40579",
+                "BSU40579",
+                "BSU35230",
+                "BSU35230",
+                "BSU18979",
+                "BSU18979",
+                "BSU06077",
+                "BSU06077",
+                "BSU40573",
+                "BSU40573",
+                "BSU26750",
+                "BSU26750",
+                "BSU17678",
+                "BSU17678",
+                "BSU06073",
+                "BSU06073",
+                "BSU26829",
+                "BSU26829",
+                "BSU39030",
+                "BSU39030",
+                "BSU26559",
+                "BSU26559",
+                "BSU16900",
+                "BSU16900",
+                "BSU06037",
+                "BSU06037"
+            ],
+            "importance": "medium",
+            "to_do": "Manually fill the products (with types) of these genes in genes.txt"
+        }
+    ],
+    "org.update_genbank_from_files": [
+        {
+            "msg": "Some feature in genbank are CDS but have no translation qualifier. Translated sequences from Biopython were filled in instead",
+            "triggered_by": [
+                "BSU02180",
+                "BSU02181",
+                "BSU03569",
+                "BSU03570",
+                "BSU05343",
+                "BSU05344",
+                "BSU05890",
+                "BSU05899",
+                "BSU06033",
+                "BSU06034",
+                "BSU06036",
+                "BSU06037",
+                "BSU06038",
+                "BSU06049",
+                "BSU06050",
+                "BSU06073",
+                "BSU06074",
+                "BSU06076",
+                "BSU06077",
+                "BSU06078",
+                "BSU06079",
+                "BSU06083",
+                "BSU07170",
+                "BSU07180",
+                "BSU09259",
+                "BSU11381",
+                "BSU11382",
+                "BSU11798",
+                "BSU13790",
+                "BSU13799",
+                "BSU16640",
+                "BSU16890",
+                "BSU16900",
+                "BSU17266",
+                "BSU17267",
+                "BSU17678",
+                "BSU18109",
+                "BSU18110",
+                "BSU18819",
+                "BSU18909",
+                "BSU18930",
+                "BSU18940",
+                "BSU18979",
+                "BSU19810",
+                "BSU20030",
+                "BSU21598",
+                "BSU21599",
+                "BSU21670",
+                "BSU22660",
+                "BSU23329",
+                "BSU23330",
+                "BSU23349",
+                "BSU23836",
+                "BSU23837",
+                "BSU25760",
+                "BSU26039",
+                "BSU26040",
+                "BSU26390",
+                "BSU26558",
+                "BSU26559",
+                "BSU26748",
+                "BSU26749",
+                "BSU26750",
+                "BSU26829",
+                "BSU28509",
+                "BSU32960",
+                "BSU32970",
+                "BSU34410",
+                "BSU34420",
+                "BSU35150",
+                "BSU35230",
+                "BSU35239",
+                "BSU35609",
+                "BSU35610",
+                "BSU35679",
+                "BSU35690",
+                "BSU35698",
+                "BSU35699",
+                "BSU36499",
+                "BSU36669",
+                "BSU39029",
+                "BSU39030",
+                "BSU39129",
+                "BSU40359",
+                "BSU40573",
+                "BSU40574",
+                "BSU40578",
+                "BSU40579",
+                "G8J2-180",
+                "G8J2-182"
+            ],
+            "importance": "high",
+            "to_do": "Check whether the genbank was downloaded or constructed correctly."
+        }
+    ],
+    "org.get_rpod": [
+        {
+            "msg": "BSU25200-MONOMER was identified as RpoD. If this is not true, define RpoD!",
+            "importance": "high",
+            "to_do": "Check whether you need to correct RpoD by running me_builder.org.rpod = correct_rpod"
+        }
+    ],
+    "org.get_rna_polymerase": [
+        {
+            "msg": "CPLX8J2-30 was identified as RNA polymerase",
+            "importance": "high",
+            "to_do": "Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)"
+        }
+    ],
+    "org.get_trna_synthetase": [
+        {
+            "msg": "No tRNA ligases were found for some amino acids. Assigned CPLX_dummy.",
+            "triggered_by": [
+                "gln__L_c"
+            ],
+            "importance": "high",
+            "to_do": "Check whether your organism should have a ligase for these amino acids, or if you need to add a reaction to get it (e.g. tRNA amidotransferases)"
+        }
+    ],
+    "org.purge_genes_in_model": [
+        {
+            "msg": "Some genes in M-model were not found in genes.txt or genome.gb. These genes will be skipped in reconstruction.",
+            "triggered_by": [
+                "BG12900"
+            ],
+            "importance": "high",
+            "to_do": "Confirm the gene is correct in the m_model. If so, add it to genes.txt"
+        }
+    ],
+    "org.get_complex_homology": [
+        {
+            "msg": "Some complexes were partial hits in the BLAST",
+            "triggered_by": [
+                {
+                    "complex": "BSU32750-MONOMER",
+                    "reference_complex": "METNIQ-METHIONINE-ABC-CPLX"
+                },
+                {
+                    "complex": "BSU34870-MONOMER",
+                    "reference_complex": "GLUTAMIDOTRANS-CPLX"
+                },
+                {
+                    "complex": "BSU22680-MONOMER",
+                    "reference_complex": "ANTHRANSYN-CPLX"
+                },
+                {
+                    "complex": "BSU39270-MONOMER",
+                    "reference_complex": "CPLX-154"
+                },
+                {
+                    "complex": "BSU41010-MONOMER",
+                    "reference_complex": "MnmEG_cplx"
+                },
+                {
+                    "complex": "BSU37270-MONOMER",
+                    "reference_complex": "NITRATREDUCTA-CPLX"
+                },
+                {
+                    "complex": "BSU33430-MONOMER",
+                    "reference_complex": "SULFITE-REDUCT-CPLX"
+                },
+                {
+                    "complex": "BSU32800-MONOMER",
+                    "reference_complex": "GCVMULTI-CPLX"
+                },
+                {
+                    "complex": "BSU35960-MONOMER",
+                    "reference_complex": "ABC-28-CPLX_EG10817-MONOMER"
+                },
+                {
+                    "complex": "BSU38990-MONOMER",
+                    "reference_complex": "ACETOACETYL-COA-TRANSFER-CPLX"
+                },
+                {
+                    "complex": "BSU34040-MONOMER",
+                    "reference_complex": "G6176-MONOMER_G6177-MONOMER_G6178-MONOMER"
+                },
+                {
+                    "complex": "BSU13890-MONOMER",
+                    "reference_complex": "CPLX-157"
+                },
+                {
+                    "complex": "BSU16100-MONOMER",
+                    "reference_complex": "SUCCCOASYN"
+                },
+                {
+                    "complex": "BSU01680-MONOMER",
+                    "reference_complex": "CPLX0-7"
+                },
+                {
+                    "complex": "BSU25270-MONOMER",
+                    "reference_complex": "Gly_RS_tetra"
+                },
+                {
+                    "complex": "BSU11430-MONOMER",
+                    "reference_complex": "CPLX0-3970"
+                },
+                {
+                    "complex": "BSU17380-MONOMER",
+                    "reference_complex": "RIBONUCLEOSIDE-DIP-REDUCTII-CPLX"
+                },
+                {
+                    "complex": "BSU19370-MONOMER",
+                    "reference_complex": "2OXOGLUTARATEDEH-CPLX"
+                },
+                {
+                    "complex": "BSU24340-MONOMER",
+                    "reference_complex": "ACETYL-COA-CARBOXYLMULTI-CPLX"
+                },
+                {
+                    "complex": "BSU22630-MONOMER",
+                    "reference_complex": "TRYPSYN"
+                },
+                {
+                    "complex": "BSU38750-MONOMER",
+                    "reference_complex": "CYT-D-UBIOX-CPLX"
+                },
+                {
+                    "complex": "BSU28640-MONOMER",
+                    "reference_complex": "Phe_RS_tetra"
+                },
+                {
+                    "complex": "BSU27050-MONOMER",
+                    "reference_complex": "CPLX-165"
+                },
+                {
+                    "complex": "BSU28310-MONOMER",
+                    "reference_complex": "ACETOLACTSYNIII-CPLX"
+                },
+                {
+                    "complex": "BSU05960-MONOMER",
+                    "reference_complex": "EG11595-MONOMER_EG11666-MONOMER"
+                },
+                {
+                    "complex": "BSU18450-MONOMER",
+                    "reference_complex": "GLUTAMATESYN-CPLX"
+                },
+                {
+                    "complex": "BSU38740-MONOMER",
+                    "reference_complex": "ABC-6-CPLX"
+                },
+                {
+                    "complex": "CPLX8J2-24",
+                    "reference_complex": "transGroES_hepta"
+                },
+                {
+                    "complex": "CPLX8J2-24",
+                    "reference_complex": "cisGroES_hepta"
+                },
+                {
+                    "complex": "CPLX8J2-24",
+                    "reference_complex": "GroL_14"
+                },
+                {
+                    "complex": "BSU28260-MONOMER",
+                    "reference_complex": "3-ISOPROPYLMALISOM-CPLX"
+                },
+                {
+                    "complex": "CPLX8J2-29",
+                    "reference_complex": "PABASYN-COMPI-MONOMER"
+                },
+                {
+                    "complex": "BSU03981-MONOMER",
+                    "reference_complex": "CPLX-166"
+                },
+                {
+                    "complex": "BSU01430-MONOMER",
+                    "reference_complex": "hRNAP"
+                },
+                {
+                    "complex": "CPLX8J2-124",
+                    "reference_complex": "CPLX0-3952"
+                },
+                {
+                    "complex": "CPLX8J2-124",
+                    "reference_complex": "LUMAZINESYN-CPLX"
+                },
+                {
+                    "complex": "BSU15520-MONOMER",
+                    "reference_complex": "CARBPSYN-CPLX"
+                },
+                {
+                    "complex": "BSU02860-MONOMER",
+                    "reference_complex": "ABC-63-CPLX"
+                },
+                {
+                    "complex": "CPLX8J2-206",
+                    "reference_complex": "EG11597-MONOMER"
+                },
+                {
+                    "complex": "CPLX8J2-206",
+                    "reference_complex": "EG11598-MONOMER"
+                },
+                {
+                    "complex": "CPLX-7603",
+                    "reference_complex": "APO-ENTB"
+                },
+                {
+                    "complex": "CPLX-7603",
+                    "reference_complex": "ENTE-CPLX"
+                },
+                {
+                    "complex": "CPLX-7603",
+                    "reference_complex": "ENTF-MONOMER"
+                },
+                {
+                    "complex": "BSU22230-MONOMER",
+                    "reference_complex": "CPLX-168"
+                },
+                {
+                    "complex": "CPLX8J2-252",
+                    "reference_complex": "PABASYN-CPLX"
+                },
+                {
+                    "complex": "BSU13910-MONOMER",
+                    "reference_complex": "CPLX-167"
+                },
+                {
+                    "complex": "SufSU",
+                    "reference_complex": "IscU"
+                }
+            ],
+            "importance": "medium",
+            "to_do": "Curate these manually in protein_corrections.txt"
+        }
+    ],
+    "update_me_mets": [
+        {
+            "msg": "Some metabolites in me_metabolites.txt are not in m_model, so they were skipped.",
+            "triggered_by": [
+                "sufbcd_2fe2s_c",
+                "sufbcd_2fe2s2_c",
+                "sufbcd_4fe4s_c",
+                "iscu_2fe2s_c",
+                "iscu_2fe2s2_c",
+                "iscu_4fe4s_c"
+            ],
+            "importance": "medium",
+            "to_do": "Confirm these metabolites are correctly defined in me_metabolites.txt"
+        }
+    ],
+    "update_amino_acid_trna_synthetases_from_homology": [
+        {
+            "msg": "Some enzymes defined in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology",
+            "triggered_by": [
+                {
+                    "amino_acid": "ala__L_c",
+                    "defined_ligase": "BSU27410-MONOMER",
+                    "inferred_ligase": "BSU27410-MONOMER_mod_zn2(4)"
+                },
+                {
+                    "amino_acid": "arg__L_c",
+                    "defined_ligase": "BSU37330-MONOMER",
+                    "inferred_ligase": "BSU37330-MONOMER_mod_mg2(1)"
+                },
+                {
+                    "amino_acid": "asn__L_c",
+                    "defined_ligase": "BSU22360-MONOMER",
+                    "inferred_ligase": "BSU22360-MONOMER"
+                },
+                {
+                    "amino_acid": "asp__L_c",
+                    "defined_ligase": "BSU27550-MONOMER",
+                    "inferred_ligase": "BSU27550-MONOMER"
+                },
+                {
+                    "amino_acid": "cys__L_c",
+                    "defined_ligase": "BSU00940-MONOMER",
+                    "inferred_ligase": "BSU00940-MONOMER_mod_zn2(1)"
+                },
+                {
+                    "amino_acid": "glu__L_c",
+                    "defined_ligase": "BSU00920-MONOMER",
+                    "inferred_ligase": "BSU00920-MONOMER_mod_mg2(1)_mod_zn2(1)"
+                },
+                {
+                    "amino_acid": "gly_c",
+                    "defined_ligase": "CPLX8J2-12",
+                    "inferred_ligase": "CPLX8J2-12"
+                },
+                {
+                    "amino_acid": "his__L_c",
+                    "defined_ligase": "BSU27560-MONOMER",
+                    "inferred_ligase": "BSU27560-MONOMER_mod_mg2(4)"
+                },
+                {
+                    "amino_acid": "ile__L_c",
+                    "defined_ligase": "BSU15430-MONOMER",
+                    "inferred_ligase": "BSU15430-MONOMER_mod_zn2(2)"
+                },
+                {
+                    "amino_acid": "leu__L_c",
+                    "defined_ligase": "BSU30320-MONOMER",
+                    "inferred_ligase": "BSU30320-MONOMER"
+                },
+                {
+                    "amino_acid": "lys__L_c",
+                    "defined_ligase": "BSU00820-MONOMER",
+                    "inferred_ligase": "generic_LYSINEaaRS"
+                },
+                {
+                    "amino_acid": "met__L_c",
+                    "defined_ligase": "BSU00380-MONOMER",
+                    "inferred_ligase": "BSU00380-MONOMER_mod_zn2(2)"
+                },
+                {
+                    "amino_acid": "phe__L_c",
+                    "defined_ligase": "CPLX8J2-11",
+                    "inferred_ligase": "CPLX8J2-11_mod_mg2(1)"
+                },
+                {
+                    "amino_acid": "pro__L_c",
+                    "defined_ligase": "BSU16570-MONOMER",
+                    "inferred_ligase": "BSU16570-MONOMER"
+                },
+                {
+                    "amino_acid": "ser__L_c",
+                    "defined_ligase": "BSU00130-MONOMER",
+                    "inferred_ligase": "BSU00130-MONOMER_mod_mg2(1)"
+                },
+                {
+                    "amino_acid": "thr__L_c",
+                    "defined_ligase": "BSU28950-MONOMER",
+                    "inferred_ligase": "BSU37560-MONOMER_mod_zn2(1)"
+                },
+                {
+                    "amino_acid": "trp__L_c",
+                    "defined_ligase": "BSU11420-MONOMER",
+                    "inferred_ligase": "BSU11420-MONOMER_mod_mg2(1)"
+                },
+                {
+                    "amino_acid": "tyr__L_c",
+                    "defined_ligase": "BSU29670-MONOMER",
+                    "inferred_ligase": "BSU29670-MONOMER"
+                },
+                {
+                    "amino_acid": "val__L_c",
+                    "defined_ligase": "BSU28090-MONOMER",
+                    "inferred_ligase": "BSU28090-MONOMER_mod_mg2(1)"
+                }
+            ],
+            "importance": "medium",
+            "to_do": "Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly."
+        }
+    ],
+    "check": [
+        {
+            "msg": "Some metabolites in me_metabolites.txt need curation",
+            "triggered_by": [
+                "LI_c",
+                "sufbcd_c",
+                "sufse_c",
+                "sufsesh_c",
+                "dsbard_p",
+                "dsbaox_p",
+                "dsbcrd_p",
+                "dsbcox_p",
+                "dsbdrd_c",
+                "dsbdox_c",
+                "dsbgrd_p",
+                "dsbgox_p",
+                "lpp_p",
+                "alpp_p",
+                "3hcpalm9eACP_c",
+                "3ocpalm9eACP_c",
+                "grxrd_c",
+                "grxox_c"
+            ],
+            "importance": "medium",
+            "to_do": "Map or remove these metabolites in me_metabolites.txt"
+        }
+    ],
+    "check_me_coverage": [
+        {
+            "msg": "Some genes show homology, but no metabolic function.",
+            "triggered_by": [
+                "BSU00580 <-> b2781",
+                "BSU00820 <-> b4129",
+                "BSU01660 <-> b1107",
+                "BSU01700 <-> b2428",
+                "BSU02410 <-> b0261",
+                "BSU02690 <-> b2957",
+                "BSU03460 <-> b4196",
+                "BSU03630 <-> b2311",
+                "BSU03640 <-> b3843",
+                "BSU03670 <-> b1634",
+                "BSU04140 <-> b0635",
+                "BSU04440 <-> b3579",
+                "BSU05480 <-> b1008",
+                "BSU05620 <-> b4208",
+                "BSU05960 <-> b0783",
+                "BSU06300 <-> b0123",
+                "BSU06620 <-> b2411",
+                "BSU07330 <-> b4374",
+                "BSU07340 <-> b1296",
+                "BSU07640 <-> b0968",
+                "BSU08690 <-> b0914",
+                "BSU09620 <-> b3449",
+                "BSU10250 <-> b4386",
+                "BSU10340 <-> b4395",
+                "BSU10390 <-> b1301",
+                "BSU10500 <-> b0347",
+                "BSU10900 <-> b0349",
+                "BSU10910 <-> b2750",
+                "BSU11140 <-> b0766",
+                "BSU11390 <-> b3543",
+                "BSU11400 <-> b0832",
+                "BSU11430 <-> b1329",
+                "BSU11440 <-> b1244",
+                "BSU11450 <-> b1245",
+                "BSU11570 <-> b4392",
+                "BSU11630 <-> b0049",
+                "BSU12320 <-> b0517",
+                "BSU12860 <-> b3370",
+                "BSU12970 <-> b1192",
+                "BSU12980 <-> b1325",
+                "BSU13000 <-> b1247",
+                "BSU13040 <-> b2552",
+                "BSU13720 <-> b0444",
+                "BSU13750 <-> b2794",
+                "BSU14260 <-> b3857",
+                "BSU14280 <-> b0827",
+                "BSU15170 <-> b0084",
+                "BSU15780 <-> b4161",
+                "BSU17640 <-> b4053",
+                "BSU18070 <-> b3059",
+                "BSU18350 <-> b3182",
+                "BSU19360 <-> b0727",
+                "BSU19370 <-> b0726",
+                "BSU19400 <-> b1646",
+                "BSU22230 <-> b2417",
+                "BSU22320 <-> b3396",
+                "BSU23480 <-> b0839",
+                "BSU23780 <-> b1539",
+                "BSU24550 <-> b2903",
+                "BSU24570 <-> b2905",
+                "BSU24890 <-> b2912",
+                "BSU28360 <-> b2954",
+                "BSU28690 <-> b4467",
+                "BSU29880 <-> b1479",
+                "BSU29930 <-> b3431",
+                "BSU29970 <-> b2421",
+                "BSU30670 <-> b2687",
+                "BSU30810 <-> b2263",
+                "BSU31440 <-> b1622",
+                "BSU31960 <-> b0586",
+                "BSU32050 <-> b4260",
+                "BSU32530 <-> b0516",
+                "BSU32550 <-> b3450",
+                "BSU32570 <-> b3374",
+                "BSU32590 <-> b3452",
+                "BSU32610 <-> b3371",
+                "BSU32800 <-> b2904",
+                "BSU32810 <-> b3503",
+                "BSU32940 <-> b0588",
+                "BSU34030 <-> b0308",
+                "BSU34040 <-> b0307",
+                "BSU34050 <-> b0306",
+                "BSU34620 <-> b0403",
+                "BSU34680 <-> b3553",
+                "BSU34730 <-> b1463",
+                "BSU34740 <-> b2415",
+                "BSU34970 <-> b3385",
+                "BSU35830 <-> b2943",
+                "BSU36530 <-> b0841",
+                "BSU36700 <-> b0781",
+                "BSU37090 <-> b3925",
+                "BSU37250 <-> b1227",
+                "BSU37510 <-> b0149",
+                "BSU37630 <-> b0813",
+                "BSU37810 <-> b2038",
+                "BSU37820 <-> b2040",
+                "BSU37830 <-> b3788",
+                "BSU37840 <-> b3789",
+                "BSU37890 <-> b2253",
+                "BSU38370 <-> b1651",
+                "BSU38430 <-> b3627",
+                "BSU38730 <-> b0886",
+                "BSU38740 <-> b0887",
+                "BSU39520 <-> b1012"
+            ],
+            "importance": "critical",
+            "to_do": "Manually curate the M-model to correct GPRs or incorporate new reactions."
+        }
+    ]
+}
