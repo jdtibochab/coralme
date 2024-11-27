@@ -1757,17 +1757,17 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for multiple evaluations of the LP problem, replacement in lambdify'ed Se is faster overall
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify, per_position = True, as_dict = False)
 
 		# test max_mu
-		self.check_feasibility(keys = { self.mu:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas] })
+		self.check_feasibility(keys = { self.mu:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
 		if hasattr(self, 'solution') and self.solution.status == 'optimal':
 			return True
 		else:
 			for idx in range(1, maxIter + 1):
 				# Just a sequence of feasibility checks
 				muf = (min_mu + max_mu) / 2.
-				self.check_feasibility(keys = { self.mu:muf }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas] })
+				self.check_feasibility(keys = { self.mu:muf }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
 
 				if hasattr(self, 'solution') and self.solution.status == 'optimal':
 					stat_new = 'optimal'
@@ -1805,7 +1805,7 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for single evaluations of the LP problem, direct replacement is faster than lambdify
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False, per_position = True, as_dict = False))
 
 		if lambdas is None:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
@@ -1838,6 +1838,8 @@ class MEModel(cobra.core.object.Object):
 
 		# output solution
 		if mpModel.solve_details.status == 'optimal':
+			# WARNING: the objective value is not the objective function flux, but rather the biomass_dilution flux
+			muopt = mpModel._vars_by_name['biomass_dilution'].solution_value
 			self.solution = self._solver_solution_to_cobrapy_solution(muopt, mpModel._vars_by_name, mpModel._cts_by_name, mpModel._vars_by_name, stat = 'optimal', solver = 'cplex')
 			return True
 		else:
@@ -1858,7 +1860,7 @@ class MEModel(cobra.core.object.Object):
 
 		# populate with stoichiometry with replacement of mu's (Sf contains Se)
 		# for single evaluations of the LP problem, direct replacement is faster than lambdify
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False))
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs.get('lp', self.construct_lp_problem(lambdify = False, per_position = True, as_dict = False))
 
 		if lambdas is None:
 			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
@@ -1909,6 +1911,8 @@ class MEModel(cobra.core.object.Object):
 
 		# output solution
 		if gpModel.status == gp.GRB.OPTIMAL:
+			# WARNING: the objective value is not the objective function flux, but rather the biomass_dilution flux
+			muopt = gpModel.x[0]
 			self.solution = self._solver_solution_to_cobrapy_solution(muopt, gpModel.x, gpModel.pi, gpModel.RC, stat = 'optimal', solver = 'gurobi')
 			return True
 		else:
