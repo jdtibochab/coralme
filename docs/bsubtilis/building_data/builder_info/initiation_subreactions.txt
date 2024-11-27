@@ -1,0 +1,5 @@
+,value
+Translation_gtp_initiation_factor_InfB,{'enzymes': ['BSU16630-MONOMER']}
+Translation_initiation_factor_InfA,{'enzymes': ['BSU01390-MONOMER']}
+Translation_initiation_factor_InfC,{'enzymes': ['BSU28870-MONOMER']}
+fmet_addition_at_START,"{'enzymes': ['BSU16630-MONOMER', 'BSU15730-MONOMER']}"

@@ -1,0 +1,13 @@
+,value
+Biomass and maintenance functions,secondary
+Extracellular exchange,other
+S_Amino_acids_and_related_molecules,central_AFN
+S_Carbohydrates_and_related_molecules,central_CE
+S_Cell_wall,secondary
+S_Coenzymes_and_prosthetic_groups,intermediate
+S_Lipids,central_AFN
+S_Membrane_bioenergetics,secondary
+S_Nucleotides_and_nucleic_acids,central_AFN
+S_Other_function,other
+S_Phosphate_and_sulfur,secondary
+S_Transport,secondary

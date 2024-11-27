@@ -1,0 +1,10 @@
+,value
+bam,{'enzymes': ['CPLX_dummy']}
+lol,{'enzymes': ['CPLX_dummy']}
+sec,"{'enzymes': ['BSU27650-MONOMER', 'BSU35300-MONOMER', 'secYEG']}"
+secA,{'enzymes': ['BSU35300-MONOMER']}
+srp,"{'enzymes': ['SRP-CPLX', 'BSU35300-MONOMER', 'secYEG', 'BSU15950-MONOMER']}"
+srp_yidC,"{'enzymes': ['SRP-CPLX', 'BSU41040-MONOMER', 'secYEG']}"
+tat,"{'enzymes': ['BSU05980-MONOMER', 'BSU02630-MONOMER', 'BSU17710-MONOMER', 'BSU02640-MONOMER', 'BSU05990-MONOMER']}"
+tat_alt,{'enzymes': ['CPLX_dummy']}
+yidC,"{'enzymes': ['SRP-CPLX', 'BSU41040-MONOMER']}"

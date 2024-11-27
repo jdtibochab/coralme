@@ -1,0 +1,3 @@
+subreaction	enzymes
+FusA_mono_elongation	BSU01120-MONOMER
+Tuf_gtp_regeneration	BSU16500-MONOMER

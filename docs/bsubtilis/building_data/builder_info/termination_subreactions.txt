@@ -1,0 +1,10 @@
+,value
+DnaK_dependent_folding,"{'enzymes': ['BSU25470-MONOMER', 'BSU25460-MONOMER', 'BSU25480-MONOMER']}"
+GroEL_dependent_folding,{'enzymes': ['CPLX8J2-24']}
+N_terminal_methionine_cleavage,{'enzymes': ['BSU01380-MONOMER']}
+PrfA_mono_mediated_termination,{'enzymes': ['BSU37010-MONOMER']}
+PrfB_mono_mediated_termination,{'enzymes': ['BSU35290-MONOMER']}
+generic_RF_mediated_termination,{'enzymes': ['generic_RF']}
+peptide_chain_release,{'enzymes': ['BSU35290-MONOMER']}
+peptide_deformylase_processing,{'enzymes': ['BSU15720-MONOMER']}
+ribosome_recycler,{'enzymes': ['BSU16520-MONOMER']}

@@ -1,0 +1,10 @@
+subreaction	enzymes
+PrfA_mono_mediated_termination	
+PrfB_mono_mediated_termination	
+generic_RF_mediated_termination	
+N_terminal_methionine_cleavage	
+peptide_deformylase_processing	
+peptide_chain_release	
+ribosome_recycler	
+GroEL_dependent_folding	
+DnaK_dependent_folding	

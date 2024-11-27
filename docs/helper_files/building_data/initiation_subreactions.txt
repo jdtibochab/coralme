@@ -1,0 +1,5 @@
+subreaction	enzymes
+Translation_initiation_factor_InfA	
+Translation_initiation_factor_InfC	
+Translation_gtp_initiation_factor_InfB	
+fmet_addition_at_START	

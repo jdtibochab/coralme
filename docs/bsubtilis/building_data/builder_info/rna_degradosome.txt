@@ -1,0 +1,2 @@
+,value
+rna_degradosome,"{'enzymes': ['BSU16960-MONOMER', 'CPLX8J2-39', 'BSU16690-MONOMER', 'BSU33900-MONOMER', 'BSU29190-MONOMER']}"

@@ -1,0 +1,7 @@
+,value
+bmocogdp_chaperones,{'enzymes': ['CPLX_dummy']}
+fes_chaperones,{'enzymes': ['CPLX_dummy']}
+fes_transfer,{'enzymes': ['BSU32680-MONOMER']}
+generic_2fe2s_transfer_complex,{'enzymes': ['BSU32680-MONOMER_mod_2fe2s(1)']}
+generic_4fe4s_transfer_complex,{'enzymes': ['BSU32680-MONOMER_mod_4fe4s(2)']}
+lipoate_modifications,{'enzymes': ['BSU10250-MONOMER']}

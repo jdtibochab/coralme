@@ -1,0 +1,45 @@
+,value
+BSU00180-MONOMER_mod_zn2(2),['I_at_34']
+BSU00340-MONOMER,['m6A_at_37']
+BSU00420-MONOMER,"['m62A_at_1518', 'm62A_at_1519']"
+BSU00670-MONOMER,['k2C_at_34']
+BSU00810-MONOMER,"['D_at_16', 'D_at_17', 'D_at_20', 'D_at_20A', 'D_at_21']"
+BSU00960-MONOMER,['Gm_at_2251']
+BSU01060-MONOMER,['m2G_at_1835']
+BSU01480-MONOMER,"['Y_at_38', 'Y_at_39', 'Y_at_40']"
+BSU05910-MONOMER,['t6A_at_37']
+BSU05920-MONOMER,['t6A_at_37']
+BSU05940-MONOMER,['t6A_at_37']
+BSU06730-MONOMER_mod_4fe4s(1),['m5U_at_1939']
+BSU08930-MONOMER,"['Gm_at_34', 'Cm_at_34', 'cmnm5s2U_at_34', 'cmnm5Um_at_34', 'mnm5U_at_34', 'mnm5s2U_at_34', 'Um_at_34']"
+BSU15010-MONOMER,['m2G_at_966']
+BSU15060-MONOMER,['ac4C_at_34']
+BSU15460-MONOMER_mod_mg2(1),"['Y_at_1911', 'Y_at_1915', 'Y_at_1917']"
+BSU15740-MONOMER,['m5C_at_967']
+BSU15750-MONOMER_mod_4fe4s(1),['m2A_at_2503']
+BSU16030-MONOMER,['m1G_at_37']
+BSU17010-MONOMER,['ms2i6A_at_37']
+BSU17330-MONOMER_mod_mg2(2),['i6A_at_37']
+BSU22170-MONOMER,['m7G_at_2069']
+BSU22780-MONOMER,['Q_at_34']
+BSU25180-MONOMER,"['m1A_at_22', 'm2A_at_37']"
+BSU25430-MONOMER,['ms2t6A_at_37']
+BSU25440-MONOMER,['m3U_at_1498']
+BSU26540-MONOMER,['ct6A_at_37']
+BSU27460-MONOMER,['mo5U_at_34']
+BSU27500-MONOMER,"['cmnm5s2U_at_34', 'cmnm5Um_at_34', 'mnm5U_at_34', 'mnm5s2U_at_34']"
+BSU27510-MONOMER,"['cmnm5s2U_at_34', 'cmnm5Um_at_34', 'mnm5U_at_34', 'mnm5s2U_at_34']"
+BSU27710-MONOMER_mod_zn2(6),['Q_at_34']
+BSU29580-MONOMER,['s4U_at_8']
+BSU30035-MONOMER,['Y_at_516']
+BSU36950-MONOMER,"['t6A_at_37', 'm6t6A_at_37']"
+BSU38360-MONOMER,['m5C_at_1962']
+BSU39010-MONOMER_mod_zn2(2),['m1G_at_745']
+BSU40230-MONOMER,['m3Y_at_1915']
+BSU41000-MONOMER,['m7G_at_527']
+BSU41010-MONOMER,"['cmnm5s2U_at_34', 'cmnm5Um_at_34', 'mnm5U_at_34', 'mnm5s2U_at_34']"
+BSU41020-MONOMER,"['cmnm5s2U_at_34', 'cmnm5Um_at_34', 'mnm5U_at_34', 'mnm5s2U_at_34']"
+CPLX8J2-258,['m7G_at_46']
+QueAG_mod_4fe4s(2),['Q_at_34']
+QueDECF,['Q_at_34']
+generic_16Sm4Cm1402,['m4Cm_at_1402']

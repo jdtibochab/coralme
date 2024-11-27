@@ -1,0 +1,4 @@
+,value
+UAA,{'enzyme': 'generic_RF'}
+UAG,{'enzyme': 'BSU37010-MONOMER'}
+UGA,{'enzyme': 'BSU35290-MONOMER'}

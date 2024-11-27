@@ -1,0 +1,7 @@
+modification	enzymes
+fes_transfer	BSU32160-MONOMER
+fes_chaperones	CPLX_dummy
+generic_2fe2s_transfer_complex	BSU32160-MONOMER_mod_2fe2s(1)
+generic_4fe4s_transfer_complex	BSU32160-MONOMER_mod_4fe4s(1)
+lipoate_modifications	BSU10250-MONOMER
+bmocogdp_chaperones	CPLX_dummy

@@ -1,0 +1,5 @@
+subreaction	enzymes
+Translation_initiation_factor_InfA	BSU01390-MONOMER
+Translation_initiation_factor_InfC	BSU28870-MONOMER
+Translation_gtp_initiation_factor_InfB	BSU16630-MONOMER
+fmet_addition_at_START	BSU16630-MONOMER,BSU15730-MONOMER_mod_mg2(1)_mod_k(1)
