@@ -1,0 +1,5 @@
+mechanism	enzymes
+Transcription_normal_rho_independent	
+Transcription_normal_rho_dependent	
+Transcription_stable_rho_independent	
+Transcription_stable_rho_dependent	

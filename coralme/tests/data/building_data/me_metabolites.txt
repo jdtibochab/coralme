@@ -1,0 +1,1 @@
+id	me_id	name	formula	compartment	type

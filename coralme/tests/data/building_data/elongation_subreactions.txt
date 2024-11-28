@@ -1,0 +1,3 @@
+subreaction	enzymes
+FusA_mono_elongation	
+Tuf_gtp_regeneration	

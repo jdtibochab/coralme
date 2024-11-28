@@ -1,0 +1,1 @@
+name	description	is_reversible	is_spontaneous	subsystems
