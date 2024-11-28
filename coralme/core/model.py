@@ -16,6 +16,7 @@ import scipy
 import sympy
 import cobra
 import coralme
+import sys
 
 # due to a circular import
 from coralme.core.component import Metabolite as Metabolite
@@ -1450,10 +1451,15 @@ class MEModel(cobra.core.object.Object):
 				ub = [ x for x in fn(ub) ]
 				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			else:
-				lb = sympy.lambdify(list(atoms), lb, docstring_limit = None) # 5x faster than [ x for x in fn(lb) ]
-				ub = sympy.lambdify(list(atoms), ub, docstring_limit = None) # 5x faster than [ x for x in fn(ub) ]
-				# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()), docstring_limit = None))
+				if sys.version_info > (3,7): # Only python > 3.7
+					lb = sympy.lambdify(list(atoms), lb, docstring_limit = None) # 5x faster than [ x for x in fn(lb) ]
+					ub = sympy.lambdify(list(atoms), ub, docstring_limit = None) # 5x faster than [ x for x in fn(ub) ]
+					# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+					lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()), docstring_limit = None))
+				else:
+					lb = sympy.lambdify(list(atoms), lb)
+					ub = sympy.lambdify(list(atoms), ub)
+					lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values())))
 		else:
 			lambdas = None
 
