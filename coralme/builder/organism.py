@@ -1635,29 +1635,27 @@ class Organism(object):
         df = complexes_df[complexes_df['genes'].str.contains('|'.join(genes))]
         return df['name'].str.contains("beta(?:\'|.*prime)|rpoc|RNA polymerase.*(?:subunit|chain).*beta",regex=True,case=False).any()
 
-    def get_rna_polymerase(self, force_RNAP_as=""):
+    def get_rna_polymerase(self):
         """Call the RNAP from files"""
         # TODO: Allow user to define RNAP, skip inferring?
         complexes_df = self.complexes_df
         protein_mod = self.protein_mod
-        RNAP = ""
-        if force_RNAP_as:
-            RNAP = force_RNAP_as
-        else:
+        RNAP = self.config.get("force_RNAP_as",None)
+        if RNAP is None:
             RNAP,flag = self._get_rna_polymerase_from_regex(complexes_df)
             if RNAP is None:
                 RNAP = random.choice(complexes_df.index)
                 self.curation_notes['org.get_rna_polymerase'].append({
                     'msg':"Could not identify RNA polymerase".format(RNAP),
                     'importance':'critical',
-                    'to_do':'Find correct RNAP complex and run me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
+                    'to_do':'Find correct RNAP complex and add force_RNAP_as:"RNAP_COMPLEX_ID" to the configuration (by default, organism.json)'})
             elif flag == 'cplx':
                 RNAP = RNAP.index[0]
                 # Warnings
                 self.curation_notes['org.get_rna_polymerase'].append({
                     'msg':"{} was identified as RNA polymerase".format(RNAP),
                     'importance':'high',
-                    'to_do':'Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
+                    'to_do':'Find correct RNAP complex and add force_RNAP_as:"RNAP_COMPLEX_ID" to the configuration (by default, organism.json)'})
             elif flag == 'subunits':
                 RNAP_genes = [g.split("-MONOMER")[0] for g in RNAP.index if "-MONOMER" in g]
                 RNAP_genes = [self.gene_dictionary.loc[g]['Accession-1'] for g in RNAP_genes]
@@ -1671,16 +1669,16 @@ class Organism(object):
                     'importance':'medium',
                     'to_do':'Check whether the correct proteins were called as subunits of RNAP. If not find correct RNAP complex and run me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
 
-        # Identify if beta prime in RNAP, if so, add zn2 and mg2. https://pubmed.ncbi.nlm.nih.gov/15351641/
-        if self._is_beta_prime_in_RNAP(RNAP,complexes_df):
-            RNAP_mod = RNAP + '_mod_zn2(1)_mod_mg2(2)'
-            protein_mod = \
-                self._add_entry_to_protein_mod(protein_mod,
-                                             RNAP_mod,
-                                             RNAP,
-                                             "zn2(1) AND mg2(2)",
-                                             "RNA_Polymerase")
-            RNAP = RNAP_mod
+            # Identify if beta prime in RNAP, if so, add zn2 and mg2. https://pubmed.ncbi.nlm.nih.gov/15351641/
+            if self._is_beta_prime_in_RNAP(RNAP,complexes_df):
+                RNAP_mod = RNAP + '_mod_zn2(1)_mod_mg2(2)'
+                protein_mod = \
+                    self._add_entry_to_protein_mod(protein_mod,
+                                                 RNAP_mod,
+                                                 RNAP,
+                                                 "zn2(1) AND mg2(2)",
+                                                 "RNA_Polymerase")
+                RNAP = RNAP_mod
         self.RNAP = RNAP
         self.complexes_df = complexes_df
         self.protein_mod = protein_mod
