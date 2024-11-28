@@ -1446,7 +1446,7 @@ class MEModel(cobra.core.object.Object):
 
 		if lambdify:
 			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-			kwargs = {"docstring_limit":None} if sys.version_info > (3,7) else {} # 5x faster than [ x for x in fn(lb) ]
+			kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {} # 5x faster than [ x for x in fn(lb) ]
 			if per_position:
 				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, **kwargs))
 				lb = [ x for x in fn(lb) ]
