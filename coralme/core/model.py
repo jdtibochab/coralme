@@ -1445,21 +1445,17 @@ class MEModel(cobra.core.object.Object):
 		cs = [ 'E' for m in self.metabolites ]
 
 		if lambdify:
+			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			kwargs = {"docstring_limit":None} if sys.version_info > (3,7) else {} # 5x faster than [ x for x in fn(lb) ]
 			if per_position:
-				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, docstring_limit = None))
+				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, **kwargs))
 				lb = [ x for x in fn(lb) ]
 				ub = [ x for x in fn(ub) ]
 				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			else:
-				if sys.version_info > (3,7): # Only python > 3.7
-					lb = sympy.lambdify(list(atoms), lb, docstring_limit = None) # 5x faster than [ x for x in fn(lb) ]
-					ub = sympy.lambdify(list(atoms), ub, docstring_limit = None) # 5x faster than [ x for x in fn(ub) ]
-					# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-					lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()), docstring_limit = None))
-				else:
-					lb = sympy.lambdify(list(atoms), lb)
-					ub = sympy.lambdify(list(atoms), ub)
-					lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values())))
+				lb = sympy.lambdify(list(atoms), lb, **kwargs)
+				ub = sympy.lambdify(list(atoms), ub, **kwargs)
+				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()),**kwargs))
 		else:
 			lambdas = None
 
