@@ -1627,7 +1627,7 @@ class MEModel(cobra.core.object.Object):
 
 	def optimize(self,
 		max_mu = 2.8100561374051836, min_mu = 0., maxIter = 100, lambdify = True, basis = None,
-		tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False):
+		tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False,solver="qminos"):
 
 		"""Solves the NLP problem to obtain reaction fluxes for a ME-model.
 
@@ -1655,6 +1655,10 @@ class MEModel(cobra.core.object.Object):
 
 		# max_mu is constrained by the fastest-growing bacterium (14.8 min, doubling time)
 		# https://www.nature.com/articles/s41564-019-0423-8
+
+		if solver != "qminos":
+			return self.optimize_windows(max_mu = max_mu, min_mu = min_mu, maxIter = maxIter, lambdify = lambdify,
+				tolerance = tolerance, precision = precision, verbose = verbose, solver = solver)
 
 		# check options
 		min_mu = min_mu if min_mu >= 0. else 0.
