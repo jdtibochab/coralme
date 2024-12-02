@@ -1452,11 +1452,8 @@ class MEBuilder(object):
 		guesses:
 			set of ME-components to try first before any other set of components
 
-		platform:
-			'win32' to use gurobi (default) or cplex as solver
-
 		solver:
-			'gurobi' (default, if platform is 'win32') or 'cplex'
+			'qminos', 'gurobi' or 'cplex'
 
 		savefile:
 			file path (absolute or relative) to save the ME-model as a pickle file
@@ -2818,10 +2815,8 @@ class METroubleshooter(object):
 			Any combination of 'ME-Deadends', 'Cofactors', 'All-Deadends',
 			'Metabolite', 'GenerictRNA', 'Complex', 'TranscribedGene',
 			'TranslatedGene', 'ProcessedProtein', and/or 'GenericComponent'.
-		platform: str
-			'win32' or 'darwin' to use gurobi (default) or cplex as solver
 		solver: str
-			Solver to use. Values: 'gurobi' (default) or 'cplex'
+			Solver to use. Values: 'qminos', 'gurobi' or 'cplex'
 		"""
 		types = {
 			'M-matrix' : [ 'ME-Deadends', 'Cofactors', 'All-Deadends', 'Metabolite' ],
