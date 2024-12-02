@@ -5,7 +5,7 @@ import numpy
 import scipy
 import sympy
 
-from coralme.solver import qwarmLP, warmLP, qvaryME
+# from coralme.solver import qwarmLP, warmLP, qvaryME
 
 def makeME_VA(S, b, c, xl, xu, csense, obj_inds, obj_coeffs):
     """
@@ -298,6 +298,7 @@ class ME_NLP:
         return m, n, ha, ka, ad, bld, bud, hs, obj_inds
 
     def solvelp(self, muf, basis = None, precision = 'quad', probname = 'me_lp', output_as_dict = False):
+        from coralme.solver import qwarmLP, warmLP, qvaryME
         """
         x, status, hs = solvelp(self, muf, basis = None, precision = 'quad')
 

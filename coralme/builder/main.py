@@ -2922,9 +2922,9 @@ class METroubleshooter(object):
 					self.me_model.relax_bounds()
 					self.me_model.reactions.protein_biomass_to_biomass.lower_bound = growth_value[0]/100 # Needed to enforce protein production
 				if met_type[1] == 'User guesses':
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history,solver=solver)
 				else:
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history,solver=solver)
 				bf_gaps, no_gaps, works = output
 				# close sink reactions that are not gaps
 				if no_gaps:
