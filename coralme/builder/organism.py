@@ -915,8 +915,10 @@ class Organism(object):
                             'importance':'high',
                             'to_do':'Download {} from BioCyc if available'.format(filetype)})
             file = pandas.DataFrame(columns=columns).set_index(columns[0],inplace=False)
-        return file.fillna('')
+        return file#.fillna('')
 
+    
+        
     def read_gene_dictionary(self,filename):
         """ Loads the genes file."""
         gene_dictionary = self.read_optional_file(
@@ -928,12 +930,20 @@ class Organism(object):
                 'Left-End-Position',
                 'Right-End-Position',
                 'Product'
-            ]).reset_index().set_index('Gene Name')
+            ]).reset_index().set_index("Gene Name")
+        # Save warnings
+        warn_start = _get_na_entries(gene_dictionary,"Left-End-Position")
+        warn_end = _get_na_entries(gene_dictionary,"Right-End-Position")
+        warn_genes = _get_na_entries(gene_dictionary,"Accession-1")
+
+        # Pruning
+        gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"]).set_index("Gene Name")
         gene_dictionary['replicon'] = ''
-        warn_genes = []
+
+        # Warn
         if not self.is_reference:
-            warn_start = list(gene_dictionary[gene_dictionary['Left-End-Position'].isna()].index)
-            warn_end = list(gene_dictionary[gene_dictionary['Right-End-Position'].isna()].index)
+            for g in warn_genes:
+                gene_dictionary.at[g, "Accession-1"] = g
             if warn_start:
                 self.curation_notes['org.read_gene_dictionary'].append({
                             'msg':'Some genes are missing start positions in genes.txt',
@@ -946,18 +956,12 @@ class Organism(object):
                             'triggered_by':warn_end,
                             'importance':'medium',
                             'to_do':'Complete end positions in genes.txt if those genes are important.'})
-
-            for g, row in gene_dictionary.iterrows():
-                if not row["Accession-1"] or isinstance(row["Accession-1"],float):
-                    gene_dictionary.at[g, "Accession-1"] = g
-                    warn_genes.append(g)
-
-        if warn_genes:
-            self.curation_notes['org.read_gene_dictionary'].append({
-                        'msg':'Some genes are missing Accession-1 IDs in genes.txt',
-                        'triggered_by':warn_genes,
-                        'importance':'medium',
-                        'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
+            if warn_genes:
+                self.curation_notes['org.read_gene_dictionary'].append({
+                            'msg':'Some genes are missing Accession-1 IDs in genes.txt',
+                            'triggered_by':warn_genes,
+                            'importance':'medium',
+                            'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
         return gene_dictionary
 
     def read_proteins_df(self,filename):
@@ -971,7 +975,7 @@ class Organism(object):
                 'Genes of polypeptide, complex, or RNA',
                 'Locations'
             ]
-        )
+        ).fillna("")
 
     def read_gene_sequences(self,filename):
         """ Loads the gene sequences file."""
@@ -993,7 +997,7 @@ class Organism(object):
                 'Common-Name',
                 'Gene'
             ]
-        )
+        ).fillna("")
 
     def read_TU_df(self,filename):
         """ Loads the TUs file."""
@@ -1005,7 +1009,7 @@ class Organism(object):
                 'Genes of transcription unit',
                 'Direction'
             ]
-        )
+        ).fillna("")
 
     def check_gene_overlap(self):
         """ Assesses gene identifier overlap between files."""
@@ -2427,3 +2431,6 @@ class Organism(object):
         self.enz_rxn_assoc_df.index.name = "Reaction"
         self.complexes_df = org_complexes_df
         self.protein_mod = protein_mod
+
+def _get_na_entries(df,col):
+    return list(df[df[col].isna()].index)
