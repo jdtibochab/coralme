@@ -938,6 +938,7 @@ class Organism(object):
 
         # Pruning
         gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"]).set_index("Gene Name")
+        gene_dictionary = gene_dictionary.fillna("") # All other empty fields, fill with ""
         gene_dictionary['replicon'] = ''
 
         # Warn
