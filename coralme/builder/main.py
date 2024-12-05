@@ -74,14 +74,16 @@ class MEBuilder(object):
 	"""
 	def __init__(self, *args, **kwargs):
 		config = {}
+
 		for input_file in args:
 			with open(input_file, 'r') as infile:
 				config.update(anyconfig.load(infile))
 
 		if kwargs:
 			config.update(kwargs)
+
 		self.configuration = config
-		self.me_model = coralme.core.model.MEModel(config.get('ME-Model-ID', 'coralME'), config.get('growth_key', 'mu'))
+		self.me_model = coralme.core.model.MEModel(name = self.configuration.get('ME-Model-ID', 'coralME'), mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = coralme.builder.notes.load_curation_notes(
 			self.configuration['out_directory'] + '/curation_notes.json'
 		)
@@ -1515,7 +1517,7 @@ class MEReconstruction(MEBuilder):
 		if len(builder.me_model.reactions) == 1 and len(builder.me_model.metabolites):
 			self.me_model = builder.me_model
 		else:
-			self.me_model = coralme.core.model.MEModel(self.configuration.get('ME-Model-ID', 'coralME'), self.configuration.get('growth_key', 'mu'))
+			self.me_model = coralme.core.model.MEModel(name = self.configuration.get('ME-Model-ID', 'coralME'), mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = builder.curation_notes
 
 	def input_data(self, m_model, overwrite = False):
