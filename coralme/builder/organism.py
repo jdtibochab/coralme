@@ -936,11 +936,6 @@ class Organism(object):
         warn_end = _get_na_entries(gene_dictionary,"Right-End-Position")
         warn_genes = _get_na_entries(gene_dictionary,"Accession-1")
 
-        # Pruning
-        gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"]).set_index("Gene Name")
-        gene_dictionary = gene_dictionary.fillna("") # All other empty fields, fill with ""
-        gene_dictionary['replicon'] = ''
-
         # Warn
         if not self.is_reference:
             for g in warn_genes:
@@ -963,6 +958,11 @@ class Organism(object):
                             'triggered_by':warn_genes,
                             'importance':'medium',
                             'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
+
+        # Pruning
+        gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"],how="any").set_index("Gene Name")
+        gene_dictionary = gene_dictionary.fillna("") # All other empty fields, fill with ""
+        gene_dictionary['replicon'] = ""
         return gene_dictionary
 
     def read_proteins_df(self,filename):
