@@ -128,7 +128,7 @@ def fill_builder(b,fill_with='CPLX_dummy',key=None,d=None,fieldname=None,warning
 	elif isinstance(b,str):
 		include_keys = ['enzymes','proteins','enzyme','protein','machine']
 		for ik in include_keys:
-			if key in ik:
+			if key in ik or key in coralme.builder.dictionaries.amino_acid_trna_synthetase:
 				if not b:
 					d[key] = 'CPLX_dummy'
 	else:
