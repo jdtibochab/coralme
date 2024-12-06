@@ -977,23 +977,9 @@ class MEBuilder(object):
 				org_cplx = ref_cplx_homolog[v]
 				defined_cplx = org_amino_acid_trna_synthetase[k]
 				if self.configuration.get('user_data', True) and defined_cplx:
-# 				if not defined_cplx or defined_cplx in org_cplx or 'CPLX_dummy' in defined_cplx:
-				#if defined_cplx:
 					continue
 				org_amino_acid_trna_synthetase[k] = org_cplx
-# 				else:
-				#warn_proteins.append({
-					#'amino_acid':k,
-					#'defined_ligase':defined_cplx,
-					#'inferred_ligase':org_cplx
-				#})
-		## Warnings
-		#if warn_proteins:
-			#self.org.curation_notes['update_amino_acid_trna_synthetases_from_homology'].append({
-				#'msg':'Some enzymes defined in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
-				#'triggered_by':warn_proteins,
-				#'importance':'medium',
-				#'to_do':'Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.'})
+
 
 	def update_peptide_release_factors_from_homology(self):
 		ref_peptide_release_factors = self.ref.peptide_release_factors
