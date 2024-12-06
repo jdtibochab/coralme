@@ -299,6 +299,8 @@ class MEBuilder(object):
 		# Update manual curation files for user reference
 		logging.warning("Generating filled manual curation files")
 		self.org.manual_curation.save()
+		self.org.complexes_df.to_csv(self.org.directory + "reference_files/complexes.txt")
+		self.org.protein_mod.to_csv(self.org.directory + "reference_files/protein_modification.txt")
 
 		# Update notes
 		logging.warning("Generating curation notes")
@@ -996,13 +998,13 @@ class MEBuilder(object):
 					org_cplx = inferred_cplx # Use inferred complex instead of homology
 				# Update the complex
 				org_amino_acid_trna_synthetase[k] = org_cplx
-			# Warnings
-			if warn_proteins:
-				self.org.curation_notes['update_amino_acid_trna_synthetases_from_homology'].append({
-					'msg':'Some enzymes identified in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
-					'triggered_by':warn_proteins,
-					'importance':'medium',
-					'to_do':'Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.'})
+		# Warnings
+		if warn_proteins:
+			self.org.curation_notes['update_amino_acid_trna_synthetases_from_homology'].append({
+				'msg':'Some enzymes identified in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
+				'triggered_by':warn_proteins,
+				'importance':'medium',
+				'to_do':'Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.'})
 
 	def update_peptide_release_factors_from_homology(self):
 		ref_peptide_release_factors = self.ref.peptide_release_factors
@@ -1438,7 +1440,7 @@ class MEBuilder(object):
 					elif c == pandas.DataFrame:
 						dataframes[i] = attr
 					break
-			dataframes['parameters'] = pandas.DataFrame.from_dict({'value':floats})
+		dataframes['parameters'] = pandas.DataFrame.from_dict({'value':floats})
 
 		directory = self.org.directory + 'builder_info/'
 		if not os.path.exists(directory):
