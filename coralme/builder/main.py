@@ -966,6 +966,8 @@ class MEBuilder(object):
 	def update_amino_acid_trna_synthetases_from_homology(self):
 		ref_amino_acid_trna_synthetase = self.ref.amino_acid_trna_synthetase
 		org_amino_acid_trna_synthetase = self.org.amino_acid_trna_synthetase
+		manual_curation = self.org.manual_curation.amino_acid_trna_synthetase.data
+		protein_mod = self.org.protein_mod
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
 		warn_proteins = []
 		for k, v in tqdm.tqdm(ref_amino_acid_trna_synthetase.items(),
@@ -974,12 +976,33 @@ class MEBuilder(object):
 					total=len(ref_amino_acid_trna_synthetase)):
 			ref_cplx = v
 			if ref_cplx in ref_cplx_homolog:
-				org_cplx = ref_cplx_homolog[v]
-				defined_cplx = org_amino_acid_trna_synthetase[k]
-				if self.configuration.get('user_data', True) and defined_cplx:
+				org_cplx = ref_cplx_homolog[v] # From homology
+				defined_cplx = manual_curation[k] # From manual
+				if defined_cplx:
+					# If has been manually curated, do not override
 					continue
+				inferred_cplx = org_amino_acid_trna_synthetase[k] # From regex
+				if inferred_cplx:
+					# Catch whether the inferred complex has a modification
+					mod = protein_mod[protein_mod["Core_enzyme"]==inferred_cplx].index
+					if not mod.empty:
+						inferred_cplx = mod[0]
+					if inferred_cplx != org_cplx:
+						warn_proteins.append({
+							'amino_acid':k,
+							'inferred_ligase':inferred_cplx,
+							'homology_ligase':org_cplx
+						})
+					org_cplx = inferred_cplx # Use inferred complex instead of homology
+				# Update the complex
 				org_amino_acid_trna_synthetase[k] = org_cplx
-
+			# Warnings
+			if warn_proteins:
+				self.org.curation_notes['update_amino_acid_trna_synthetases_from_homology'].append({
+					'msg':'Some enzymes identified in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
+					'triggered_by':warn_proteins,
+					'importance':'medium',
+					'to_do':'Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.'})
 
 	def update_peptide_release_factors_from_homology(self):
 		ref_peptide_release_factors = self.ref.peptide_release_factors

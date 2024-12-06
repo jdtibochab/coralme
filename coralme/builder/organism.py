@@ -1432,7 +1432,7 @@ class Organism(object):
                 generic_dict[generic] = {'enzymes':c_list}
                 d[aa] = generic
             else:
-                d[aa] = 'CPLX_dummy'
+                d[aa] = ''
                 warn_ligases.append(aa)
         self.amino_acid_trna_synthetase = dict(d)
         self.complexes_df = complexes_df
@@ -1440,7 +1440,7 @@ class Organism(object):
         # Warnings
         if warn_ligases:
             self.curation_notes['org.get_trna_synthetase'].append({
-                'msg':'No tRNA ligases were found for some amino acids. Assigned CPLX_dummy.',
+                'msg':'No tRNA ligases were found for some amino acids. Will assign CPLX_dummy.',
                 'triggered_by':warn_ligases,
                 'importance':'high',
                 'to_do':'Check whether your organism should have a ligase for these amino acids, or if you need to add a reaction to get it (e.g. tRNA amidotransferases)'})
