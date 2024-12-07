@@ -37,7 +37,9 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
 					lb = lb.subs(growth_key, 1.)
 				if hasattr(ub, 'subs'):
 					ub = ub.subs(growth_key, 1.)
-
+				if met not in rxn.metabolites:
+					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
+					continue
 				coeff = rxn.metabolites[met]
 				if hasattr(coeff, 'subs'):
 					coeff = coeff.subs(growth_key, 1.)
