@@ -83,7 +83,9 @@ class MEBuilder(object):
 			config.update(kwargs)
 
 		self.configuration = config
-		self.me_model = coralme.core.model.MEModel(name = self.configuration.get('ME-Model-ID', 'coralME'), mu = self.configuration.get('growth_key', 'mu'))
+		self.me_model = coralme.core.model.MEModel(id_or_model = self.configuration.get('ME-Model-ID', 'coralME'),
+												   name = self.configuration.get('ME-Model-ID', 'coralME'),
+												   mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = coralme.builder.notes.load_curation_notes(
 			self.configuration['out_directory'] + '/curation_notes.json'
 		)
