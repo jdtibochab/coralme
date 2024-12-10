@@ -935,6 +935,7 @@ class Organism(object):
         warn_start = _get_na_entries(gene_dictionary,"Left-End-Position")
         warn_end = _get_na_entries(gene_dictionary,"Right-End-Position")
         warn_genes = _get_na_entries(gene_dictionary,"Accession-1")
+        warn_product = _get_na_entries(gene_dictionary,"Product")
 
         # Warn
         if not self.is_reference:
@@ -958,6 +959,12 @@ class Organism(object):
                             'triggered_by':warn_genes,
                             'importance':'medium',
                             'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
+            if warn_product:
+                self.curation_notes['org.read_gene_dictionary'].append({
+                            'msg':'Some genes are missing product definition in genes.txt',
+                            'triggered_by':warn_product,
+                            'importance':'medium',
+                            'to_do':'Complete products in genes.txt if those genes are important.'})
 
         # Pruning
         gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"],how="any").set_index("Gene Name")
