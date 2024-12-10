@@ -370,7 +370,7 @@
         {
             "msg": "CPLX8J2-30 was identified as RNA polymerase",
             "importance": "high",
-            "to_do": "Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)"
+            "to_do": "Find correct RNAP complex and add force_RNAP_as:\"RNAP_COMPLEX_ID\" to the configuration (by default, organism.json)"
         }
     ],
     "org.update_ribosome_stoich": [
@@ -957,13 +957,13 @@
         {
             "msg": "Some metabolites are necessary for growth",
             "triggered_by": [
-                "TS_4fe4s_c",
-                "TS_pydx5p_c",
                 "TS_zn2_c",
+                "TS_pydx5p_c",
+                "TS_fe2_c",
                 "TS_cobalt2_c",
                 "TS_thmpp_c",
-                "TS_fe2_c",
                 "TS_mn2_c",
+                "TS_4fe4s_c",
                 "TS_cbl1_c"
             ],
             "importance": "critical",

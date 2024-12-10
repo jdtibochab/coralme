@@ -915,8 +915,10 @@ class Organism(object):
                             'importance':'high',
                             'to_do':'Download {} from BioCyc if available'.format(filetype)})
             file = pandas.DataFrame(columns=columns).set_index(columns[0],inplace=False)
-        return file.fillna('')
+        return file#.fillna('')
 
+    
+        
     def read_gene_dictionary(self,filename):
         """ Loads the genes file."""
         gene_dictionary = self.read_optional_file(
@@ -928,12 +930,17 @@ class Organism(object):
                 'Left-End-Position',
                 'Right-End-Position',
                 'Product'
-            ]).reset_index().set_index('Gene Name')
-        gene_dictionary['replicon'] = ''
-        warn_genes = []
+            ]).reset_index().set_index("Gene Name")
+        # Save warnings
+        warn_start = _get_na_entries(gene_dictionary,"Left-End-Position")
+        warn_end = _get_na_entries(gene_dictionary,"Right-End-Position")
+        warn_genes = _get_na_entries(gene_dictionary,"Accession-1")
+        warn_product = _get_na_entries(gene_dictionary,"Product")
+
+        # Warn
         if not self.is_reference:
-            warn_start = list(gene_dictionary[gene_dictionary['Left-End-Position'].isna()].index)
-            warn_end = list(gene_dictionary[gene_dictionary['Right-End-Position'].isna()].index)
+            for g in warn_genes:
+                gene_dictionary.at[g, "Accession-1"] = g
             if warn_start:
                 self.curation_notes['org.read_gene_dictionary'].append({
                             'msg':'Some genes are missing start positions in genes.txt',
@@ -946,18 +953,23 @@ class Organism(object):
                             'triggered_by':warn_end,
                             'importance':'medium',
                             'to_do':'Complete end positions in genes.txt if those genes are important.'})
+            if warn_genes:
+                self.curation_notes['org.read_gene_dictionary'].append({
+                            'msg':'Some genes are missing Accession-1 IDs in genes.txt',
+                            'triggered_by':warn_genes,
+                            'importance':'medium',
+                            'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
+            if warn_product:
+                self.curation_notes['org.read_gene_dictionary'].append({
+                            'msg':'Some genes are missing product definition in genes.txt',
+                            'triggered_by':warn_product,
+                            'importance':'medium',
+                            'to_do':'Complete products in genes.txt if those genes are important.'})
 
-            for g, row in gene_dictionary.iterrows():
-                if not row["Accession-1"] or isinstance(row["Accession-1"],float):
-                    gene_dictionary.at[g, "Accession-1"] = g
-                    warn_genes.append(g)
-
-        if warn_genes:
-            self.curation_notes['org.read_gene_dictionary'].append({
-                        'msg':'Some genes are missing Accession-1 IDs in genes.txt',
-                        'triggered_by':warn_genes,
-                        'importance':'medium',
-                        'to_do':'Complete Accession-1 IDs in genes.txt if those genes are important.'})
+        # Pruning
+        gene_dictionary = gene_dictionary.reset_index().dropna(subset=["Gene Name","Product"],how="any").set_index("Gene Name")
+        gene_dictionary = gene_dictionary.fillna("") # All other empty fields, fill with ""
+        gene_dictionary['replicon'] = ""
         return gene_dictionary
 
     def read_proteins_df(self,filename):
@@ -971,7 +983,7 @@ class Organism(object):
                 'Genes of polypeptide, complex, or RNA',
                 'Locations'
             ]
-        )
+        ).fillna("")
 
     def read_gene_sequences(self,filename):
         """ Loads the gene sequences file."""
@@ -993,7 +1005,7 @@ class Organism(object):
                 'Common-Name',
                 'Gene'
             ]
-        )
+        ).fillna("")
 
     def read_TU_df(self,filename):
         """ Loads the TUs file."""
@@ -1005,7 +1017,7 @@ class Organism(object):
                 'Genes of transcription unit',
                 'Direction'
             ]
-        )
+        ).fillna("")
 
     def check_gene_overlap(self):
         """ Assesses gene identifier overlap between files."""
@@ -1427,7 +1439,7 @@ class Organism(object):
                 generic_dict[generic] = {'enzymes':c_list}
                 d[aa] = generic
             else:
-                d[aa] = 'CPLX_dummy'
+                d[aa] = ''
                 warn_ligases.append(aa)
         self.amino_acid_trna_synthetase = dict(d)
         self.complexes_df = complexes_df
@@ -1435,7 +1447,7 @@ class Organism(object):
         # Warnings
         if warn_ligases:
             self.curation_notes['org.get_trna_synthetase'].append({
-                'msg':'No tRNA ligases were found for some amino acids. Assigned CPLX_dummy.',
+                'msg':'No tRNA ligases were found for some amino acids. Will assign CPLX_dummy.',
                 'triggered_by':warn_ligases,
                 'importance':'high',
                 'to_do':'Check whether your organism should have a ligase for these amino acids, or if you need to add a reaction to get it (e.g. tRNA amidotransferases)'})
@@ -1635,29 +1647,27 @@ class Organism(object):
         df = complexes_df[complexes_df['genes'].str.contains('|'.join(genes))]
         return df['name'].str.contains("beta(?:\'|.*prime)|rpoc|RNA polymerase.*(?:subunit|chain).*beta",regex=True,case=False).any()
 
-    def get_rna_polymerase(self, force_RNAP_as=""):
+    def get_rna_polymerase(self):
         """Call the RNAP from files"""
         # TODO: Allow user to define RNAP, skip inferring?
         complexes_df = self.complexes_df
         protein_mod = self.protein_mod
-        RNAP = ""
-        if force_RNAP_as:
-            RNAP = force_RNAP_as
-        else:
+        RNAP = self.config.get("force_RNAP_as",None)
+        if RNAP is None:
             RNAP,flag = self._get_rna_polymerase_from_regex(complexes_df)
             if RNAP is None:
                 RNAP = random.choice(complexes_df.index)
                 self.curation_notes['org.get_rna_polymerase'].append({
                     'msg':"Could not identify RNA polymerase".format(RNAP),
                     'importance':'critical',
-                    'to_do':'Find correct RNAP complex and run me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
+                    'to_do':'Find correct RNAP complex and add force_RNAP_as:"RNAP_COMPLEX_ID" to the configuration (by default, organism.json)'})
             elif flag == 'cplx':
                 RNAP = RNAP.index[0]
                 # Warnings
                 self.curation_notes['org.get_rna_polymerase'].append({
                     'msg':"{} was identified as RNA polymerase".format(RNAP),
                     'importance':'high',
-                    'to_do':'Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
+                    'to_do':'Find correct RNAP complex and add force_RNAP_as:"RNAP_COMPLEX_ID" to the configuration (by default, organism.json)'})
             elif flag == 'subunits':
                 RNAP_genes = [g.split("-MONOMER")[0] for g in RNAP.index if "-MONOMER" in g]
                 RNAP_genes = [self.gene_dictionary.loc[g]['Accession-1'] for g in RNAP_genes]
@@ -1671,16 +1681,16 @@ class Organism(object):
                     'importance':'medium',
                     'to_do':'Check whether the correct proteins were called as subunits of RNAP. If not find correct RNAP complex and run me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)'})
 
-        # Identify if beta prime in RNAP, if so, add zn2 and mg2. https://pubmed.ncbi.nlm.nih.gov/15351641/
-        if self._is_beta_prime_in_RNAP(RNAP,complexes_df):
-            RNAP_mod = RNAP + '_mod_zn2(1)_mod_mg2(2)'
-            protein_mod = \
-                self._add_entry_to_protein_mod(protein_mod,
-                                             RNAP_mod,
-                                             RNAP,
-                                             "zn2(1) AND mg2(2)",
-                                             "RNA_Polymerase")
-            RNAP = RNAP_mod
+            # Identify if beta prime in RNAP, if so, add zn2 and mg2. https://pubmed.ncbi.nlm.nih.gov/15351641/
+            if self._is_beta_prime_in_RNAP(RNAP,complexes_df):
+                RNAP_mod = RNAP + '_mod_zn2(1)_mod_mg2(2)'
+                protein_mod = \
+                    self._add_entry_to_protein_mod(protein_mod,
+                                                 RNAP_mod,
+                                                 RNAP,
+                                                 "zn2(1) AND mg2(2)",
+                                                 "RNA_Polymerase")
+                RNAP = RNAP_mod
         self.RNAP = RNAP
         self.complexes_df = complexes_df
         self.protein_mod = protein_mod
@@ -2429,3 +2439,6 @@ class Organism(object):
         self.enz_rxn_assoc_df.index.name = "Reaction"
         self.complexes_df = org_complexes_df
         self.protein_mod = protein_mod
+
+def _get_na_entries(df,col):
+    return list(df[df[col].isna()].index)

@@ -74,14 +74,18 @@ class MEBuilder(object):
 	"""
 	def __init__(self, *args, **kwargs):
 		config = {}
+
 		for input_file in args:
 			with open(input_file, 'r') as infile:
 				config.update(anyconfig.load(infile))
 
 		if kwargs:
 			config.update(kwargs)
+
 		self.configuration = config
-		self.me_model = coralme.core.model.MEModel(config.get('ME-Model-ID', 'coralME'), config.get('growth_key', 'mu'))
+		self.me_model = coralme.core.model.MEModel(id_or_model = self.configuration.get('ME-Model-ID', 'coralME'),
+												   name = self.configuration.get('ME-Model-ID', 'coralME'),
+												   mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = coralme.builder.notes.load_curation_notes(
 			self.configuration['out_directory'] + '/curation_notes.json'
 		)
@@ -297,6 +301,8 @@ class MEBuilder(object):
 		# Update manual curation files for user reference
 		logging.warning("Generating filled manual curation files")
 		self.org.manual_curation.save()
+		self.org.complexes_df.to_csv(self.org.directory + "reference_files/complexes.txt")
+		self.org.protein_mod.to_csv(self.org.directory + "reference_files/protein_modification.txt")
 
 		# Update notes
 		logging.warning("Generating curation notes")
@@ -964,6 +970,8 @@ class MEBuilder(object):
 	def update_amino_acid_trna_synthetases_from_homology(self):
 		ref_amino_acid_trna_synthetase = self.ref.amino_acid_trna_synthetase
 		org_amino_acid_trna_synthetase = self.org.amino_acid_trna_synthetase
+		manual_curation = self.org.manual_curation.amino_acid_trna_synthetase.data
+		protein_mod = self.org.protein_mod
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
 		warn_proteins = []
 		for k, v in tqdm.tqdm(ref_amino_acid_trna_synthetase.items(),
@@ -972,21 +980,30 @@ class MEBuilder(object):
 					total=len(ref_amino_acid_trna_synthetase)):
 			ref_cplx = v
 			if ref_cplx in ref_cplx_homolog:
-				org_cplx = ref_cplx_homolog[v]
-				defined_cplx = org_amino_acid_trna_synthetase[k]
-				if self.configuration.get('user_data', False) and defined_cplx: continue
-# 				if not defined_cplx or defined_cplx in org_cplx or 'CPLX_dummy' in defined_cplx:
+				org_cplx = ref_cplx_homolog[v] # From homology
+				defined_cplx = manual_curation[k] # From manual
+				if defined_cplx:
+					# If has been manually curated, do not override
+					continue
+				inferred_cplx = org_amino_acid_trna_synthetase[k] # From regex
+				if inferred_cplx:
+					# Catch whether the inferred complex has a modification
+					mod = protein_mod[protein_mod["Core_enzyme"]==inferred_cplx].index
+					if not mod.empty:
+						inferred_cplx = mod[0]
+					if inferred_cplx != org_cplx:
+						warn_proteins.append({
+							'amino_acid':k,
+							'inferred_ligase':inferred_cplx,
+							'homology_ligase':org_cplx
+						})
+					org_cplx = inferred_cplx # Use inferred complex instead of homology
+				# Update the complex
 				org_amino_acid_trna_synthetase[k] = org_cplx
-# 				else:
-				warn_proteins.append({
-					'amino_acid':k,
-					'defined_ligase':defined_cplx,
-					'inferred_ligase':org_cplx
-				})
 		# Warnings
 		if warn_proteins:
 			self.org.curation_notes['update_amino_acid_trna_synthetases_from_homology'].append({
-				'msg':'Some enzymes defined in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
+				'msg':'Some enzymes identified in me_builder.org.amino_acid_trna_synthetase are different from the ones inferred from homology',
 				'triggered_by':warn_proteins,
 				'importance':'medium',
 				'to_do':'Confirm whether the definitions or homology calls are correct in me_builder.org.amino_acid_trna_synthetase. Curate the inputs in amino_acid_trna_synthetase.txt accordingly.'})
@@ -1425,7 +1442,7 @@ class MEBuilder(object):
 					elif c == pandas.DataFrame:
 						dataframes[i] = attr
 					break
-			dataframes['parameters'] = pandas.DataFrame.from_dict({'value':floats})
+		dataframes['parameters'] = pandas.DataFrame.from_dict({'value':floats})
 
 		directory = self.org.directory + 'builder_info/'
 		if not os.path.exists(directory):
@@ -1452,11 +1469,8 @@ class MEBuilder(object):
 		guesses:
 			set of ME-components to try first before any other set of components
 
-		platform:
-			'win32' to use gurobi (default) or cplex as solver
-
 		solver:
-			'gurobi' (default, if platform is 'win32') or 'cplex'
+			'qminos', 'gurobi' or 'cplex'
 
 		savefile:
 			file path (absolute or relative) to save the ME-model as a pickle file
@@ -1518,7 +1532,7 @@ class MEReconstruction(MEBuilder):
 		if len(builder.me_model.reactions) == 1 and len(builder.me_model.metabolites):
 			self.me_model = builder.me_model
 		else:
-			self.me_model = coralme.core.model.MEModel(self.configuration.get('ME-Model-ID', 'coralME'), self.configuration.get('growth_key', 'mu'))
+			self.me_model = coralme.core.model.MEModel(name = self.configuration.get('ME-Model-ID', 'coralME'), mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = builder.curation_notes
 
 	def input_data(self, m_model, overwrite = False):
@@ -2818,10 +2832,8 @@ class METroubleshooter(object):
 			Any combination of 'ME-Deadends', 'Cofactors', 'All-Deadends',
 			'Metabolite', 'GenerictRNA', 'Complex', 'TranscribedGene',
 			'TranslatedGene', 'ProcessedProtein', and/or 'GenericComponent'.
-		platform: str
-			'win32' or 'darwin' to use gurobi (default) or cplex as solver
 		solver: str
-			Solver to use. Values: 'gurobi' (default) or 'cplex'
+			Solver to use. Values: 'qminos', 'gurobi' or 'cplex'
 		"""
 		types = {
 			'M-matrix' : [ 'ME-Deadends', 'Cofactors', 'All-Deadends', 'Metabolite' ],
@@ -2922,9 +2934,9 @@ class METroubleshooter(object):
 					self.me_model.relax_bounds()
 					self.me_model.reactions.protein_biomass_to_biomass.lower_bound = growth_value[0]/100 # Needed to enforce protein production
 				if met_type[1] == 'User guesses':
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history,solver=solver)
 				else:
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history,solver=solver)
 				bf_gaps, no_gaps, works = output
 				# close sink reactions that are not gaps
 				if no_gaps:

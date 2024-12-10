@@ -377,7 +377,7 @@ Check whether you need to correct RpoD by running me_builder.org.rpod = correct_
 ********** CPLX8J2-30 was identified as RNA polymerase
 
 **********Solution:
-Check whether you need to correct RNAP by running me_builder.org.get_rna_polymerase(force_RNAP_as=correct_RNAP)
+Find correct RNAP complex and add force_RNAP_as:"RNAP_COMPLEX_ID" to the configuration (by default, organism.json)
 
 
 
@@ -812,13 +812,13 @@ Manually curate the M-model to correct GPRs or incorporate new reactions.
 #################### critical@troubleshoot ####################
 ********** Some metabolites are necessary for growth
 The following items triggered the warning:
-TS_4fe4s_c
-TS_pydx5p_c
 TS_zn2_c
+TS_pydx5p_c
+TS_fe2_c
 TS_cobalt2_c
 TS_thmpp_c
-TS_fe2_c
 TS_mn2_c
+TS_4fe4s_c
 TS_cbl1_c
 
 **********Solution:

@@ -37,7 +37,9 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
 					lb = lb.subs(growth_key, 1.)
 				if hasattr(ub, 'subs'):
 					ub = ub.subs(growth_key, 1.)
-
+				if met not in rxn.metabolites:
+					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
+					continue
 				coeff = rxn.metabolites[met]
 				if hasattr(coeff, 'subs'):
 					coeff = coeff.subs(growth_key, 1.)
@@ -128,7 +130,7 @@ def fill_builder(b,fill_with='CPLX_dummy',key=None,d=None,fieldname=None,warning
 	elif isinstance(b,str):
 		include_keys = ['enzymes','proteins','enzyme','protein','machine']
 		for ik in include_keys:
-			if key in ik:
+			if key in ik or key in coralme.builder.dictionaries.amino_acid_trna_synthetase:
 				if not b:
 					d[key] = 'CPLX_dummy'
 	else:
@@ -161,14 +163,20 @@ def gap_find(me_model,de_type = None):
 		logging.warning('  '*6 + '{:s}: {:s}'.format(met, 'Missing metabolite in the M-model.' if name == '' else name))
 	return deadends
 
-def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu', positive = True) : 0.1 }, met_types = 'Metabolite'):
+def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu', positive = True) : 0.1 }, met_types = 'Metabolite',solver="qminos"):
 	"""Add sink reactions of gap metabolites to the model"""
-	if sys.platform in ['win32', 'darwin']:
-		self.me_model.get_solution = self.me_model.optimize_windows
-		self.me_model.get_feasibility = self.me_model.feas_gurobi
-	else:
-		self.me_model.get_solution = self.me_model.optimize
-		self.me_model.get_feasibility = self.me_model.feasibility
+	if solver in ['gurobi', 'cplex']:
+		me_model.get_solution = me_model.optimize_windows
+		me_model.get_feasibility = me_model.feas_windows(solver = solver)
+	elif solver == "qminos":
+		me_model.get_solution = me_model.optimize
+		me_model.get_feasibility = me_model.feasibility
+	# if sys.platform == 'win32':
+	# 	me_model.get_solution = me_model.opt_gurobi
+	# 	me_model.get_feasibility = me_model.feas_gurobi
+	# else:
+	# 	me_model.get_solution = me_model.optimize
+	# 	me_model.get_feasibility = me_model.feasibility
 
 	if len(deadends) != 0:
 		logging.warning('  '*5 + 'Adding a sink reaction for each identified deadend metabolite...')
@@ -188,18 +196,24 @@ def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu'
 		logging.warning('  '*5 + 'Provided set of sink reactions for deadend metabolites does not allow growth.')
 		return False
 
-def brute_force_check(me_model, metabolites_to_add, growth_key_and_value):
+def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver="qminos"):
 	"""
 	Iteratively search for minimal set of metabolites that are needed as
 	sinks to allow for growth. This function searches by batches of
 	different types of metabolites.
 	"""
-	if sys.platform == 'win32':
-		me_model.get_solution = me_model.opt_gurobi
-		me_model.get_feasibility = me_model.feas_gurobi
-	else:
+	if solver in ['gurobi', 'cplex']:
+		me_model.get_solution = me_model.optimize_windows
+		me_model.get_feasibility =me_model.feas_windows(solver = solver)
+	elif solver == "qminos":
 		me_model.get_solution = me_model.optimize
 		me_model.get_feasibility = me_model.feasibility
+	# if sys.platform == 'win32':
+	# 	me_model.get_solution = me_model.opt_gurobi
+	# 	me_model.get_feasibility = me_model.feas_gurobi
+	# else:
+	# 	me_model.get_solution = me_model.optimize
+	# 	me_model.get_feasibility = me_model.feasibility
 
 	logging.warning('  '*5 + 'Adding sink reactions for {:d} metabolites...'.format(len(metabolites_to_add)))
 # 	existing_sinks = [r.id for r in me_model.reactions.query('^TS_')]
@@ -291,7 +305,7 @@ def _append_metabolites(mets,new_mets):
 	"""Merge metabolite lists"""
 	return mets + [m for m in new_mets if m not in mets]
 
-def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict()):
+def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict(),solver="qminos"):
 	"""Remove metabolites from our heuristics and call the brute force search algorithm"""
 	mets = get_mets_from_type(me_model,met_type)
 	if met_type == 'Metabolite':
@@ -322,7 +336,8 @@ def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history 
 		mets_to_check = _append_metabolites(mets_to_check,v)
 	return history,coralme.builder.troubleshooting.brute_force_check(me_model,
 															  mets_to_check[::-1],
-															  growth_key_and_value)
+															  growth_key_and_value,
+																	solver=solver)
 
 def get_cofactors_in_me_model(me):
 	"""Get metabolites that work as cofactors in the model"""

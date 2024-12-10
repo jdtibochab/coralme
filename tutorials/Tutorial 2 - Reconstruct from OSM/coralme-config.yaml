@@ -1,5 +1,5 @@
 ME-Model-ID: bsubtilis
-growth_key: mu1
+growth_key: mu
 complex_cofactors:
   fes_transfers:
   - BSU32160-MONOMER

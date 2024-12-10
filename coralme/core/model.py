@@ -16,6 +16,7 @@ import scipy
 import sympy
 import cobra
 import coralme
+import sys
 
 # due to a circular import
 from coralme.core.component import Metabolite as Metabolite
@@ -1444,16 +1445,17 @@ class MEModel(cobra.core.object.Object):
 		cs = [ 'E' for m in self.metabolites ]
 
 		if lambdify:
+			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {} # 5x faster than [ x for x in fn(lb) ]
 			if per_position:
-				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, docstring_limit = None))
+				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, **kwargs))
 				lb = [ x for x in fn(lb) ]
 				ub = [ x for x in fn(ub) ]
 				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			else:
-				lb = sympy.lambdify(list(atoms), lb, docstring_limit = None) # 5x faster than [ x for x in fn(lb) ]
-				ub = sympy.lambdify(list(atoms), ub, docstring_limit = None) # 5x faster than [ x for x in fn(ub) ]
-				# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()), docstring_limit = None))
+				lb = sympy.lambdify(list(atoms), lb, **kwargs)
+				ub = sympy.lambdify(list(atoms), ub, **kwargs)
+				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()),**kwargs))
 		else:
 			lambdas = None
 
@@ -1625,7 +1627,7 @@ class MEModel(cobra.core.object.Object):
 
 	def optimize(self,
 		max_mu = 2.8100561374051836, min_mu = 0., maxIter = 100, lambdify = True, basis = None,
-		tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False):
+		tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False, solver="qminos"):
 
 		"""Solves the NLP problem to obtain reaction fluxes for a ME-model.
 
@@ -1654,20 +1656,27 @@ class MEModel(cobra.core.object.Object):
 		# max_mu is constrained by the fastest-growing bacterium (14.8 min, doubling time)
 		# https://www.nature.com/articles/s41564-019-0423-8
 
+		if solver != "qminos":
+			return self.optimize_windows(max_mu = max_mu, min_mu = min_mu, maxIter = maxIter, lambdify = lambdify,
+				tolerance = tolerance, precision = precision, verbose = verbose, solver = solver)
+
 		# check options
 		min_mu = min_mu if min_mu >= 0. else 0.
 		max_mu = max_mu if max_mu <= 2.8100561374051836 else 2.8100561374051836
 		tolerance = tolerance if tolerance >= 1e-15 else 1e-6
 		precision = precision if precision in [ 'quad', 'double', 'dq', 'dqq' ] else 'quad'
 
+		assert get_reduced_costs == False or get_reduced_costs == lambdify == True, "get_reduced_costs requires lambdify=True"
+		per_position = bool(get_reduced_costs)
+
 		if hasattr(self, 'troubleshooting') and not self.troubleshooting or not hasattr(self, 'troubleshooting'):
 			print('The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863\n')
 
 		# populate with stoichiometry, no replacement of mu's
 		if hasattr(self, 'construct_lp_problem') and not self.notes.get('from cobra', False):
-			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify)
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify,per_position=per_position)
 		else:
-			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = coralme.core.model.MEModel.construct_lp_problem(self)
+			Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = coralme.core.model.MEModel.construct_lp_problem(self,per_position=per_position)
 			me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
 			xopt, yopt, zopt, stat, basis = me_nlp.solvelp(.1, None, 'quad', probname = 'lp')
 
