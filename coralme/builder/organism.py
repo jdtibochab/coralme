@@ -1787,11 +1787,26 @@ class Organism(object):
             TU_dict[tu_name]["stop"] = int(max(sites))
 #             TU_dict[tu_name]["stop"] = ','.join([ str(x) for x in stop ])
             TU_dict[tu_name]["replicon"] = ','.join(replicons) if set(replicons) != {''} else None
-        df = pandas.DataFrame.from_dict(TU_dict).T[
-            #["start", "stop", "tss", "strand", "rho_dependent", "rnapol","replicon"]
-            ['replicon', 'genes', 'start', 'stop', 'tss', 'strand', 'rho_dependent', 'rnapol']
-        ]
-        df.index.name = "TU_id"
+        if TU_dict:
+            df = pandas.DataFrame.from_dict(TU_dict).T[
+                #["start", "stop", "tss", "strand", "rho_dependent", "rnapol","replicon"]
+                ['replicon', 'genes', 'start', 'stop', 'tss', 'strand', 'rho_dependent', 'rnapol']
+            ]
+            df.index.name = "TU_id"
+        else:
+            df = pandas.DataFrame(
+                    columns = [
+                        'TU_id',
+                        'replicon',
+                        'genes',
+                        'start',
+                        'stop',
+                        'tss',
+                        'strand',
+                        'rho_dependent',
+                        'rnapol'
+                    ]
+                ).set_index('TU_id')
 
         # Warnings
         if warn_genes or warn_tus:
