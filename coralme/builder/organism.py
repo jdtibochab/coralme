@@ -475,7 +475,7 @@ class Organism(object):
                     or product in RNA_df.index:
                 product_type = 'RNA'
             elif 'MONOMER' in gene_id \
-                    or complexes_df['genes'].str.contains('{}\(\d*\)'.format(gene_id),regex=True).any() \
+                    or complexes_df['genes'].str.contains(r'{}\(\d*\)'.format(gene_id),regex=True).any() \
                     or product in complexes_df.index:
                 product_type = 'MONOMER'
             else:
@@ -1354,8 +1354,8 @@ class Organism(object):
         """Get the genes associated with a complex from the files"""
         d = {}
         for i in self.complexes_df.loc[cplx]['genes'].split(' AND '):
-            gene = re.findall('.*(?=\(\d*\))',i)[0]
-            coeff = re.findall('(?<=\().*(?=\))',i)[0]
+            gene = re.findall(r'.*(?=\(\d*\))',i)[0]
+            coeff = re.findall(r'(?<=\().*(?=\))',i)[0]
             d[gene] = coeff
         return d
 #         return [re.findall('.*(?=\(\d*\))',i)[0] \
@@ -1643,9 +1643,9 @@ class Organism(object):
 
     def _is_beta_prime_in_RNAP(self,RNAP,complexes_df):
         """Checks if beta prime subunit is in RNAP"""
-        genes = [re.findall('.*(?=\(\d*\))',i)[0] for i in complexes_df.loc[RNAP]['genes'].split(' AND ')]
+        genes = [re.findall(r'.*(?=\(\d*\))',i)[0] for i in complexes_df.loc[RNAP]['genes'].split(' AND ')]
         df = complexes_df[complexes_df['genes'].str.contains('|'.join(genes))]
-        return df['name'].str.contains("beta(?:\'|.*prime)|rpoc|RNA polymerase.*(?:subunit|chain).*beta",regex=True,case=False).any()
+        return df['name'].str.contains(r"beta(?:\'|.*prime)|rpoc|RNA polymerase.*(?:subunit|chain).*beta",regex=True,case=False).any()
 
     def get_rna_polymerase(self):
         """Call the RNAP from files"""
@@ -1856,7 +1856,7 @@ class Organism(object):
                                       protein_location,
                                       gene_location):
         """Append one entry to the protein locations dataframe"""
-        gene = re.findall('.*(?=\(\d*\))', gene_string)[0]
+        gene = re.findall(r'.*(?=\(\d*\))', gene_string)[0]
         if gene not in gene_dictionary.index:
             return protein_location
         gene = gene_dictionary.loc[[gene]]["Gene Name"]
