@@ -74,8 +74,10 @@ def makeME_LP(S, b, c, xl, xu, csense):
     sl[m - 1] = -bigbnd
     su[m - 1] = +bigbnd
 
-    bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ], dtype = float)
-    bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ], dtype = float)
+    # bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ], dtype = float)
+    # bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ], dtype = float)
+    bl = numpy.hstack([numpy.asarray(xl), numpy.asarray(sl)], dtype = float)
+    bu = numpy.hstack([numpy.asarray(xu), numpy.asarray(su)], dtype = float)
 
     return J, ne, P, I, V, bl, bu
 
@@ -290,8 +292,8 @@ class ME_NLP:
         ha = I
         ka = P
         ad = V
-        bld = [ bi for bi in bl.toarray() ]
-        bud = [ bi for bi in bu.toarray() ]
+        bld = [ bi for bi in bl ]
+        bud = [ bi for bi in bu ]
         nb = m + n
         hs = numpy.zeros(nb, numpy.dtype('i4'))
 
