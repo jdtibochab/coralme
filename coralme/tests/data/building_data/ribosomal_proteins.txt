@@ -1,3 +1,0 @@
-subunit	proteins
-30S	generic_16s_rRNAs
-50S	generic_5s_rRNAs,generic_23s_rRNAs

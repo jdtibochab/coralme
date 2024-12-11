@@ -1,1 +1,0 @@
-Complex	Complex_compartment	Protein	Protein_compartment	translocase_pathway

@@ -1,1 +1,0 @@
-sigma,complex,genes,name

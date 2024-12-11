@@ -1,4 +1,0 @@
-type	enzymes
-rRNA_containing	
-monocistronic	
-polycistronic_wout_rRNA	

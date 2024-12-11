@@ -1,7 +1,0 @@
-modification	enzymes
-fes_transfer	
-fes_chaperones	
-generic_2fe2s_transfer_complex	
-generic_4fe4s_transfer_complex	
-lipoate_modifications	
-bmocogdp_chaperones	

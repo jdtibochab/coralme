@@ -1,3 +1,0 @@
-mechanism	enzymes
-GroEL_dependent_folding	
-DnaK_dependent_folding	
