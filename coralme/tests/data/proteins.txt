@@ -1,2 +1,2 @@
 Proteins	Common-Name	Genes of polypeptide, complex, or RNA	Locations
-FY484_RS16030-MONOMER	GNAT family N-acetyltransferase	FY484_RS16030	
+ARTIFICIAL_COMPLEX_0	GNAT family N-acetyltransferase	ARTIFICIAL_GENE_0 // ARTIFICIAL_GENE_1	

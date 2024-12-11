@@ -10,7 +10,7 @@ input_nobiocyc = {
   "m-model-path": "{}/tests/data/m_model.json".format(dir), # Path to model file
   "genbank-path": "{}/tests/data/genome.gb".format(dir), # Path to genome genbank file
   # Outputs
-  "df_gene_cplxs_mods_rxns": "{}/tests/data/OSM.xlsx".format(dir), # Desired output path of OSM
+  "df_gene_cplxs_mods_rxns": "{}/tests/data/building_data/OSM.xlsx".format(dir), # Desired output path of OSM
   "out_directory": "{}/tests/data/".format(dir), # Output directory
   "log_directory": "{}/tests/data/".format(dir), # Log directory
   "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag

@@ -1,2 +1,2 @@
-(All-tRNAs Misc-RNAs RNAs rRNAs)	Common-Name	Gene
-charged-FY484_RS02930-tRNA	charged tRNA-Arg	
+(All-tRNAs Misc-RNAs RNAs rRNAs)	Common-Name	Gene	
+ARTIFICIAL_GENE_2-tRNA	tRNA-Phe	ARTIFICIAL_GENE_2

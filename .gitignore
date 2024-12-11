@@ -138,3 +138,8 @@ dmypy.json
 
 # Zip files
 *.zip
+
+# Temporary test files
+coralme/tests/data/building_data/
+coralme/tests/data/blast_files_and_results/
+

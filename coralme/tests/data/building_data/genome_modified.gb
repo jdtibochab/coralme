@@ -16304,3 +16304,62 @@ ORIGIN
    543301 atatctatgt tataaggatt ttttccacgt tttccacatt tttaacaagt gtttaactat
    543361 aatatttttg gagacaaat
 //
+LOCUS       ARTIFICIAL_GENE_0|ARTIFICIAL_GENE_0|Artificial 120 bp    DNA              UNK 01-JAN-1980
+DEFINITION  ARTIFICIAL_GENE_0|ARTIFICIAL_GENE_0|Artificial gene for testing.
+ACCESSION   ARTIFICIAL_GENE_0
+VERSION     ARTIFICIAL_GENE_0
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     source          1..120
+                     /note="Added from BioCyc"
+     CDS             1..120
+                     /locus_tag="ARTIFICIAL_GENE_0"
+                     /product="ARTIFICIAL_GENE_0-MONOMER"
+                     /transl_table=4
+                     /translation="MIQSLSIASLLALLLSACSAENPPQALGTLERDRITFSAT"
+ORIGIN
+        1 atgattcaat ctctctcaat agcaagccta ctggcgttgc tgctcagtgc ttgtagtgca
+       61 gaaaacccac ctcaagcatt aggaacccta gagcgcgatc gcatcacttt cagcgcaacc
+//
+LOCUS       ARTIFICIAL_GENE_1|ARTIFICIAL_GENE_1|Artificial 120 bp    DNA              UNK 01-JAN-1980
+DEFINITION  ARTIFICIAL_GENE_1|ARTIFICIAL_GENE_1|Artificial gene for testing.
+ACCESSION   ARTIFICIAL_GENE_1
+VERSION     ARTIFICIAL_GENE_1
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     source          1..120
+                     /note="Added from BioCyc"
+     CDS             1..120
+                     /locus_tag="ARTIFICIAL_GENE_1"
+                     /product="ARTIFICIAL_GENE_1-MONOMER"
+                     /transl_table=4
+                     /translation="MIQSLSIASLLALLLSACSAENPPQALGTLERDRITFSAT"
+ORIGIN
+        1 atgattcaat ctctctcaat agcaagccta ctggcgttgc tgctcagtgc ttgtagtgca
+       61 gaaaacccac ctcaagcatt aggaacccta gagcgcgatc gcatcacttt cagcgcaacc
+//
+LOCUS       ARTIFICIAL_GENE_2|ARTIFICIAL_GENE_2|Artificial 120 bp    DNA              UNK 01-JAN-1980
+DEFINITION  ARTIFICIAL_GENE_2|ARTIFICIAL_GENE_2|Artificial gene for testing.
+ACCESSION   ARTIFICIAL_GENE_2
+VERSION     ARTIFICIAL_GENE_2
+KEYWORDS    .
+SOURCE      .
+  ORGANISM  .
+            .
+FEATURES             Location/Qualifiers
+     source          1..120
+                     /note="Added from BioCyc"
+     tRNA            1..120
+                     /locus_tag="ARTIFICIAL_GENE_2"
+                     /product="tRNA-Phe"
+                     /transl_table=4
+ORIGIN
+        1 atgattcaat ctctctcaat agcaagccta ctggcgttgc tgctcagtgc ttgtagtgca
+       61 gaaaacccac ctcaagcatt aggaacccta gagcgcgatc gcatcacttt cagcgcaacc
+//

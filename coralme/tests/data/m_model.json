@@ -2120,9 +2120,63 @@
 "compartment":"e",
 "charge":0,
 "formula":"C4H9NO2S"
+},
+{
+"id":"artificial_met1_c",
+"name":"Artificial metabolite",
+"compartment":"c",
+"charge":0,
+"formula":"C"
+},
+{
+"id":"artificial_met2_c",
+"name":"Artificial metabolite",
+"compartment":"c",
+"charge":0,
+"formula":"C"
+},
+{
+"id":"artificial_met3_c",
+"name":"Artificial metabolite",
+"compartment":"c",
+"charge":0,
+"formula":"C"
 }
 ],
 "reactions":[
+{
+"id":"ARTIFICIAL_RXN_0",
+"name":"Artificial reaction",
+"metabolites":{
+"artificial_met1_c":1.0,
+"artificial_met2_c":-1.0
+},
+"lower_bound":-1000.0,
+"upper_bound":1000.0,
+"gene_reaction_rule":"(ARTIFICIAL_GENE_0 and ARTIFICIAL_GENE_1) or MISSING_GENE_0 or (MISSING_GENE_1 and ARTIFICIAL_GENE_1)"
+},
+{
+"id":"ARTIFICIAL_RXN_1",
+"name":"Artificial reaction with combinatorial explosion",
+"metabolites":{
+"artificial_met1_c":1.0,
+"artificial_met3_c":-1.0
+},
+"lower_bound":-1000.0,
+"upper_bound":1000.0,
+"gene_reaction_rule":"(ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1) and (ARTIFICIAL_GENE_0 or ARTIFICIAL_GENE_1)"
+},
+{
+"id":"ARTIFICIAL_RXN_2",
+"name":"Artificial reaction",
+"metabolites":{
+"artificial_met2_c":1.0,
+"artificial_met3_c":-1.0
+},
+"lower_bound":-1000.0,
+"upper_bound":1000.0,
+"gene_reaction_rule":"(ARTIFICIAL_GENE_1 and (ARTIFICIAL_GENE_0 or MISSING_GENE_1)) or MISSING_GENE_0"
+},
 {
 "id":"PGI",
 "name":"PGI",

@@ -1,2 +1,2 @@
 Transcription-Units	Genes of transcription unit	Direction
-TU2G6Z-2039	FY484_RS19410 // FY484_RS19405	-
+ARTIFICIAL_TU_0	ARTIFICIAL_GENE_0 // ARTIFICIAL_GENE_1	-
