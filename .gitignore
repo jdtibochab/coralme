@@ -144,5 +144,5 @@ coralme/tests/data/building_data/
 coralme/tests/data/blast_files_and_results/
 coralme/tests/data/curation_notes*
 coralme/tests/data/coralme-config.yaml
-
+coralme/tests/test_builder/tmp.ipynb
 
