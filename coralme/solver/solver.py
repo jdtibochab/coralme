@@ -76,8 +76,8 @@ def makeME_LP(S, b, c, xl, xu, csense):
 
     # bl = scipy.sparse.vstack([ numpy.matrix(xl).transpose(), numpy.matrix(sl).transpose() ], dtype = float)
     # bu = scipy.sparse.vstack([ numpy.matrix(xu).transpose(), numpy.matrix(su).transpose() ], dtype = float)
-    bl = numpy.hstack([numpy.asarray(xl), numpy.asarray(sl)], dtype = float)
-    bu = numpy.hstack([numpy.asarray(xu), numpy.asarray(su)], dtype = float)
+    bl = numpy.concatenate([numpy.asarray(xl), numpy.asarray(sl)], dtype = float)
+    bu = numpy.concatenate([numpy.asarray(xu), numpy.asarray(su)], dtype = float)
 
     return J, ne, P, I, V, bl, bu
 
