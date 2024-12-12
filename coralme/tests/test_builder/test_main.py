@@ -1,8 +1,5 @@
 import coralme
 
-# guesses = ["dUTPase_c", "zn2_c", "protein_c", "biomass_c", "pg_c", "apoACP_c", "acgam6p_c", "actp_c"]
-guesses = ["dUTPase_c", "pg_c", "apoACP_c", "protein_c", "biomass_c", "zn2_c", "actp_c", "f6p_c","ACP_R_c","fdp_c","fe2_c", "mn2_c"]
-
 def test_get_enzyme_reaction_association(shared_builder):
     enz_rxn_assoc = shared_builder.org.enz_rxn_assoc_df
     assert "ARTIFICIAL_RXN_0" in enz_rxn_assoc.index
@@ -21,7 +18,10 @@ def test_generification(shared_builder):
     rxn2 = [r for r in model.reactions.query("ARTIFICIAL_RXN_2") if isinstance(r,coralme.core.reaction.MetabolicReaction)]
 
     assert len(rxn1) == 2, "Generification for ARTIFICIAL_RXN_1 went wrong"
-    assert len(rxn0) == len(rxn2) == 4, "Generification for ARTIFICIAL_RXN_0 and ARTIFICIAL_RXN_2 went wrong"
+    assert len(rxn0) == len(rxn2) == 4, "Generification for ARTIFICIAL_RXN_0 or ARTIFICIAL_RXN_2 went wrong"
+    assert model.reactions.has_id("ARTIFICIAL_RXN_0_FWD_ARTIFICIAL_COMPLEX_0"), "Generification for ARTIFICIAL_RXN_0 went wrong"
+    assert model.reactions.has_id("ARTIFICIAL_RXN_0_FWD_ARTIFICIAL_GENE_1-MONOMER"), "Generification for ARTIFICIAL_RXN_0 went wrong"
 
 def test_troubleshoot(shared_builder):
+    guesses = ["dUTPase_c", "pg_c", "apoACP_c", "protein_c", "biomass_c", "zn2_c", "actp_c", "f6p_c","ACP_R_c","fdp_c","fe2_c", "mn2_c"]
     shared_builder.troubleshoot(growth_key_and_value = { shared_builder.me_model.mu : 0.001 },guesses=guesses)
