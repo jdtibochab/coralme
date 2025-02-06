@@ -37,6 +37,15 @@ Install using docker (tested on Ubuntu 22.04)
 3. ``docker run --detach -p 10000:8888 -v USER/PATH/TO/coralme/:/opt/notebooks/ python3.10-coralme``
 4. In your browser, go to ``localhost:10000``
 
+Install using docker (to run MINOS and quad MINOS for Apple Silicon)
+====================================================================
+1. Install OrbStack (Docker Desktop alternative - recommended because it automatically uses Rosetta for AMD images). 
+2. Clone repository and navigate to coralme/.
+3. ``docker buildx create --name multiarch --use``
+4. ``docker buildx build --platform linux/amd64 --file "./Dockerfile-Python3.10" . -t "python3.10-coralme:amd64" --load``
+5. ``docker run --detach -p 10000:8888 -v USER/PATH/TO/coralme/:/opt/notebooks/ python3.10-coralme:amd64``
+6. In your browser, go to ``localhost:10000``
+
 Requirements
 ------------
 
