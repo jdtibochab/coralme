@@ -9,23 +9,29 @@ authors = [
     {name = "Rodrigo Santibáñez-Palominos", email = "glucksfall@users.noreply.github.com"}
 ]
 dependencies = [
-    "Biopython",
-    "XlsxWriter",
     "anyconfig",
     "anyconfig<0.14.0; python_version<='3.7'",
-    "cobra<=0.29.0; python_version>'3.7'",
+    "Biopython",
     "cobra<=0.28.0; python_version<='3.7'",
+    "cobra<=0.29.0; python_version>'3.7'",
+    "docplex",
+    "gurobipy<=11",
+    "importlib_resources",
     "jsonschema",
     "numpy<=1.26.4; python_version<='3.10'",
     "numpy>=2.0.0; python_version>'3.10'",
     "openpyxl",
+    "optlang",
     "pandas",
+    "Pint",
     "pyranges",
+    "pytest",
     "python-libsbml",
     "scipy",
-    "sympy",
+    "sympy<=1.12.1",
     "tqdm",
     "versioneer",
+    "XlsxWriter",
 ]
 requires-python = ">=3.7"
 readme = "README.rst"

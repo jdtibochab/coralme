@@ -85,6 +85,7 @@ def main():
 			'reconstruction'
 			],
 		install_requires=[
+			'gurobipy<=11',
 			'cobra<=0.29.0',
 			'python-libsbml<=5.20.1',
 			'Biopython==1.80',
@@ -98,6 +99,8 @@ def main():
 			'pandas<=1.5.1',
 			'jsonschema<=4.21.1',
 			'tqdm<=4.62.3',
+			'Pint<=0.24.4',
+			'pytest'
 			],
 
 		# WARNING: seems to be bdist_wheel only
