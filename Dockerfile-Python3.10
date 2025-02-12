@@ -16,47 +16,19 @@ RUN apt-get install -y ncbi-blast+
 
 # Install ZenglerLab coralme software stack
 # general purpose
-# RUN python -m pip install pip -U
-RUN python -m pip install wheel
-RUN python -m pip install cython
-#RUN python -m pip install cpython==0.0.6
 
-# data manipulation
-RUN python -m pip install numpy==1.23.5
-RUN python -m pip install scipy==1.11.1
-RUN python -m pip install sympy
-RUN python -m pip install pandas==1.5.1
 
 # coralme
-RUN python -m pip install cobra==0.26.3
-RUN python -m pip install python-libsbml
-RUN python -m pip install Biopython==1.80
-RUN python -m pip install anyconfig==0.13.0
-RUN python -m pip install pyranges
-RUN python -m pip install xlsxwriter
-RUN python -m pip install openpyxl
-RUN python -m pip install jsonschema
-RUN python -m pip install tqdm
+RUN python -m pip install coralme
 
 # jupyter and plot
 RUN python -m pip install ipykernel
 RUN python -m pip install matplotlib
 RUN python -m pip install seaborn
 RUN python -m pip install notebook
-RUN python -m pip install versioneer
-RUN python -m pip install importlib-metadata
-
-# Copy coralme to image
-RUN mkdir /root/coralme
-ADD ./coralme /root/coralme
-COPY ./setup.py /root/setup.py
-COPY ./README.rst /root/README.rst
-COPY ./setup.cfg /root/setup.cfg
-WORKDIR /root/
-RUN python setup.py clean build install
 
 # Install jupyter notebook extensions (not working)
-# RUN python3 -m pip install jupyter_nbextensions_configurator nbserverproxy
+# RUN python -m pip install jupyter_nbextensions_configurator nbserverproxy
 
 # Download the coralme tutorial
 # RUN mkdir -p /opt/notebooks/coralme-tutorial
@@ -71,7 +43,7 @@ RUN python setup.py clean build install
 # RUN rm -rf docs .git
 
 # Set the working directory
-WORKDIR /opt/notebooks
+WORKDIR /opt
 
 # Set jupyter configuration
 RUN jupyter notebook --generate-config
@@ -79,4 +51,4 @@ RUN jupyter notebook --generate-config
 COPY ./jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
 
 # Initiate jupyter server at runtime
-CMD ["jupyter", "notebook", "--notebook-dir=/opt", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root","--NotebookApp.token=''","--NotebookApp.password=''"]
+CMD ["jupyter", "notebook", "--notebook-dir=/opt", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]

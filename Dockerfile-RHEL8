@@ -1,5 +1,5 @@
-# Use the rocky linux official image as parent image
-FROM rockylinux:8.8
+# Use the RHEL official image as parent image
+FROM redhat/ubi8:latest
 
 # set shell
 RUN export SHELL=/bin/bash
@@ -7,12 +7,15 @@ RUN export SHELL=/bin/bash
 # Update
 # RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN dnf upgrade -y
-RUN dnf install epel-release -y
-RUN dnf install -y dialog #apt-utils
+RUN dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm # dnf install epel-release
+RUN dnf install -y bash-completion
 RUN dnf install -y htop git gcc nano make which
 RUN dnf install -y python38 python38-devel
-RUN dnf install -y gcc-gfortran #libgfortran5
-RUN dnf install -y glpk #libglpk-dev
+RUN dnf install -y gcc-gfortran
+RUN dnf install -y gcc-toolset-12
+RUN scl enable gcc-toolset-12 bash
+
+# RUN dnf install -y glpk #libglpk-dev
 # RUN dnf install -y ncbi-blast+
 
 # Install ZenglerLab coralme software stack
@@ -20,16 +23,16 @@ RUN dnf install -y glpk #libglpk-dev
 ENV PYTHONPATH=$PYTHONPATH:/usr/local/lib64/python3.8/site-packages
 
 # coralme
-RUN python -m pip install coralme
+RUN python3 -m pip install coralme
 
 # jupyter and plot
-RUN python -m pip install ipykernel
-RUN python -m pip install matplotlib
-RUN python -m pip install seaborn
-RUN python -m pip install notebook
+RUN python3 -m pip install ipykernel
+RUN python3 -m pip install matplotlib
+RUN python3 -m pip install seaborn
+RUN python3 -m pip install notebook
 
 # Install jupyter notebook extensions (not working)
-# RUN python -m pip install jupyter_nbextensions_configurator nbserverproxy
+# RUN python3 -m pip install jupyter_nbextensions_configurator nbserverproxy
 
 # Download the coralme tutorial
 # RUN mkdir -p /opt/notebooks/coralme-tutorial

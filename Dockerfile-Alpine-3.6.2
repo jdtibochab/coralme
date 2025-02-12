@@ -1,5 +1,4 @@
 # Use the alpine image as parent image
-# FROM alpine-3.6
 FROM sbrg/cobrame:dependencies
 
 # compile glpk
@@ -14,23 +13,24 @@ RUN make install
 WORKDIR /opt/coralme
 
 # Install ZenglerLab coralme software stack
-# RUN python -m pip install pip -U
-RUN python3 -m pip install numpy==1.14.3
-RUN python3 -m pip install jsonschema==2.6.0
-RUN python3 -m pip install matplotlib==2.2.2
-RUN python3 -m pip install tqdm
-RUN python3 -m pip install cobra==0.25.0 --no-deps
-RUN python3 -m pip install appdirs==1.4.4
-RUN python3 -m pip install optlang==1.6
-RUN python3 -m pip install Biopython
-RUN python3 -m pip install anyconfig
-RUN python3 -m pip install pyranges --no-deps
-RUN python3 -m pip install xlsxwriter
-RUN python3 -m pip install openpyxl
+# general purpose
 
-# # Download the coralme tutorial
-# RUN mkdir -p /opt/coralme/coralme-tutorial
-# WORKDIR /opt/coralme/coralme-tutorial
+
+# coralme
+RUN python -m pip install coralme
+
+# jupyter and plot
+RUN python -m pip install ipykernel
+RUN python -m pip install matplotlib
+RUN python -m pip install seaborn
+RUN python -m pip install notebook
+
+# Install jupyter notebook extensions (not working)
+# RUN python -m pip install jupyter_nbextensions_configurator nbserverproxy
+
+# Download the coralme tutorial
+# RUN mkdir -p /opt/notebooks/coralme-tutorial
+# WORKDIR /opt/notebooks/coralme-tutorial
 # RUN git init
 # RUN git remote add -f origin https://github.com/ZenglerLab/coralme
 # RUN git config core.sparseCheckout true
@@ -40,10 +40,13 @@ RUN python3 -m pip install openpyxl
 # RUN mv docs/helper_files .
 # RUN rm -rf docs .git
 
+# Set the working directory
+WORKDIR /opt
+
 # Set jupyter configuration
-# RUN jupyter notebook --generate-config
+RUN jupyter notebook --generate-config
 # RUN wget https://raw.githubusercontent.com/glucksfall/zenglerlab/master/jupyter_notebook_config.json --directory-prefix=/root/.jupyter
-# COPY ./jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
+COPY ./jupyter_notebook_config.json /root/.jupyter/jupyter_notebook_config.json
 
 # Initiate jupyter server at runtime
-# CMD ["jupyter", "notebook", "--notebook-dir=/opt/coralme", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root"]
+CMD ["jupyter", "notebook", "--notebook-dir=/opt", "--port=8888", "--no-browser", "--ip=0.0.0.0", "--allow-root", "--NotebookApp.token=''", "--NotebookApp.password=''"]
