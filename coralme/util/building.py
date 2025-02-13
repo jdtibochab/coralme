@@ -1114,17 +1114,17 @@ def add_reactions_from_stoichiometric_data(
 		# complexes that catalyze the reaction
 		complexes_list = rxn_to_cplx_dict.get(reaction_data.id, [None])
 
+		if reaction_data.upper_bound == 0 and reaction_data.lower_bound == 0:
+			#directionality_list.append('forward')
+			logging.warning('Associated reactions to \'{:s}\' cannot carry flux. Please check if it is the correct behavior.'.format(reaction_data.id))
+
 		# Add metabolic reactions for each isozyme
 		for complex_id in complexes_list:
-
-			directionality_list = []
-			if reaction_data.lower_bound <= 0:
-				directionality_list.append('reverse')
-			if reaction_data.upper_bound >= 0:
-				directionality_list.append('forward')
-			if reaction_data.upper_bound == 0 and reaction_data.lower_bound == 0:
-				#directionality_list.append('forward')
-				logging.warning('Reaction \'{:s}\' cannot carry flux. Please check if it is the correct behavior.'.format(reaction_data.id))
+			if complex_id in reaction_data.stoichiometry.keys():
+				logging.warning('Associated reverse reaction to \'{:s}\' cannot be added into the ME-model. Currently, only enzymes that are not part of the stoichiometry are allowed.'.format(reaction_data.id))
+				directionality_list = ['forward']
+			else:
+				directionality_list = ['reverse', 'forward']
 
 			for directionality in directionality_list:
 				add_metabolic_reaction_to_model(
