@@ -2722,9 +2722,9 @@ class MEReconstruction(MEBuilder):
 			if mapped_keffs:
 				for rxn, keff in tqdm.tqdm(sorted(mapped_keffs.items(), key = lambda x: x[0].id), 'Setting the effective turnover rates using user input...', bar_format = bar_format):
 					if isinstance(rxn, coralme.core.reaction.MetabolicReaction):
-						rxn.coupling_coefficient_enzyme = float(keff)
+						rxn.coupling_coefficient_enzyme = float(keff) * me.unit_registry.parse_units('1 per second')
 					if isinstance(rxn, coralme.core.processdata.SubreactionData):
-						rxn.coupling_coefficient_subreaction = float(keff)
+						rxn.coupling_coefficient_subreaction = float(keff) * me.unit_registry.parse_units('1 per second')
 					# update() will convert the coupling coefficient into mu / value / 3600.
 					if hasattr(rxn, 'update'): # subreactions has no update attribute
 						rxn.update()

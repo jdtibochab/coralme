@@ -12,6 +12,7 @@ import tqdm
 bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 import numpy
 import pandas
+import pint
 import scipy
 import sympy
 import cobra
@@ -37,6 +38,8 @@ class MEModel(cobra.core.object.Object):
 
 		self.global_info = {
 			'domain' : 'Prokaryote',
+			'growth_key' : mu,
+			'ME-Model-ID' : id_or_model,
 
 			'dnapol_id' : 'DNAP',
 			'ribosome_id' : 'ribosome',
@@ -207,29 +210,36 @@ class MEModel(cobra.core.object.Object):
 			'braun\'s_murein_flux' : -0.0,
 
 			'default_parameters' : {
-				sympy.Symbol('k_t', positive = True) : 4.5,
-				sympy.Symbol('r_0', positive = True) : 0.087,
-				sympy.Symbol('k^mRNA_deg', positive = True) : 12.0,
-				sympy.Symbol('m_rr', positive = True) : 1453.0,
-				sympy.Symbol('m_aa', positive = True) : 0.109,
-				sympy.Symbol('m_nt', positive = True) : 0.324,
-				sympy.Symbol('f_rRNA', positive = True) : 0.86,
-				sympy.Symbol('f_mRNA', positive = True) : 0.02,
-				sympy.Symbol('f_tRNA', positive = True) : 0.12,
-				sympy.Symbol('m_tRNA', positive = True) : 25.0,
-				sympy.Symbol('k^default_cat', positive = True) : 65.0,
-				sympy.Symbol('temperature', positive = True) : 37.0,
-				sympy.Symbol('propensity_scaling', positive = True) : 0.45
+				sympy.Symbol('k_t', positive = True) : 4.5, # per hour
+				sympy.Symbol('r_0', positive = True) : 0.087, # dimensionless
+				sympy.Symbol('k^mRNA_deg', positive = True) : 12.0, # per hour
+				sympy.Symbol('m_rr', positive = True) : 1453.0, # kDa = g per millimole
+				sympy.Symbol('m_aa', positive = True) : 0.109, # kDa = g per millimole
+				sympy.Symbol('m_nt', positive = True) : 0.324, # kDa = g per millimole
+				sympy.Symbol('f_rRNA', positive = True) : 0.86, # dimensionless, between 0 and 1
+				sympy.Symbol('f_mRNA', positive = True) : 0.02, # dimensionless, between 0 and 1
+				sympy.Symbol('f_tRNA', positive = True) : 0.12, # dimensionless, between 0 and 1
+				sympy.Symbol('m_tRNA', positive = True) : 25.0, # kDa = g per millimole
+				sympy.Symbol('k^default_cat', positive = True) : 65.0, # per second, internally converted to per hour
+				sympy.Symbol('temperature', positive = True) : 37.0, # kelvin
+				sympy.Symbol('propensity_scaling', positive = True) : 0.45 # dimensionless
 				}
 			}
 
 		# model parameters as symbols
+		# Create a unit registry
+		ureg = pint.UnitRegistry()
+		self.unit_registry = ureg
+
 		self.symbols = {}
-		for var in ['k_t', 'r_0', 'k^mRNA_deg', 'm_rr', 'm_aa', 'm_nt', 'f_rRNA', 'f_mRNA', 'f_tRNA', 'm_tRNA', 'k^default_cat', 'temperature', 'propensity_scaling']:
-			self.symbols[var] = sympy.Symbol(var, positive = True)
+		for var, unit in [('P', 'grams per gram'), ('R', 'grams per gram'), ('k_t', '1 per hour'), ('r_0', None), ('k^mRNA_deg', '1 per hour'), ('m_rr', 'gram per mmol'), ('m_aa', 'gram per mmol'), ('m_nt', 'gram per mmol'), ('f_rRNA', None), ('f_mRNA', None), ('f_tRNA', None), ('m_tRNA', 'gram per mmol'), ('k^default_cat', '1 per second'), ('temperature', 'K'), ('propensity_scaling', None)]:
+			if unit is None:
+				self.symbols[var] = ureg.Quantity(sympy.Symbol(var, positive = True))
+			else:
+				self.symbols[var] = sympy.Symbol(var, positive = True) * ureg.parse_units(unit)
 
 		# set growth rate symbolic variable
-		self._mu = sympy.Symbol(mu, positive = True)
+		self._mu = sympy.Symbol(mu, positive = True) * ureg.parse_units('1 per hour')
 		# allows the change of symbolic variables through the ME-model object
 		self._mu_old = self.mu
 
@@ -237,11 +247,24 @@ class MEModel(cobra.core.object.Object):
 		# WARNING: The equation are written following O'Brien 2013 paper, no COBRAme documentation
 		# https://www.embopress.org/doi/full/10.1038/msb.2013.52#supplementary-materials
 		# Empirical relationship between measured ratio of RNA (R) to Protein (P)
+		self.symbols['P'] # grams of amino acids per gDW
+		self.symbols['R'] # grams of nucleotides per gDW
+
+		# [R/P] = grams of nucleotides per grams of amino acids := dimensionless
 		self.symbols['R/P'] = (self._mu / self.symbols['k_t']) + self.symbols['r_0'] # eq 1, page 15
+		# [P/R] = grams of amino acids per grams of nucleotides := dimensionless
+		self.symbols['P/R'] = 1. / self.symbols['R/P']
 
 		# 70S ribosomes (page 16)
-		self.symbols['c_ribo'] = self.symbols['m_rr'] / (self.symbols['m_aa'] * self.symbols['f_rRNA']) # eq 2, page 16
+		# this is Ps in the supplementary material; [Ps] = millimoles of average amino acids per gDW per hour
+		self.symbols['p_rate'] = self._mu * self.symbols['P'] / self.symbols['m_aa']
+		# [R times f_rRNA] = grams of nucleotides in rRNA per gDW
+		# this is nr in the supplementary material; [nr] = millimoles of nucleotides in rRNA per gDW
+		self.symbols['n_ribo'] = self.symbols['R'] * self.symbols['f_rRNA'] / self.symbols['m_rr']
+
 		# Hyperbolic ribosome catalytic rate
+		self.symbols['c_ribo'] = self.symbols['m_rr'] / (self.symbols['m_aa'] * self.symbols['f_rRNA']) # eq 2, page 16
+		# [kribo = p_rate / n_ribo] = millimoles of average amino acids per millimoles of nucleotides in rRNA per hour := per hour
 		self.symbols['k_ribo'] = self.symbols['c_ribo'] * self._mu / self.symbols['R/P']
 		# WARNING: the ribosome coupling coefficient in translation reactions is 'v_ribo' times protein length
 		self.symbols['v_ribo'] = 1. / (1. * self.symbols['k_ribo'] / self._mu) # page 17
@@ -269,7 +292,7 @@ class MEModel(cobra.core.object.Object):
 		self.symbols['k_tRNA'] = self.symbols['c_tRNA'] * self._mu / self.symbols['R/P']
 
 		# Remaining Macromolecular Synthesis Machinery
-		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'] / 3600.) / self._mu) # page 20, k^default_cat in 1/s
+		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'].to('1 per hour')) / self._mu) # page 20, k^default_cat in 1/s
 
 		# Create basic M-model structures
 		self.reactions = cobra.core.dictlist.DictList()
@@ -305,6 +328,17 @@ class MEModel(cobra.core.object.Object):
 		# troubleshooting flags
 		self.troubleshooted = False
 		self.troubleshooting = False
+
+	def __getstate__(self):
+		state = self.__dict__.copy()
+		# Don't pickle unit_registry
+		del state["unit_registry"]
+		return state
+
+	def __setstate__(self, state):
+		self.__dict__.update(state)
+		# Add unit_registry back since it doesn't exist in the pickle
+		self.unit_registry = pint.UnitRegistry()
 
 	def perform_gene_knockouts(self, genes):
 		return coralme.util.essentiality.perform_gene_knockouts(self, genes)
@@ -408,22 +442,31 @@ class MEModel(cobra.core.object.Object):
 		return self._mu
 
 	@mu.setter
-	def mu(self, value):
+	def mu(self, value: str):
 		# set growth rate symbolic variable
 		self._mu_old = self._mu
-		self._mu = sympy.Symbol(value, positive = True)
+		self._mu = sympy.Symbol(value, positive = True) * self.unit_registry.parse_units('1 per hour')
 
 		if self._mu_old == self._mu:
 			return # doing nothing because user changed to the current mu
 
 		for rxn in self.reactions:
 			if hasattr(rxn.lower_bound, 'subs'):
-				rxn._lower_bound = rxn.lower_bound.subs({ self._mu_old : self.mu })
+				rxn.lower_bound = rxn.lower_bound.magnitude.subs({ self._mu_old.magnitude : self._mu.magnitude }) * self.unit_registry.parse_units('1 per hour')
 			if hasattr(rxn.upper_bound, 'subs'):
-				rxn._upper_bound = rxn.upper_bound.subs({ self._mu_old : self.mu })
+				rxn.upper_bound = rxn.upper_bound.magnitude.subs({ self._mu_old.magnitude : self._mu.magnitude }) * self.unit_registry.parse_units('1 per hour')
 			for met, coeff in rxn.metabolites.items():
 				if hasattr(coeff, 'subs'):
-					rxn._metabolites[met] = coeff.subs({ self._mu_old : self.mu })
+					rxn._metabolites[met] = coeff.subs({ self._mu_old.magnitude : self._mu.magnitude }) * self.unit_registry.parse_units('dimensionless')
+
+		for symbol, fn in self.symbols.items():
+			if hasattr(fn, 'units'):
+				if str(fn.units) == 'dimensionless':
+					fn.magnitude.subs({ self._mu_old.magnitude : self._mu.magnitude }) * self.unit_registry.parse_units('dimensionless')
+				else:
+					self.symbols[symbol] = fn.magnitude.subs({ self._mu_old.magnitude : self._mu.magnitude }) * self.unit_registry.parse_units(str(fn.units))
+			else:
+				self.symbols[symbol] = fn.subs({ self._mu_old.magnitude : self._mu.magnitude })
 
 	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
 	@property
@@ -650,6 +693,10 @@ class MEModel(cobra.core.object.Object):
 					else:
 						setattr(reaction, key, self.process_data.get_by_id(value.id))
 				delattr(reaction, 'process_data')
+
+			# WARNING: units system is associated to the model
+			reaction.lower_bound = reaction.lower_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+			reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 
 		self.reactions += pruned
 
@@ -1432,13 +1479,13 @@ class MEModel(cobra.core.object.Object):
 				met_index = self.metabolites.index(met)
 				if hasattr(value, 'subs'):
 					# atoms.add(list(value.free_symbols)[0])
-					# if two or more ME-models are merged, detect if 'mu' is unique
+					# TODO: if two or more ME-models are merged, detect if 'mu' is unique
 					atoms.update(list(value.free_symbols))
 					Se[met_index, idx] = value
 				else:
 					Sf[met_index, idx] = value
 
-		lb, ub = zip(*[ rxn.bounds for rxn in self.reactions ])
+		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
 		b = [ m._bound for m in self.metabolites ] # accumulation
 		c = [ r.objective_coefficient for r in self.reactions ]
 		# constraint sense eventually will be in the metabolite object
@@ -1929,7 +1976,7 @@ class MEModel(cobra.core.object.Object):
 				del self.solution
 			return False
 
-	def feasibility(self, keys = { sympy.Symbol('mu', positive = True) : 0.001 }, tolerance = 1e-6, precision = 'quad', basis = None, **kwargs):
+	def feasibility(self, keys = dict(), tolerance = 1e-6, precision = 'quad', basis = None, **kwargs):
 		if not hasattr(self, 'construct_lp_problem'):
 			raise ValueError('The model is not a coralME M-model or ME-model.')
 
@@ -1937,8 +1984,13 @@ class MEModel(cobra.core.object.Object):
 		tolerance = tolerance if tolerance >= 1e-15 else 1e-6
 		precision = precision if precision in [ 'quad', 'double', 'dq', 'dqq' ] else 'quad'
 
+		if len(keys.items()) == 0.:
+			keys = { self.mu.magnitude : 0.001 }
+
 		for key in list(keys.keys()):
-			if isinstance(key, sympy.Symbol):
+			if isinstance(key, pint.Quantity):
+				keys[key.magnitude] = keys.pop(key)
+			elif isinstance(key, sympy.Symbol):
 				pass
 			else:
 				keys[sympy.Symbol(key, positive = True)] = keys.pop(key)

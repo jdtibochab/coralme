@@ -19,7 +19,8 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 			rrna_mod.enzyme = mod_data.enzymes.split(' AND ') if mod_data.enzymes != 'No_Machine' else ['CPLX_dummy']
 			#rrna_mod.stoichiometry = modification_info[mod_data.modification]['metabolites']
 			rrna_mod.stoichiometry = me_model.process_data.get_by_id(mod_data.modification).stoichiometry
-			rrna_mod.keff = 65. # iOL uses 65. for all RNA mods
+			# rrna_mod.keff = 65. # iOL uses 65. for all RNA mods
+			rrna_mod.coupling_coefficient_subreaction = 65. * me_model.unit_registry.parse_units('1 per second') # iOL uses 65. for all RNA mods
 
 			# Add element contribution from modification to rRNA
 			#rrna_mod._element_contribution = modification_info[mod_data.modification]['elements']

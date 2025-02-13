@@ -1,6 +1,7 @@
 import tqdm
 bar_format = '{desc:<75}: {percentage:.1f}%|{bar}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 
+import pint
 import sympy
 import coralme
 
@@ -147,7 +148,7 @@ _METABOLITE_TYPE_DEPENDENCIES = {
 		]
 	}
 
-def get_sympy_expression(value, growth_key):
+def get_sympy_expression(value, growth_key, symbols):
 	"""
 	Return sympy expression from json string using sympify
 
@@ -168,11 +169,12 @@ def get_sympy_expression(value, growth_key):
 	"""
 	# The json file includes the 'mu' key in dct['global_info']['growth_key'] as a string
 	# We use dct['global_info']['growth_key'] to set a sympy.Symbol called 'growth_key'
-	expression_value = sympy.sympify(value)
-	if isinstance(expression_value, (sympy.core.numbers.Float, sympy.core.numbers.One, sympy.core.numbers.NegativeOne, sympy.core.numbers.Integer)):
-		return float(expression_value)
+	if isinstance(value, (float, int)):
+		return float(value)
 	else:
-		return expression_value.subs(str(growth_key), growth_key)
+		expression_value = sympy.sympify(value)
+		# return expression_value.subs(str(growth_key.magnitude), growth_key) # replaces only mu
+		return expression_value.subs(symbols).subs(str(growth_key.magnitude), growth_key)
 
 def get_numeric_from_string(string):
 	"""
@@ -195,10 +197,14 @@ def get_numeric_from_string(string):
 
 def _fix_type(value):
 	"""convert possible types to str, float, and bool"""
+	# New units system can not be pickle to json
+	if isinstance(value, pint.Quantity):
+		value = value.magnitude
+
 	# Because numpy floats can not be pickled to json
 	if isinstance(value, str):
 		return str(value)
-	if isinstance(value, float):
+	if isinstance(value, (float, sympy.core.numbers.Float)):
 		return float(value)
 	if isinstance(value, bool):
 		return bool(value)
@@ -223,10 +229,11 @@ def _reaction_to_dict(reaction):
 		reaction_attribute = getattr(reaction, attribute)
 		new_reaction['reaction_type'][reaction_type][attribute] = _fix_type(reaction_attribute)
 
-	# Add metabolites
+	# Add metabolites # not needed as metabolites are added from process_data
 	new_reaction['metabolites'] = {}
-	for met, value in reaction.metabolites.items():
-		new_reaction['metabolites'][met.id] = _fix_type(value)
+	if reaction_type in ['SummaryVariable', 'MEReaction']:
+		for met, value in reaction.metabolites.items():
+			new_reaction['metabolites'][met.id] = _fix_type(value)
 
 	return new_reaction
 
@@ -350,7 +357,6 @@ def _add_metabolite_from_dict(model, metabolite_info):
 	# ProcessedProtein types require their unprocessed protein id as well
 	if metabolite_type == 'ProcessedProtein':
 		unprocessed_id = metabolite_type_dict['ProcessedProtein']['unprocessed_protein_id']
-
 		metabolite_obj = getattr(coralme.core.component, metabolite_type)(metabolite_info['id'], unprocessed_id)
 
 	elif metabolite_type == 'TranscribedGene':
@@ -368,6 +374,8 @@ def _add_metabolite_from_dict(model, metabolite_info):
 		setattr(metabolite_obj, attribute, value)
 
 	model.add_metabolites([metabolite_obj])
+
+	return metabolite_obj
 
 def _add_process_data_from_dict(model, process_data_dict):
 	"""
@@ -434,6 +442,8 @@ def _add_process_data_from_dict(model, process_data_dict):
 			# set to the hidden attribute instead
 			setattr(process_data, '_' + attribute, value)
 
+	return process_data
+
 def _add_reaction_from_dict(model, reaction_info):
 	"""
 	Builds reaction instances defined in dictionary, then add it to the
@@ -448,6 +458,8 @@ def _add_reaction_from_dict(model, reaction_info):
 	else:
 		raise Exception('Only 1 reaction_type in valid json')
 
+	# WARNING: The unit here is a trick to convert the unit of growth_key back to 1 per hour when setting new bounds
+	trick = model.unit_registry.parse_units('gram hour per mmols')
 	for attribute in _REQUIRED_REACTION_ATTRIBUTES:
 		# Metabolites are added to reactions using their update function,
 		# skip setting metabolite stoichiometries here
@@ -456,8 +468,8 @@ def _add_reaction_from_dict(model, reaction_info):
 
 		# upper and lower bounds may contain mu values. Handle that here
 		value = reaction_info[attribute]
-		if attribute in ['upper_bound', 'lower_bound']:
-			value = get_sympy_expression(value, model.global_info['growth_key'])
+		if attribute in ['upper_bound', 'lower_bound'] and isinstance(value, str):
+			value = get_sympy_expression(value, model.mu, model.symbols) * trick
 		setattr(reaction_obj, attribute, value)
 
 	# Some reactions are added to model when ME-models are initialized
@@ -468,11 +480,10 @@ def _add_reaction_from_dict(model, reaction_info):
 		if reaction_type not in ['SummaryVariable', 'GenericFormationReaction'] and not reaction_obj.id.startswith('DM_'):
 			warn('Reaction ({:s}) already in model'.format(reaction_obj.id))
 
-	# These reactions types do not have update functions and need their
-	# stoichiometries set explicitly .
+	# These reaction types do not have update functions and need their stoichiometries set explicitly.
 	if reaction_type in ['SummaryVariable', 'MEReaction']:
 		for key, value in reaction_info['metabolites'].items():
-			reaction_obj.add_metabolites({model.metabolites.get_by_id(key): get_sympy_expression(value, model.global_info['growth_key'])}, combine=False)
+			reaction_obj.add_metabolites({model.metabolites.get_by_id(key): get_sympy_expression(value, model.mu, model.symbols)}, combine=False)
 
 	for attribute in _REACTION_TYPE_DEPENDENCIES.get(reaction_type, []):
 		# Spontaneous reactions do no require complex_data
@@ -484,6 +495,8 @@ def _add_reaction_from_dict(model, reaction_info):
 
 	if hasattr(reaction_obj, 'update'):
 		reaction_obj.update()
+
+	return reaction_obj
 
 def me_model_from_dict(obj):
 	"""
@@ -502,10 +515,13 @@ def me_model_from_dict(obj):
 		Full COBRAme ME-model
 	"""
 
-	model = coralme.core.model.MEModel(mu = obj['global_info']['growth_key'])
+	model = coralme.core.model.MEModel(id_or_model = obj['global_info']['ME-Model-ID'], name = obj['global_info']['ME-Model-ID'], mu = obj['global_info']['growth_key'])
+	# MEModel is created with 1 metabolite and 1 reaction
+	model.reactions[0].remove_from_model()
+	model.metabolites[0].remove_from_model()
 
 	for k, v in obj.items():
-		if k in {'id', 'name', 'global_info'}:
+		if k in {'id', 'name', 'global_info'} and v != 'growth_key':
 			setattr(model, k, v)
 
 	# If the ME-model was saved with coralME v1.0,
@@ -513,6 +529,7 @@ def me_model_from_dict(obj):
 	# Also, the for-loop will set 'global_info' using the json file,
 	# overwriting global_info set by MEModel.__init__()
 	if not 'default_parameters' in model.global_info:
+		# model.default_parameters is a method that set up model.global_info['default_parameters']
 		model.default_parameters = {
 			'kt' : obj['global_info']['kt'],
 			'r0' : obj['global_info']['r0'],
@@ -544,8 +561,6 @@ def me_model_from_dict(obj):
 			'temperature' : obj['global_info']['default_parameters']['temperature'],
 			'propensity_scaling' : obj['global_info']['default_parameters']['propensity_scaling']
 			}
-
-	model.global_info['growth_key'] = sympy.Symbol(model.global_info['growth_key'], positive = True)
 
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
 		_add_metabolite_from_dict(model, metabolite)

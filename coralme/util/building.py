@@ -1056,8 +1056,9 @@ def add_metabolic_reaction_to_model(me_model, stoichiometric_data_id, directiona
 
 	r = coralme.core.reaction.MetabolicReaction(''.join([stoichiometric_data_id, direction, complex_id]))
 	me_model.add_reactions([r])
-	#r.keff = keff
-	r.coupling_coefficient_enzyme = keff # This will set mu/keff in per hour
+	#r.keff = keff # DEPRECATED
+	# This will convert keff internally to per hour
+	r.coupling_coefficient_enzyme = keff * me_model.unit_registry.parse_units('1 per second')
 	r.stoichiometric_data = stoichiometric_data
 	r.reverse = reverse_flag
 

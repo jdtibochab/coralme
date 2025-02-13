@@ -5,7 +5,7 @@ import pandas
 import sympy
 import tqdm
 import re
-
+import pint
 
 def exchange_single_model(me, flux_dict = 0, solution=0):
 	"""
@@ -123,8 +123,8 @@ def flux_based_reactions(model,
 			print('Could not convert expression to float in {}'.format(rxn.id))
 			continue
 		try:
-			result_dict[rxn.id]['lb'] = rxn.lower_bound if isinstance(rxn.lower_bound, sympy.Symbol) else float(rxn.lower_bound)
-			result_dict[rxn.id]['ub'] = rxn.upper_bound if isinstance(rxn.upper_bound, sympy.Symbol) else float(rxn.upper_bound)
+			result_dict[rxn.id]['lb'] = rxn.lower_bound.magnitude if isinstance(rxn.lower_bound, pint.Quantity) else rxn.lower_bound
+			result_dict[rxn.id]['ub'] = rxn.upper_bound.magnitude if isinstance(rxn.upper_bound, pint.Quantity) else rxn.upper_bound
 		except:
 			print('Could not convert bounds to float in {}'.format(rxn.id))
 

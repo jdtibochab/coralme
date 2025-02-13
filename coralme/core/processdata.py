@@ -197,7 +197,8 @@ class SubreactionData(ProcessData):
 		ProcessData.__init__(self, id, model)
 		self.stoichiometry = {}
 		self.enzyme = None
-		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, evaluate = False)
+		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, evaluate = False)
+		self._coupling_coefficient_subreaction = self._model.mu * model.symbols['k^default_cat'].to('1 per hour')**-1
 		self._element_contribution = {}
 
 	# Backward compatibility
@@ -206,7 +207,8 @@ class SubreactionData(ProcessData):
 		"""
 		returns the keff value, not the coupling coefficient, in per second
 		"""
-		value = self._model.mu * sympy.Rational('1/3600') / self._coupling_coefficient_subreaction
+		# value = self._model.mu * sympy.Rational('1/3600') / self._coupling_coefficient_subreaction
+		value = (self._model.mu / self._coupling_coefficient_subreaction).to('1 per second')
 		try:
 			return float(value)
 		except:
@@ -216,25 +218,26 @@ class SubreactionData(ProcessData):
 	@keff.setter
 	def keff(self, value):
 		"""
-		value is the keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		value is the keff in per second, not the coupling coefficient
 		"""
-		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		self._coupling_coefficient_subreaction = self._model.mu * value.to('1 per hour')**-1
 
 	@property
 	def coupling_coefficient_subreaction(self):
 		"""
-		returns the coupling coefficient, not the keff value, in per hour
+		returns the coupling coefficient as growth rate divided by the keff
 		"""
 		return self._coupling_coefficient_subreaction
 
 	@coupling_coefficient_subreaction.setter
 	def coupling_coefficient_subreaction(self, value):
 		"""
-		value is the keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		value is the keff in per second, not the coupling coefficient
+		this sets the coupling coefficient as growth rate divided by the keff
 		"""
-		self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		self._coupling_coefficient_subreaction = self._model.mu * value.to('1 per hour')**-1
 
 	@property
 	def element_contribution(self):
@@ -505,7 +508,8 @@ class TranscriptionData(ProcessData):
 		self.organelle = organelle
 
 		self._subreactions = collections.defaultdict(int)
-		self._coupling_coefficient_rnapol = sympy.Mul(len(nucleotide_sequence), model.symbols['v_rnap'], evaluate = False)
+		# self._coupling_coefficient_rnapol = sympy.Mul(len(nucleotide_sequence), model.symbols['v_rnap'], evaluate = False)
+		self._coupling_coefficient_rnapol = len(nucleotide_sequence) * model.symbols['v_rnap']
 
 	@property
 	def coupling_coefficient_rnapol(self):
@@ -848,9 +852,11 @@ class TranslationData(ProcessData):
 		self.notes = []
 
 		self.subreactions = collections.defaultdict(int)
-		self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
+		# self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
+		self._coupling_coefficient_ribosome = len(translation) * model.symbols['v_ribo']
 		self._coupling_coefficient_rna_synthesis = self._model.symbols['rna_amount'] + self._model.symbols['deg_amount']
-		self._coupling_coefficient_hydrolysis = sympy.Mul((len(nucleotide_sequence) - 1) / 4., self._model.symbols['deg_amount'], evaluate = False) # deg_amount
+		# self._coupling_coefficient_hydrolysis = sympy.Mul((len(nucleotide_sequence) - 1) / 4., self._model.symbols['deg_amount'], evaluate = False) # deg_amount
+		self._coupling_coefficient_hydrolysis = ((len(nucleotide_sequence) - 1) / 4.) * self._model.symbols['deg_amount']
 		self._translational_efficiency = 1.
 
 	@property
@@ -1226,8 +1232,10 @@ class tRNAData(ProcessData):
 		self._synthetase_keff = self._model.symbols['k^default_cat']
 
 		self._coupling_coefficient_trna_keff = self._model.symbols['k_tRNA']
-		self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._coupling_coefficient_trna_keff**-1, evaluate = False)
-		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), self._synthetase_keff**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		# self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._coupling_coefficient_trna_keff**-1, evaluate = False)
+		self._coupling_coefficient_trna_amount = self._model.mu * self._coupling_coefficient_trna_keff**-1
+		# self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), self._synthetase_keff**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		self._coupling_coefficient_synthetase = self._model.mu * self._synthetase_keff.to('1 per hour')**-1 * (1 + self._coupling_coefficient_trna_amount)
 
 		self.organelle = None
 
@@ -1255,25 +1263,26 @@ class tRNAData(ProcessData):
 	@synthetase_keff.setter
 	def synthetase_keff(self, value):
 		"""
-		value is the synthetase keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount), in per hour
+		value is the synthetase keff in per second, not the coupling coefficient
+		this sets the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount)
 		"""
-		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		self._coupling_coefficient_synthetase = self._model.mu * value.to('1 per hour')**-1 * (1 + self._coupling_coefficient_trna_amount)
 
 	@property
 	def coupling_coefficient_synthetase(self):
 		"""
-		returns the coupling coefficient, not the synthetase keff value, in per hour
+		returns the coupling coefficient, not the synthetase keff value
 		"""
 		return self._coupling_coefficient_synthetase
 
 	@coupling_coefficient_synthetase.setter
 	def coupling_coefficient_synthetase(self, value):
 		"""
-		value is the synthetase keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount), in per hour
+		value is the synthetase keff in per second, not the coupling coefficient
+		this sets the coupling coefficient as growth rate divided by the keff times (1 + coupling_coefficient_trna_amount)
 		"""
-		self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		# self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
+		self._coupling_coefficient_synthetase = self._model.mu * value.to('1 per hour')**-1 * (1 + self._coupling_coefficient_trna_amount)
 
 class TranslocationData(ProcessData):
 	"""

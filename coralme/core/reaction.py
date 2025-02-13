@@ -1,6 +1,7 @@
 import copy
 import collections
 import operator
+import pint
 import sympy
 import typing
 
@@ -156,7 +157,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 		mass_balance = collections.Counter()
 		for met, value in self.metabolites.items():
-			value = value if isinstance(value, (float, int)) else float(value.subs(self._model.mu, 0.))
+			value = value if isinstance(value, (float, int)) else float(value.subs(self._model.mu.magnitude, 0.))
 			mass_balance.update({ k:(v*value) for k,v in collections.Counter(met.elements).items() })
 		mass_balance = { k:mass_balance[k] for k in sorted(mass_balance) if mass_balance[k] != 0 }
 		return mass_balance
@@ -215,13 +216,16 @@ class MEReaction(cobra.core.reaction.Reaction):
 					if old_stoich:
 						coeff = old_stoich[enzyme]
 						if hasattr(coeff,'subs'):
-							coeff = coeff.subs([(self._model.mu, 1e-6)])
+							coeff = coeff.subs([(self._model.mu.magnitude, 1e-6)])
 						# WARNING: Applies only to MetabolicReaction
 						# previously self._model.mu / subreaction_data.keff / 3600. * count * scale
 						# coupling_coefficient_subreaction == self._model.mu / subreaction_data.keff / 3600.
-						stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False) if coeff < 0 else 0
+						# stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False) if coeff < 0 else 0.
+						stoichiometry[enzyme] -= count * subreaction_data.coupling_coefficient_subreaction * scale if coeff < 0 else 0.
+
 					else:
-						stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False)
+						# stoichiometry[enzyme] -= sympy.Mul(count, subreaction_data.coupling_coefficient_subreaction, scale, evaluate = False)
+						stoichiometry[enzyme] -= count * subreaction_data.coupling_coefficient_subreaction * scale
 
 			# str to list in line 152
 			#elif isinstance(subreaction_data.enzyme, str):
@@ -642,8 +646,21 @@ class MEReaction(cobra.core.reaction.Reaction):
 		_check_bounds
 		"""
 		# Validate bounds before setting them.
-		self._check_bounds(value, self._upper_bound)
-		self._lower_bound = value
+		self._check_bounds(value, self._upper_bound) # if value < self._lower_bound
+
+		if hasattr(self._model, 'unit_registry'):
+			unit = self._model.unit_registry.parse_units('mmols per gram per hour')
+		else:
+			unit = 1.
+
+		if isinstance(value, pint.Quantity):
+			self._lower_bound = value
+		elif isinstance(value, sympy.core.symbol.Symbol):
+			self._lower_bound = value
+		elif isinstance(value, (float, int)):
+			self._lower_bound = float(value) * unit
+		else:
+			raise ValueError('The type of the provided lower bound value is not int, float, symbol.Symbol, or pint.Quantity')
 		#self.update_variable_bounds()
 
 	@property
@@ -683,8 +700,21 @@ class MEReaction(cobra.core.reaction.Reaction):
 		_check_bounds
 		"""
 		# Validate bounds before setting them.
-		self._check_bounds(self._lower_bound, value)
-		self._upper_bound = value
+		self._check_bounds(self._lower_bound, value) # if self._lower_bound < value
+
+		if hasattr(self._model, 'unit_registry'):
+			unit = self._model.unit_registry.parse_units('mmols per gram per hour')
+		else:
+			unit = 1.
+
+		if isinstance(value, pint.Quantity):
+			self._upper_bound = value
+		elif isinstance(value, sympy.core.symbol.Symbol):
+			self._upper_bound = value
+		elif isinstance(value, (float, int)):
+			self._upper_bound = float(value) * unit
+		else:
+			raise ValueError('The type of the provided upper bound value is not int, float, symbol.Symbol, or pint.Quantity')
 		#self.update_variable_bounds()
 
 	@property
@@ -720,8 +750,8 @@ class MEReaction(cobra.core.reaction.Reaction):
 		lower, upper = value
 		# Validate bounds before setting them.
 		self._check_bounds(lower, upper)
-		self._lower_bound = lower
-		self._upper_bound = upper
+		self.lower_bound = lower
+		self.upper_bound = upper
 		#self.update_variable_bounds()
 
 	def build_reaction_string(self, use_metabolite_names: bool = False) -> str:
@@ -751,7 +781,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			coefficient = self.metabolites[met]
 			name = str(getattr(met, id_type)) if str(getattr(met, id_type)) != '' else met.id
 			if isinstance(coefficient, sympy.core.symbol.Symbol) or isinstance(coefficient, sympy.core.mul.Mul) or isinstance(coefficient, sympy.core.add.Add):
-				if coefficient.subs([(self._model.mu, 1e-6)]) >= 0:
+				if coefficient.subs([(self._model.mu.magnitude, 1e-6)]) >= 0:
 					product_bits.append('[{:s}] '.format(_format(coefficient).strip()) + name)
 				else:
 					reactant_bits.append('[{:s}] '.format(_format(coefficient * -1).strip()) + name)
@@ -778,14 +808,14 @@ class MEReaction(cobra.core.reaction.Reaction):
 	def bound_violation(self):
 		if hasattr(self._model, 'solution') and self._model.solution.fluxes.get(self.id, None) is not None:
 			if hasattr(self.lower_bound, 'subs'):
-				lower_bound = float(self.lower_bound.subs(self._model.mu, self._model.solution.fluxes['biomass_dilution']))
+				lower_bound = float(self.lower_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
-				lower_bound = self.lower_bound
+				lower_bound = self.lower_bound.magnitude
 
 			if hasattr(self.upper_bound, 'subs'):
-				upper_bound = float(self.upper_bound.subs(self._model.mu, self._model.solution.fluxes['biomass_dilution']))
+				upper_bound = float(self.upper_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
-				upper_bound = self.upper_bound
+				upper_bound = self.upper_bound.magnitude
 
 			if lower_bound <= self._model.solution.fluxes[self.id] <= upper_bound:
 				return (False, )
@@ -831,9 +861,9 @@ class MEReaction(cobra.core.reaction.Reaction):
 				mu = self._model.solution.objective_value
 			else:
 				mu = self._model.solution.fluxes['biomass_dilution']
-			flux = r'{:g} ($\mu$= {:g})'.format(self._model.solution.fluxes[self.id], mu)
-			cost = r'{:g} ($\mu$= {:g})'.format(self._model.solution.reduced_costs[self.id], mu)
-			viol = r'{:s} ($\Delta$= {:g})'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
+			flux = r'{:g} ($\{:s}$ = {:g} per hour)'.format(self._model.solution.fluxes[self.id], str(self._model.mu.magnitude), mu)
+			cost = r'{:g} ($\{:s}$ = {:g} per hour)'.format(self._model.solution.reduced_costs[self.id], str(self._model.mu.magnitude), mu)
+			viol = r'{:s} ($\Delta$ = {:g} per hour)'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
 		else:
 			flux = cost = viol = 'ME-model not optimized/feasible'
 
@@ -851,7 +881,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			<tr><td><strong>Lower bound</strong></td><td>{lower}</td></tr>
 			<tr><td><strong>Upper bound</strong></td><td>{upper}</td></tr>
 			<tr><td><strong>Reaction type</strong></td><td>{rxn_type}</td></tr>
-			<tr><td><strong>Flux</strong></td><td>{flux}</td></tr>
+			<tr><td><strong>Flux (value)</strong></td><td>{flux}</td></tr>
 			<tr><td><strong>Reduced cost</strong></td><td>{cost}</td></tr>
 			<tr><td><strong>Bound violation</strong></td><td>{viol}</td></tr>
 			<tr><td><strong>Mass imbalance</strong></td><td>{mass_balance}</td></tr>
@@ -893,9 +923,9 @@ class MetabolicReaction(MEReaction):
 		MEReaction.__init__(self, id)
 		self._complex_data = None
 		self._stoichiometric_data = None
-		#self.keff = 65.  # in per second
+		self._keff = 65. # in per second
 		self.reverse = False
-		self._coupling_coefficient_enzyme = None
+		self._coupling_coefficient_enzyme = None # mu / keff (dimensionless)
 
 	# Backward compatibility
 	@property
@@ -903,31 +933,34 @@ class MetabolicReaction(MEReaction):
 		"""
 		returns the keff value, not the coupling coefficient, in per second
 		"""
-		return float(self._model.mu * sympy.Rational('1/3600') / self._coupling_coefficient_enzyme)
+		return self._keff
 
 	# Backward compatibility
 	@keff.setter
-	def keff(self, value):
+	def keff(self, value, unit = '1 per second'):
 		"""
-		value is the keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		value is the keff in per second, not the coupling coefficient
+		this sets the coupling coefficient as growth rate divided by the keff
 		"""
-		self._coupling_coefficient_enzyme = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		value = value if isinstance(value, pint.Quantity) else value * self._model.unit_registry.parse_units(unit)
+		self._keff = value
+		self._coupling_coefficient_enzyme = self._model.mu * value.to('1 per hour')**-1
 
 	@property
 	def coupling_coefficient_enzyme(self):
 		"""
-		returns the coupling coefficient, not the keff value, in per hour
+		returns the coupling coefficient, not the keff value
 		"""
 		return self._coupling_coefficient_enzyme
 
 	@coupling_coefficient_enzyme.setter
 	def coupling_coefficient_enzyme(self, value):
 		"""
-		value is the keff in per second, not the coupling coefficient in per hour
-		this returns the coupling coefficient as growth rate divided by the keff, in per hour
+		value is the keff in per second, not the coupling coefficient
+		this sets the coupling coefficient as growth rate divided by the keff
 		"""
-		self._coupling_coefficient_enzyme = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
+		self._keff = value
+		self._coupling_coefficient_enzyme = self._model.mu * value.to('1 per hour')**-1
 
 	@property
 	def complex_data(self):
@@ -1263,7 +1296,9 @@ class PostTranslationReaction(MEReaction):
 
 				# keff = translocation_data.keff
 				keff = 65. if fixed_keff else translocation_data.keff / length
-				enzyme_stoichiometry = multiplier * self._model.mu / keff / 3600.
+				keff = keff * self._model.unit_registry.parse_units('1 per second')
+				# enzyme_stoichiometry = multiplier * self._model.mu / keff / 3600.
+				enzyme_stoichiometry = multiplier * self._model.mu / keff.to('1 per hour')
 				stoichiometry[enzyme] -= enzyme_stoichiometry
 
 		return stoichiometry

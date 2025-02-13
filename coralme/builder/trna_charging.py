@@ -25,7 +25,8 @@ def add_trna_modification_procedures(me_model, trna_mods):
 				logging.warning('The tRNA modification \'{:s}\' was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
 				trna_mod.stoichiometry = {}
 
-			trna_mod.keff = 65.  # iOL uses 65 for all tRNA mods
+			# trna_mod.keff = 65. # iOL uses 65 for all tRNA mods
+			trna_mod.coupling_coefficient_subreaction = 65. * me_model.unit_registry.parse_units('1 per second') # iOL uses 65 for all tRNA mods
 
 			for met, stoich in trna_mod.stoichiometry.items():
 				if not me_model.metabolites.has_id(met):
