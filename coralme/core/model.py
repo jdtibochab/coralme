@@ -1816,14 +1816,14 @@ class MEModel(cobra.core.object.Object):
 		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = self.construct_lp_problem(lambdify = lambdify, per_position = True, as_dict = False)
 
 		# test max_mu
-		self.check_feasibility(keys = { self.mu:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
+		self.check_feasibility(keys = { self.mu.magnitude:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
 		if hasattr(self, 'solution') and self.solution.status == 'optimal':
 			return True
 		else:
 			for idx in range(1, maxIter + 1):
 				# Just a sequence of feasibility checks
 				muf = (min_mu + max_mu) / 2.
-				self.check_feasibility(keys = { self.mu:muf }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
+				self.check_feasibility(keys = { self.mu.magnitude:muf }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })
 
 				if hasattr(self, 'solution') and self.solution.status == 'optimal':
 					stat_new = 'optimal'
