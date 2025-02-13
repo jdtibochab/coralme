@@ -24,7 +24,7 @@ dependencies = [
     "optlang",
     "pandas",
     "Pint",
-    "pyranges",
+    "pyranges<=0.1.1",
     "pytest",
     "python-libsbml",
     "scipy",
