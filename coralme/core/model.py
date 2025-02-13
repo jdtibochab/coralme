@@ -1485,7 +1485,7 @@ class MEModel(cobra.core.object.Object):
 				else:
 					Sf[met_index, idx] = value
 
-		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
+		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) for rxn in self.reactions ])
 		b = [ m._bound for m in self.metabolites ] # accumulation
 		c = [ r.objective_coefficient for r in self.reactions ]
 		# constraint sense eventually will be in the metabolite object
