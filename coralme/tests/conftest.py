@@ -2,17 +2,17 @@ from coralme.builder.main import MEBuilder
 from importlib.resources import files
 import anyconfig
 import pytest
+dir = str(files("coralme"))
 
 def create_builder():
-    dir = str(files("coralme"))
     config = {
       # Inputs
       "m-model-path": "{}/tests/data/m_model.json".format(dir), # Path to model file
       "genbank-path": "{}/tests/data/genome.gb".format(dir), # Path to genome genbank file
       # Outputs
-      "df_gene_cplxs_mods_rxns": "{}/tests/data/building_data/OSM.xlsx".format(dir), # Desired output path of OSM
-      "out_directory": "{}/tests/data/".format(dir), # Output directory
-      "log_directory": "{}/tests/data/".format(dir), # Log directory
+      "df_gene_cplxs_mods_rxns": "{}/tests/data/base_model/building_data/OSM.xlsx".format(dir), # Desired output path of OSM
+      "out_directory": "{}/tests/data/base_model/".format(dir), # Output directory
+      "log_directory": "{}/tests/data/base_model/".format(dir), # Log directory
       "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag
       "run_bbh_blast" : True,
       "dev_reference" : True,
@@ -31,8 +31,25 @@ def create_builder():
     builder = MEBuilder(**config)
     builder.generate_files(overwrite=True)
     builder.save_builder_info()
+    builder.build_me_model(overwrite=False)
+    assert builder.me_model.id is not None
     return builder
 
 @pytest.fixture(scope="session")
 def shared_builder():
     return create_builder()
+
+@pytest.fixture(scope="session")
+def shared_generification_builder(shared_builder):
+    builder = MEBuilder(**shared_builder.configuration.copy())
+    # Generate files
+    builder.configuration["m-model-path"] = "{}/tests/data/m_model-generification.json".format(dir) # Path to model file
+    builder.configuration["out_directory"] = "{}/tests/data/generified_model/".format(dir)
+    builder.configuration["log_directory"] = "{}/tests/data/generified_model/".format(dir)
+    builder.configuration["df_gene_cplxs_mods_rxns"] = "{}/tests/data/generified_model/building_data/OSM.xlsx".format(dir) # Desired output path of OSM
+    builder.generate_files(overwrite=True)
+    # Build
+    builder.save_builder_info()
+    builder.build_me_model(overwrite=False)
+    return builder
+
