@@ -88,6 +88,7 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 		'reaction.add_metabolites({:s})\n' \
 		'reaction.annotation = {:s}\n' \
 		'reaction.gene_reaction_rule = \'{:s}\'\n' \
+		'reaction.cofactors = cobra.core.GPR.from_string(\'{:s}\')\n' \
 		'model.add_reactions([reaction])\n'
 
 	for idx in rxns.index:
@@ -177,7 +178,8 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 				rxns.iloc[idx]['name'].replace('\'', '\\\''),
 				rxns.iloc[idx]['subsystem'],
 				lower, upper, mets, annots,
-				rxns.iloc[idx]['_gpr'])
+				rxns.iloc[idx]['_gpr'],
+				rxns.iloc[idx]['_cofactors'] if '_cofactors' in rxns.columns else '')
 
 			code.append(tmp)
 
