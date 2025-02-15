@@ -410,7 +410,7 @@ def build_reactions_from_genbank(
 				# 'ungap' method and 'strand' argument are deprecated in Biopython 1.80
 				#seq = seq.extract(full_seqs[tu_frame.replicon[tu_id]]).ungap()
 				for seq in seqs:
-					seq.strand = strand
+					seq.location.strand = strand
 					dna += seq.extract(full_seqs[replicon_id]).replace('-', '')
 
 			if len(dna) == 0:
@@ -506,7 +506,7 @@ def build_reactions_from_genbank(
 			left_pos = ','.join([ str(x.start) for x in feature.location.parts ])
 			right_pos = ','.join([ str(x.end) for x in feature.location.parts ])
 			rna_type = 'mRNA' if feature.type == 'CDS' else feature.type
-			strand = '+' if feature.strand == 1 else '-'
+			strand = '+' if feature.location.strand == 1 else '-'
 			# old code uses a cannon to hit a nail
 			#seq = coralme.util.dogma.extract_sequence(full_seqs[contig.id], left_pos, right_pos, strand)
 
