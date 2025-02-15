@@ -1833,6 +1833,9 @@ class MEModel(cobra.core.object.Object):
 		# max_mu is constrained by the fastest-growing bacterium (14.8 min, doubling time)
 		# https://www.nature.com/articles/s41564-019-0423-8
 
+		if self.notes.get('from cobra', False) and solver != "qminos":
+			return NotImplemented
+
 		if solver != "qminos":
 			return self.optimize_windows(max_mu = max_mu, min_mu = min_mu, maxIter = maxIter, lambdify = lambdify,
 				tolerance = tolerance, precision = precision, verbose = verbose, solver = solver)
