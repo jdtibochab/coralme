@@ -820,12 +820,14 @@ class MEReaction(cobra.core.reaction.Reaction):
 	def bound_violation(self):
 		if hasattr(self._model, 'solution') and self._model.solution.fluxes.get(self.id, None) is not None:
 			if hasattr(self.lower_bound, 'subs'):
-				lower_bound = float(self.lower_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
+				lower_bound = self.lower_bound.subs(self._model.default_parameters)
+				lower_bound = float(lower_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
 				lower_bound = self.lower_bound.magnitude
 
 			if hasattr(self.upper_bound, 'subs'):
-				upper_bound = float(self.upper_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
+				upper_bound = self.upper_bound.subs(self._model.default_parameters)
+				upper_bound = float(upper_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
 				upper_bound = self.upper_bound.magnitude
 

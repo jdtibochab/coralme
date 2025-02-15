@@ -222,7 +222,13 @@ class MEModel(cobra.core.object.Object):
 				sympy.Symbol('m_tRNA', positive = True) : 25.0, # kDa = g per millimole
 				sympy.Symbol('k^default_cat', positive = True) : 65.0, # per second, internally converted to per hour
 				sympy.Symbol('temperature', positive = True) : 37.0, # kelvin
-				sympy.Symbol('propensity_scaling', positive = True) : 0.45 # dimensionless
+				sympy.Symbol('propensity_scaling', positive = True) : 0.45, # dimensionless
+				# DNA replication; see dna_replication.percent_dna_template_function
+				sympy.Symbol('g_p_gdw_0', positive = True) : 0.059314110730022594, # dimensionless
+				sympy.Symbol('g_per_gdw_inf', positive = True) : 0.02087208296776481, # dimensionless
+				# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if mu and d types are pint.Quantity
+				sympy.Symbol('b', positive = True) : 0.1168587392731988,
+				sympy.Symbol('d', positive = True) : 3.903641432780327 # dimensionless
 				}
 			}
 
@@ -232,8 +238,11 @@ class MEModel(cobra.core.object.Object):
 		self.unit_registry = ureg
 
 		self.symbols = {}
-		for var, unit in [('P', 'grams per gram'), ('R', 'grams per gram'), ('k_t', '1 per hour'), ('r_0', None), ('k^mRNA_deg', '1 per hour'), ('m_rr', 'gram per mmol'), ('m_aa', 'gram per mmol'), ('m_nt', 'gram per mmol'), ('f_rRNA', None), ('f_mRNA', None), ('f_tRNA', None), ('m_tRNA', 'gram per mmol'), ('k^default_cat', '1 per second'), ('temperature', 'K'), ('propensity_scaling', None)]:
-			if unit is None:
+		for var, unit in [('P', 'grams per gram'), ('R', 'grams per gram'), ('k_t', '1 per hour'), ('r_0', None), ('k^mRNA_deg', '1 per hour'), ('m_rr', 'gram per mmol'), ('m_aa', 'gram per mmol'), ('m_nt', 'gram per mmol'), ('f_rRNA', None), ('f_mRNA', None), ('f_tRNA', None), ('m_tRNA', 'gram per mmol'), ('k^default_cat', '1 per second'), ('temperature', 'K'), ('propensity_scaling', None), ('g_p_gdw_0', 'grams per gram'), ('g_per_gdw_inf', 'grams per gram'), ('b', '1 per hour**{:f}'.format(self.default_parameters[sympy.Symbol('d', positive = True)])), ('d', None)]:
+			# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if the types of mu and d are pint.Quantity
+			if var == 'b':
+				self.symbols[var] = ureg.Quantity(sympy.Symbol(var, positive = True))
+			elif unit is None:
 				self.symbols[var] = ureg.Quantity(sympy.Symbol(var, positive = True))
 			else:
 				self.symbols[var] = sympy.Symbol(var, positive = True) * ureg.parse_units(unit)
@@ -293,6 +302,12 @@ class MEModel(cobra.core.object.Object):
 
 		# Remaining Macromolecular Synthesis Machinery
 		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'].to('1 per hour')) / self._mu) # page 20, k^default_cat in 1/s
+
+		# DNA replication (derivation not in documentation or supplementary material)
+		# c = g_per_gdw_inf
+		# a = g_p_gdw_0 - g_per_gdw_inf
+		# g_p_gdw = (-a * gr ** d) / (b + gr ** d) + a + c, with a + c => g_p_gdw_0 - g_per_gdw_inf + g_per_gdw_inf <=> g_p_gdw_0
+		self.symbols['dna_g_per_g'] = ((self.symbols['g_p_gdw_0'] - self.symbols['g_per_gdw_inf']) * self._mu.magnitude**self.symbols['d'] / (self.symbols['b'] + self._mu.magnitude**self.symbols['d'])) + self.symbols['g_p_gdw_0']
 
 		# Create basic M-model structures
 		self.reactions = cobra.core.dictlist.DictList()
@@ -439,7 +454,12 @@ class MEModel(cobra.core.object.Object):
 			sympy.Symbol('m_tRNA', positive = True) : args.get('m_tRNA', 25.0),
 			sympy.Symbol('k^default_cat', positive = True) : args.get('kcat', 65.0), # not stored in json with coralME v1.0
 			sympy.Symbol('temperature', positive = True) : args.get('temperature', 37.0),
-			sympy.Symbol('propensity_scaling', positive = True) : args.get('propensity_scaling', 0.45)
+			sympy.Symbol('propensity_scaling', positive = True) : args.get('propensity_scaling', 0.45),
+			# DNA replication; see dna_replication.percent_dna_template_function
+			sympy.Symbol('g_p_gdw_0', positive = True) : args.get('g_p_gdw_0', 0.059314110730022594), # dimensionless
+			sympy.Symbol('g_per_gdw_inf', positive = True) : args.get('g_per_gdw_inf', 0.02087208296776481), # dimensionless
+			sympy.Symbol('b', positive = True) : args.get('b', 0.1168587392731988), # per hour**d
+			sympy.Symbol('d', positive = True) : args.get('c', 3.903641432780327) # dimensionless
 			}
 
 	@property
@@ -1618,6 +1638,9 @@ class MEModel(cobra.core.object.Object):
 					Sf[met_index, idx] = value
 
 		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
+		# evaluate DNA replication bounds
+		lb, ub = zip(*[ (lb, ub) if rxn.id != 'DNA_replication' else (lb.subs(self.default_parameters), ub.subs(self.default_parameters)) for rxn, lb, ub in zip(self.reactions, lb, ub) ])
+
 		b = [ m._bound for m in self.metabolites ] # accumulation
 		c = [ r.objective_coefficient for r in self.reactions ]
 		# constraint sense eventually will be in the metabolite object

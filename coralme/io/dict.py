@@ -148,7 +148,7 @@ _METABOLITE_TYPE_DEPENDENCIES = {
 		]
 	}
 
-def get_sympy_expression(value, growth_key, symbols):
+def get_sympy_expression(value, model, assumptions):
 	"""
 	Return sympy expression from json string using sympify
 
@@ -171,10 +171,11 @@ def get_sympy_expression(value, growth_key, symbols):
 	# We use dct['global_info']['growth_key'] to set a sympy.Symbol called 'growth_key'
 	if isinstance(value, (float, int)):
 		return float(value)
+	elif '**' in value:
+		return sympy.parse_expr(value, assumptions) * model.mu.units
 	else:
-		expression_value = sympy.sympify(value)
 		# return expression_value.subs(str(growth_key.magnitude), growth_key) # replaces only mu
-		return expression_value.subs(symbols).subs(str(growth_key.magnitude), growth_key)
+		return sympy.sympify(value).subs(model.symbols).subs(str(model.mu.magnitude), model.mu)
 
 def get_numeric_from_string(string):
 	"""
@@ -447,7 +448,7 @@ def _add_process_data_from_dict(model, process_data_dict):
 
 	return process_data
 
-def _add_reaction_from_dict(model, reaction_info):
+def _add_reaction_from_dict(model, reaction_info, assumptions):
 	"""
 	Builds reaction instances defined in dictionary, then add it to the
 	ME-model being constructed.
@@ -472,7 +473,7 @@ def _add_reaction_from_dict(model, reaction_info):
 		# upper and lower bounds may contain mu values. Handle that here
 		value = reaction_info[attribute]
 		if attribute in ['upper_bound', 'lower_bound'] and isinstance(value, str):
-			value = get_sympy_expression(value, model.mu, model.symbols) * trick
+			value = get_sympy_expression(value, model, assumptions) * trick
 		setattr(reaction_obj, attribute, value)
 
 	# Some reactions are added to model when ME-models are initialized
@@ -486,7 +487,7 @@ def _add_reaction_from_dict(model, reaction_info):
 	# These reaction types do not have update functions and need their stoichiometries set explicitly.
 	if reaction_type in ['SummaryVariable', 'MEReaction']:
 		for key, value in reaction_info['metabolites'].items():
-			reaction_obj.add_metabolites({model.metabolites.get_by_id(key): get_sympy_expression(value, model.mu, model.symbols)}, combine=False)
+			reaction_obj.add_metabolites({model.metabolites.get_by_id(key): get_sympy_expression(value, model, assumptions)}, combine=False)
 
 	for attribute in _REACTION_TYPE_DEPENDENCIES.get(reaction_type, []):
 		# Spontaneous reactions do no require complex_data
@@ -546,7 +547,11 @@ def me_model_from_dict(obj):
 			'm_tRNA' : obj['global_info']['m_tRNA'],
 			'kcat' : 65.0, # not stored in json with coralME v1.0
 			'temperature' : obj['global_info']['temperature'],
-			'propensity_scaling' : obj['global_info']['propensity_scaling']
+			'propensity_scaling' : obj['global_info']['propensity_scaling'],
+			'g_p_gdw_0' : 0.059314110730022594, # not stored in json with coralME v1.0
+			'g_per_gdw_inf' : 0.02087208296776481, # not stored in json with coralME v1.0
+			'b' : 0.1168587392731988, # not stored in json with coralME v1.0
+			'd' : 3.903641432780327, # not stored in json with coralME v1.0
 			}
 	else:
 		model.default_parameters = {
@@ -562,7 +567,11 @@ def me_model_from_dict(obj):
 			'm_tRNA' : obj['global_info']['default_parameters']['m_tRNA'],
 			'kcat' : obj['global_info']['default_parameters']['k^default_cat'],
 			'temperature' : obj['global_info']['default_parameters']['temperature'],
-			'propensity_scaling' : obj['global_info']['default_parameters']['propensity_scaling']
+			'propensity_scaling' : obj['global_info']['default_parameters']['propensity_scaling'],
+			'g_p_gdw_0' : obj['global_info']['default_parameters']['g_p_gdw_0'],
+			'g_per_gdw_inf' : obj['global_info']['default_parameters']['g_per_gdw_inf'],
+			'b' : obj['global_info']['default_parameters']['b'],
+			'd' : obj['global_info']['default_parameters']['d']
 			}
 
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
@@ -571,8 +580,10 @@ def me_model_from_dict(obj):
 	for process_data in tqdm.tqdm(obj['process_data'], 'Adding ProcessData into the ME-model...', bar_format = bar_format):
 		_add_process_data_from_dict(model, process_data)
 
+	assumptions = { str(k):k for k,v in model.default_parameters.items() }
+	assumptions[str(model.mu.magnitude)] = model.mu.magnitude
 	for reaction in tqdm.tqdm(obj['reactions'], 'Adding Reactions into the ME-model...', bar_format = bar_format):
-		_add_reaction_from_dict(model, reaction)
+		_add_reaction_from_dict(model, reaction, assumptions)
 
 	coralme.builder.compartments.add_compartments_to_model(model)
 	model.update()

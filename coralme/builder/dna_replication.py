@@ -64,7 +64,10 @@ def return_gr_dependent_dna_demand(model, gc_fraction, percent_dna_data, gr_data
 
 	gr_data = [m * math.log(2) for m in gr_data_doublings_per_hour]
 	fit_params = optimize_dna_function(gr_data, percent_dna_data)
-	dna_g_per_g = percent_dna_template_function(fit_params, model.mu.magnitude)  # gDNA / gDW
+	# set fit_params in model.default_parameters
+	model.default_parameters = { k:v for k,v in zip(['g_p_gdw_0', 'g_per_gdw_inf', 'b', 'c'], fit_params) }
+	# dna_g_per_g = percent_dna_template_function(fit_params, model.mu.magnitude)  # gDNA / gDW
+	dna_g_per_g = model.symbols['dna_g_per_g']
 
 	# average dinucleotide molecular weight
 	dna_mw = get_dna_mw_no_ppi_dict(model)
