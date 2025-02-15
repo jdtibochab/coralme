@@ -512,6 +512,119 @@ class MEModel(cobra.core.object.Object):
 		"""
 		self._compartments.update(value)
 
+	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
+	@property
+	def medium(self):
+		"""Get the constraints on the model exchanges.
+
+		`model.medium` returns a dictionary of the bounds for each of the
+		boundary reactions, in the form of `{rxn_id: bound}`, where `bound`
+		specifies the absolute value of the bound in direction of metabolite
+		creation (i.e., lower_bound for `met <--`, upper_bound for `met -->`)
+
+		Returns
+		-------
+		Dict[str, float]
+			A dictionary with rxn.id (str) as key, bound (float) as value.
+		"""
+
+		def is_active(reaction) -> bool:
+			"""Determine if boundary reaction permits flux towards creating metabolites.
+
+			Parameters
+			----------
+			reaction: cobra.Reaction
+
+			Returns
+			-------
+			bool
+				True if reaction produces metaoblites and has upper_bound above 0
+				or if reaction consumes metabolites and has lower_bound below 0 (so
+				could be reversed).
+			"""
+			return (bool(reaction.products) and (reaction.upper_bound > 0)) or (
+				bool(reaction.reactants) and (reaction.lower_bound < 0)
+			)
+
+		def get_active_bound(reaction) -> float:
+			"""For an active boundary reaction, return the relevant bound.
+
+			Parameters
+			----------
+			reaction: cobra.Reaction
+
+			Returns
+			-------
+			float:
+				upper or minus lower bound, depenending if the reaction produces or
+				consumes metaoblties.
+			"""
+			if reaction.reactants:
+				return -reaction.lower_bound
+			elif reaction.products:
+				return reaction.upper_bound
+
+		return {
+			rxn.id: get_active_bound(rxn) for rxn in self.get_exchange_reactions if is_active(rxn)
+		}
+
+	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
+	@medium.setter
+	def medium(self, medium) -> None:
+		"""Set the constraints on the model exchanges.
+
+		`model.medium` returns a dictionary of the bounds for each of the
+		boundary reactions, in the form of `{rxn_id: rxn_bound}`, where `rxn_bound`
+		specifies the absolute value of the bound in direction of metabolite
+		creation (i.e., lower_bound for `met <--`, upper_bound for `met -->`)
+
+		Parameters
+		----------
+		medium: dict
+			The medium to initialize. medium should be a dictionary defining
+			`{rxn_id: bound}` pairs.
+		"""
+
+		def set_active_bound(reaction, bound: float) -> None:
+			"""Set active bound.
+
+			Parameters
+			----------
+			reaction: cobra.Reaction
+				Reaction to set
+			bound: float
+				Value to set bound to. The bound is reversed and set as lower bound
+				if reaction has reactants (metabolites that are consumed). If reaction
+				has reactants, it seems the upper bound won't be set.
+			"""
+			if reaction.reactants:
+				reaction.lower_bound = -bound
+			elif reaction.products:
+				reaction.upper_bound = bound
+
+		# Set the given media bounds
+		media_rxns = []
+		exchange_rxns = frozenset(self.get_exchange_reactions)
+		for rxn_id, rxn_bound in medium.items():
+			rxn = self.reactions.get_by_id(rxn_id)
+			if rxn not in exchange_rxns:
+				logger.warning(
+					f"{rxn.id} does not seem to be an an exchange reaction. "
+					f"Applying bounds anyway."
+				)
+			media_rxns.append(rxn)
+			# noinspection PyTypeChecker
+			set_active_bound(rxn, rxn_bound)
+
+		frozen_media_rxns = frozenset(media_rxns)
+
+		# Turn off reactions not present in media
+		for rxn in exchange_rxns - frozen_media_rxns:
+			is_export = rxn.reactants and not rxn.products
+			set_active_bound(
+				rxn, min(0.0, -rxn.lower_bound if is_export else rxn.upper_bound)
+			)
+
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def copy(self):
 		return copy.deepcopy(self)
