@@ -38,7 +38,7 @@ def concatenate_graphs(L,r=[]):
 			L = concatenate_graphs(b,r)
 		return L
 def get_size(G):
-	return len(re.findall("\$",str(G)))
+	return len(re.findall(r"\$",str(G)))
 def get_graph(T,G={},length=1,threshold=100):
 	#print(1, G,length)
 	if G == "STOP":
@@ -180,7 +180,7 @@ def process_rule_dict(n,rule_dict,gene_dict,protein_mod):
 				corrected_ids[n] = cplx_mod_id
 			cplx_id = cplx_mod_id
 		for c,cid in corrected_ids.items():
-			regex = '{}(?!\d)'
+			regex = r'{}(?!\d)'
 			corrected_rule_dict[cplx_id] = re.sub(regex.format(c), cid, rule)
 			rule = corrected_rule_dict[cplx_id]
 	return corrected_ids[n],corrected_rule_dict
@@ -189,7 +189,7 @@ def find_match(d,items):
     for c, cg in d.items():
         if not cg: continue
         if isinstance(cg,str):
-            cg = [re.findall('.*(?=\(\d*\))', g)[0] for g in cg.split(' AND ')]
+            cg = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in cg.split(' AND ')]
         if set(cg) == set(items):
             return c
     return 0

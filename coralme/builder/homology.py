@@ -105,7 +105,7 @@ class Homology(object):
 			if isinstance(row['genes'], float) or not row['genes']:
 				continue
 
-			genes = [re.findall('.*(?=\(\d*\))', g)[0] for g in row['genes'].split(' AND ')]
+			genes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in row['genes'].split(' AND ')]
 
 			if not genes or not set(genes).issubset(set(mutual_hits.keys())):
 				continue  # All org genes must have a hit
@@ -117,7 +117,7 @@ class Homology(object):
 				ref_gene = mutual_hits[g]
 				ref_complexes = ref_complexes_df[ref_complexes_df['genes'].str.contains(ref_gene)]
 				for rc, rrow in ref_complexes.iterrows():
-					rgenes = [re.findall('.*(?=\(\d*\))', g)[0] for g in rrow['genes'].split(' AND ')]
+					rgenes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in rrow['genes'].split(' AND ')]
 					if not set(rgenes).issubset(set(mutual_hits.keys())):
 						continue  # All ref genes must have a hit
 					ogenes = [mutual_hits[og] for og in genes]

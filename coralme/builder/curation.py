@@ -2032,7 +2032,7 @@ class MECurator(object):
 
 
 def _str_to_dict(d):
-    regex = ":(?=[-]?\d+(?:$|\.))"
+    regex = r":(?=[-]?\d+(?:$|\.))"
     return (
         {re.split(regex, i)[0]: float(re.split(regex, i)[1]) for i in d.split(",")}
         if d

@@ -8,7 +8,7 @@ from collections import Counter
 
 def get_remaining_complex_elements(model, met, modification_formulas):
 	# get base complex and modifications, without compartment ID
-	regex = '_mod_([A-Za-z0-9_]*\(\d*\))'
+	regex = r'_mod_([A-Za-z0-9_]*\(\d*\))'
 	regex = re.compile(regex)
 
 	tmp_met = coralme.core.component.Metabolite('tmp_met')
@@ -23,7 +23,7 @@ def get_remaining_complex_elements(model, met, modification_formulas):
 		elements.update(mets.get_by_id(base_complex).elements)
 
 	# get component and stoichiometry per modification
-	regex = '([A-Za-z0-9_]*)\((\d*)\)'
+	regex = r'([A-Za-z0-9_]*)\((\d*)\)'
 	regex = re.compile(regex)
 	for component in components:
 		new_elements = elements.copy()
