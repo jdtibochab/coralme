@@ -859,8 +859,8 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	seq += df_codons[df_codons.index.isin(stop_codons)].sort_values('per_1000').index[-1]
 
 	dummy = coralme.core.processdata.StoichiometricData(me_model.global_info['dummy_rxn_id'], me_model)
-	dummy.lower_bound = 0
-	dummy.upper_bound = 1000
+	dummy.lower_bound = 0.
+	dummy.upper_bound = 1000.
 	dummy._stoichiometry = {'CPLX_dummy': -1}
 
 	create_transcribed_gene(me_model, 'dummy', 'mRNA', seq)

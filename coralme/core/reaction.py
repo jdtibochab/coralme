@@ -1066,7 +1066,7 @@ class MetabolicReaction(MEReaction):
 			stoichiometry[self.complex_data.complex.id] = -self.coupling_coefficient_enzyme
 
 		# 2) Metabolite stoichiometry defined in data.stoichiometry. Sign is flipped if self.reverse == True
-		sign = -1 if self.reverse else +1
+		sign = -1. if self.reverse else +1.
 		for component, value in self.stoichiometric_data.stoichiometry.items():
 			stoichiometry[component] += value * sign
 
@@ -1081,11 +1081,11 @@ class MetabolicReaction(MEReaction):
 
 		# Set the bounds
 		if self.reverse:
-			self.lower_bound = max(0, -self.stoichiometric_data.upper_bound)
-			self.upper_bound = max(0, -self.stoichiometric_data.lower_bound)
+			self.lower_bound = max(0., -self.stoichiometric_data.upper_bound)
+			self.upper_bound = max(0., -self.stoichiometric_data.lower_bound)
 		else:
-			self.lower_bound = max(0, +self.stoichiometric_data.lower_bound)
-			self.upper_bound = max(0, +self.stoichiometric_data.upper_bound)
+			self.lower_bound = max(0., +self.stoichiometric_data.lower_bound)
+			self.upper_bound = max(0., +self.stoichiometric_data.upper_bound)
 
 	@property
 	def genes(self):

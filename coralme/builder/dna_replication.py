@@ -71,11 +71,11 @@ def return_gr_dependent_dna_demand(model, gc_fraction, percent_dna_data, gr_data
 
 	# average dinucleotide molecular weight
 	dna_mw = get_dna_mw_no_ppi_dict(model)
-	dntp_mw = (gc_fraction * (dna_mw['dctp'] + dna_mw['dgtp'])) / 2
-	dntp_mw += ((1 - gc_fraction) * (dna_mw['datp'] + dna_mw['dttp'])) / 2
+	dntp_mw = (gc_fraction * (dna_mw['dctp'] + dna_mw['dgtp'])) / 2.
+	dntp_mw += ((1. - gc_fraction) * (dna_mw['datp'] + dna_mw['dttp'])) / 2.
 
 	# 1 / (gDNA / mol) * (1000 mmol / 1 mol)
-	mmol_dntps_per_gram_dna = 1 / dntp_mw * 1000
+	mmol_dntps_per_gram_dna = 1. / dntp_mw * 1000.
 
 	# (mmol / gDNA) * (gDNA / gDW)
 	mmol_dntp_per_gdw = dna_g_per_g * mmol_dntps_per_gram_dna
