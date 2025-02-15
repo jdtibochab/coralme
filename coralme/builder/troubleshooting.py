@@ -12,7 +12,7 @@ import logging
 import sys
 log = logging.getLogger(__name__)
 
-def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
+def process_model(model, growth_key = sympy.Symbol('mu', positive = True), parameters = dict()):
 	"""
 	Get a dictionary containing information on whether a metabolite has
 	producing or consuming reactions. This is used to find gaps.
@@ -34,15 +34,15 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True)):
 
 				# Replace 'growth_key' if model is a ME-model
 				if hasattr(lb, 'subs'):
-					lb = lb.subs(growth_key, 1.)
+					lb = lb.subs(parameters).subs(growth_key, 1.)
 				if hasattr(ub, 'subs'):
-					ub = ub.subs(growth_key, 1.)
+					ub = ub.subs(parameters).subs(growth_key, 1.)
 				if met not in rxn.metabolites:
 					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
 					continue
 				coeff = rxn.metabolites[met]
 				if hasattr(coeff, 'subs'):
-					coeff = coeff.subs(growth_key, 1.)
+					coeff = coeff.subs(parameters).subs(growth_key, 1.)
 
 				pos = 1 if coeff > 0 else -1
 				rev = 1 if lb < 0 else 0
@@ -70,10 +70,10 @@ def add_exchange_reactions(me, metabolites, prefix = 'SK_'):
 		#print(r.id,r.lower_bound,r.upper_bound,r.reaction)
 	return rxns
 
-def find_gaps(model, growth_key = sympy.Symbol('mu', positive = True)):
+def find_gaps(model, growth_key = sympy.Symbol('mu', positive = True), parameters = dict()):
 	"""Find gaps in the model"""
 	g = {}
-	dct = process_model(model, growth_key = growth_key)
+	dct = process_model(model, growth_key = growth_key, parameters = parameters)
 	for met, t in dct.items():
 		# not producing, not consuming, not uerever
 		g[met] = { 'p' : 0, 'c' : 0, 'u' : 0 }
@@ -140,7 +140,7 @@ def gap_find(me_model,de_type = None):
 	"""Find and classify gaps in the model"""
 
 	logging.warning('  '*5 + 'Finding gaps in the ME-model...')
-	me_gaps = coralme.builder.troubleshooting.find_gaps(me_model, growth_key = me_model.mu)
+	me_gaps = coralme.builder.troubleshooting.find_gaps(me_model, growth_key = me_model.mu.magnitude, parameters = me_model.default_parameters)
 
 	if de_type == 'me_only':
 		logging.warning('  '*5 + 'Finding gaps from the M-model only...')
