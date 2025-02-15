@@ -2006,10 +2006,12 @@ class MEReconstruction(MEBuilder):
 
 		rxn = coralme.core.reaction.SummaryVariable('biomass_constituent_demand')
 		me.add_reactions([rxn])
-		rxn.add_metabolites({ k:-(abs(v)) for k,v in biomass_constituents.items() })
+		# An old bug in the YAML Resolver? YAML files should be written and read by the same version of anyconfig
+		# https://stackoverflow.com/questions/30458977/yaml-loads-5e-6-as-string-and-not-a-number
+		rxn.add_metabolites({ k:-(abs(float(v))) for k,v in biomass_constituents.items() })
 		rxn.lower_bound = me.mu # coralme.util.mu
 		rxn.upper_bound = me.mu # coralme.util.mu
-		constituent_mass = sum([me.metabolites.get_by_id(c).formula_weight / 1000. * abs(v) for c,v in biomass_constituents.items()])
+		constituent_mass = sum([me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in biomass_constituents.items()])
 		rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass})
 
 		# ### 2. Lipid Demand Requirements
@@ -2647,9 +2649,9 @@ class MEReconstruction(MEBuilder):
 			r.update()
 
 		# Update biomass_constituent_demand reaction
-		constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(v) for c,v in biomass_constituents.items())
+		constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in biomass_constituents.items())
 		rxn = me.reactions.get_by_id('biomass_constituent_demand')
-		rxn.add_metabolites({ k:-(abs(v)) for k,v in biomass_constituents.items() }, combine = False)
+		rxn.add_metabolites({ k:-(abs(float(v))) for k,v in biomass_constituents.items() }, combine = False)
 		rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass}, combine = False)
 
 		# ## Part 8: Set keffs
