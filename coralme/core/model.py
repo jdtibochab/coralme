@@ -2216,6 +2216,17 @@ class MEModel(cobra.core.object.Object):
 		str
 			Model representation as HTML string.
 		"""
+
+		if hasattr(self, 'solution'):
+			if self.notes.get('from cobra', False):
+				mu = self.solution.objective_value
+				dt = numpy.log(2) / mu
+			else:
+				mu = self.solution.fluxes['biomass_dilution']
+				dt = numpy.log(2) / mu
+		else:
+			mu = dt = numpy.nan
+
 		return f"""
 		<table>
 			<tr>
@@ -2224,6 +2235,12 @@ class MEModel(cobra.core.object.Object):
 			</tr><tr>
 				<td><strong>Memory address</strong></td>
 				<td>{f"{id(self):x}"}</td>
+			</tr><tr>
+				<td><strong>Growth rate</strong></td>
+				<td>{mu:g} per hour</td>
+			</tr><tr>
+				<td><strong>Doubling time</strong></td>
+				<td>{dt:g} hours</td>
 			</tr><tr>
 				<td><strong>Number of metabolites</strong></td>
 				<td>{len(self.metabolites)}</td>
