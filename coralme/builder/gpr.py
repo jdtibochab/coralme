@@ -133,7 +133,7 @@ def listify_gpr(expr,level = 0,length=0):
 	Modified from COBRApy
 	"""
 	if level == 0:
-		return listify_gpr(cobra.core.gene.parse_gpr(str(expr))[0], level = 1)
+		return listify_gpr(cobra.core.gene.GPR.from_string(str(expr)), level = 1)
 	if isinstance(expr, cobra.core.gene.GPR):
 		return listify_gpr(expr.body, level = 1) if hasattr(expr, "body") else ""
 	elif isinstance(expr, Name):
