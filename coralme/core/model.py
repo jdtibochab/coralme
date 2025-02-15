@@ -2118,7 +2118,7 @@ class MEModel(cobra.core.object.Object):
 		precision = precision if precision in [ 'quad', 'double', 'dq', 'dqq' ] else 'quad'
 
 		if len(keys.items()) == 0.:
-			keys = { self.mu.magnitude : 0.001 }
+			keys = { self.mu : 0.01 }
 
 		for key in list(keys.keys()):
 			if isinstance(key, pint.Quantity):
