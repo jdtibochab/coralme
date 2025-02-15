@@ -1623,15 +1623,15 @@ class MEModel(cobra.core.object.Object):
 
 		if lambdify:
 			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
-			kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {} # 5x faster than [ x for x in fn(lb) ]
+			kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {}
 			if per_position:
 				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, **kwargs))
 				lb = [ x for x in fn(lb) ]
 				ub = [ x for x in fn(ub) ]
 				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			else:
-				lb = sympy.lambdify(list(atoms), lb, **kwargs)
-				ub = sympy.lambdify(list(atoms), ub, **kwargs)
+				lb = sympy.lambdify(list(atoms), lb, **kwargs) # 5x faster than [ x for x in fn(lb) ]
+				ub = sympy.lambdify(list(atoms), ub, **kwargs) # 5x faster than [ x for x in fn(lb) ]
 				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()),**kwargs))
 		else:
 			lambdas = None
