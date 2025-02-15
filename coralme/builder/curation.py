@@ -99,7 +99,7 @@ class CurationInfo(object):
                 'to_do':'Fill in {}'.format(self.filepath)
             })
             self.data = self._modify_for_create(self.config["create_file"])
-            self.data.to_csv(self.filepath,sep=self.config["sep"])
+            self.data.sort_index().to_csv(self.filepath,sep=self.config["sep"])
         self.data = self._modify_from_load()
         return self.data
     def save(self):
@@ -110,7 +110,7 @@ class CurationInfo(object):
         out_dir = self.directory + "reference_files/"
         if not os.path.exists(out_dir):
             os.mkdir(out_dir)
-        mod[self.columns[1:]].to_csv(out_dir + self.file,sep=self.sep)
+        mod[self.columns[1:]].sort_index().to_csv(out_dir + self.file,sep=self.sep)
     @property
     def columns(self):
         """Default columns that are coralME-compliant"""
