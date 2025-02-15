@@ -843,7 +843,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			mass_balance = False
 		elif self.id.startswith((
 			'biomass_dilution', 'biomass_constituent_demand', 'DNA_replication', 'dummy_protein_to_mass',
-			'translation_', 'transcription_', 'charging_', 'translocation_', 'dummy_reaction_')):
+			'translation_', 'transcription_', 'charging_', 'formation_', 'translocation_', 'dummy_reaction_')):
 			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
 		elif '_to_generic_' in self.id or 'biomass_to_biomass' in self.id:
 			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
