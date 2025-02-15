@@ -648,7 +648,7 @@ class MEBuilder(object):
 				cplx_stoich[c][mutual_hits[rg_id]] = coeff
 
 		for c, stoich in cplx_stoich.items():
-			complexes_df["genes"][c] = " AND ".join(
+			complexes_df.at[c, "genes"] = " AND ".join(
 				[g + "({})".format(coeff) for g, coeff in stoich.items()]
 			)
 		self.org.complexes_df = complexes_df
