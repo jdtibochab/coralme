@@ -410,7 +410,7 @@ def _add_process_data_from_dict(model, process_data_dict):
 		organelle = process_data_info['organelle']
 		translation = process_data_info['translation']
 		transl_table = process_data_info['transl_table']
-		pseudo = process_data_info['pseudo']
+		pseudo = process_data_info.get('pseudo', None) # not stored in json with coralME v1.0
 		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table, pseudo)
 	elif process_data_type == 'tRNAData':
 		amino_acid = process_data_info['amino_acid']
@@ -435,7 +435,10 @@ def _add_process_data_from_dict(model, process_data_dict):
 
 	# Some attributes depend on process data type. Set those here.
 	for attribute in _PROCESS_DATA_TYPE_DEPENDENCIES.get(process_data_type, []):
-		value = process_data_info[attribute]
+		if attribute == 'pseudo':
+			value = process_data_info.get(attribute, None) # not stored in json with coralME v1.0
+		else:
+			value = process_data_info[attribute]
 		try:
 			setattr(process_data, attribute, value)
 		except AttributeError:

@@ -938,7 +938,7 @@ class TranslationData(ProcessData):
 				aa = 'S'
 				logging.warning('Internal stop codon UGA identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
 				self.notes.append('Codon at position {:d} encodes Selenocysteine.'.format(idx+1))
-			elif codon in self._model.global_info['genetic_recoding'].keys():
+			elif codon in self._model.global_info.get('genetic_recoding', {}).keys():
 				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
 				logging.warning('Internal stop codon \'{:s}\' identified in \'{:s}\' following user input.'.format(codon, self.id))
 				self.notes.append('Codon at position {:d} encodes a recoded stop codon.'.format(idx+1))
@@ -1004,10 +1004,10 @@ class TranslationData(ProcessData):
 		for idx, (codon, amino_acid) in enumerate(zip(self.sequence_as_codons, self.amino_acid_sequence)):
 			if amino_acid == '_' and codon == '' and self.transl_table.id == 11:
 				precount.append('ser__L_c') # Ser in the precursor for Selenocysteine
-			elif amino_acid == '_' and codon in self._model.global_info['genetic_recoding']:
+			elif amino_acid == '_' and codon in self._model.global_info.get('genetic_recoding', {}):
 				# TODO: set compartment of the recoded stop codon?
 				precount.append(list(self._model.global_info['genetic_recoding'][codon].keys())[0])
-			elif amino_acid == '_' and codon not in self._model.global_info['genetic_recoding']:
+			elif amino_acid == '_' and codon not in self._model.global_info.get('genetic_recoding', {}):
 				logging.warning('Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
 			else:
 				precount.append(coralme.util.dogma.amino_acids[amino_acid] + compartment)
