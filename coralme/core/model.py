@@ -298,6 +298,7 @@ class MEModel(cobra.core.object.Object):
 		self.reactions = cobra.core.dictlist.DictList()
 		self.metabolites = cobra.core.dictlist.DictList()
 		self.process_data = cobra.core.dictlist.DictList()
+		self._all_genes = cobra.core.dictlist.DictList()
 
 		self._compartments = {}
 		self._contexts = []
@@ -392,6 +393,8 @@ class MEModel(cobra.core.object.Object):
 		new_model.add_metabolites([ metabolite_from_cobra_model(model, x) for x in model.metabolites ])
 		new_model.reactions[0].remove_from_model()
 		new_model.add_reactions([ reaction_from_cobra_model(model, x) for x in model.reactions ])
+		new_model.all_genes = model.genes
+
 		if objective is not None:
 			new_model.reactions.get_by_id(objective).objective_coefficient = +1
 		else:
@@ -1056,23 +1059,37 @@ class MEModel(cobra.core.object.Object):
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
+	def genes(self):
+		return self._all_genes
+
+	@property
 	def all_genes(self):
-		lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
-		return cobra.core.dictlist.DictList(lst)
+		if len(self._all_genes) == 0.:
+			lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
+			self._all_genes = cobra.core.dictlist.DictList(lst)
+		return self._all_genes
+
+	@all_genes.setter
+	def all_genes(self, values):
+		if self.notes.get('from cobra', False):
+			lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
+			self._all_genes = cobra.core.dictlist.DictList(lst)
+		else:
+			self._all_genes = values
 
 	@property
 	def mRNA_genes(self):
-		lst = [ g for g in self.all_genes if g.RNA_type == 'mRNA' ]
+		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'mRNA' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
 	def rRNA_genes(self):
-		lst = [ g for g in self.all_genes if g.RNA_type == 'rRNA' ]
+		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'rRNA' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
 	def tRNA_genes(self):
-		lst = [ g for g in self.all_genes if g.RNA_type == 'tRNA' ]
+		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'tRNA' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
