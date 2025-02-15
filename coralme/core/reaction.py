@@ -861,9 +861,16 @@ class MEReaction(cobra.core.reaction.Reaction):
 		"""
 		rxn = cobra.util.util.format_long_string(str(self.id), 500)
 		name = cobra.util.util.format_long_string(str(self.name), 500)
-		subs = cobra.util.util.format_long_string(self.build_reaction_string(), 1000)
-		prod = cobra.util.util.format_long_string(self.build_reaction_string(True), 1000)
-		gpr = cobra.util.util.format_long_string(self.gene_reaction_rule, 500)
+		rxn_as_ids = cobra.util.util.format_long_string(self.build_reaction_string(False), 1000)
+		rxn_as_names = cobra.util.util.format_long_string(self.build_reaction_string(True), 1000)
+		if self._model.notes.get('from cobra', False):
+			gpr = cobra.util.util.format_long_string(self.gene_reaction_rule, 500)
+		elif hasattr(self, '_complex_data'):
+			gpr = self._complex_data.id
+		elif type(self) == coralme.core.reaction.SummaryVariable:
+			gpr = None
+		else:
+			gpr = None
 		lower = self.lower_bound
 		upper = self.upper_bound
 		rxn_type = str(type(self))[8:-2]
@@ -888,8 +895,8 @@ class MEReaction(cobra.core.reaction.Reaction):
 			<tr><td><strong>Memory address</strong></td><td>{f'{id(self):#x}'}</td></tr>
 			<tr><td><strong>Stoichiometry</strong>
 			</td><td>
-				<p style='text-align:right'>{subs}</p>
-				<p style='text-align:right'>{prod}</p>
+				<p style='text-align:right'>{rxn_as_ids}</p>
+				<p style='text-align:right'>{rxn_as_names}</p>
 			</td></tr>
 			<tr><td><strong>GPR</strong></td><td>{gpr}</td></tr>
 			<tr><td><strong>Lower bound</strong></td><td>{lower}</td></tr>
