@@ -917,8 +917,6 @@ class Organism(object):
             file = pandas.DataFrame(columns=columns).set_index(columns[0],inplace=False)
         return file#.fillna('')
 
-    
-        
     def read_gene_dictionary(self,filename):
         """ Loads the genes file."""
         gene_dictionary = self.read_optional_file(
