@@ -1638,8 +1638,8 @@ class MEModel(cobra.core.object.Object):
 					Sf[met_index, idx] = value
 
 		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
-		# evaluate DNA replication bounds
-		lb, ub = zip(*[ (lb, ub) if rxn.id != 'DNA_replication' else (lb.subs(self.default_parameters), ub.subs(self.default_parameters)) for rxn, lb, ub in zip(self.reactions, lb, ub) ])
+		# evaluate bounds (e.g., DNA_replication)
+		lb, ub = zip(*[ (lb.subs(self.default_parameters) if hasattr(lb, 'subs') else lb, ub.subs(self.default_parameters) if hasattr(ub, 'subs') else ub) for lb, ub in zip(lb, ub) ])
 
 		b = [ m._bound for m in self.metabolites ] # accumulation
 		c = [ r.objective_coefficient for r in self.reactions ]
