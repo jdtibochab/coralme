@@ -1,5 +1,6 @@
 library(shiny)
 library(shinyFiles)
+library(zip)
 # Set maximum upload size (in bytes)
 options(shiny.maxRequestSize = 50 * 1024^2)  # 50 MB
 # Define UI for application
@@ -176,7 +177,6 @@ server <- function(input, output, session) {
   observeEvent(input$run_script, {
     # Initialize output
     script_output_result("Running coralME...\n")
-    session$flushReact()
     # Get file paths (mandatory inputs)
     organism_json_path <- get_file_path(input$organism_json)
     file1_path <- get_file_path(input$file1)
@@ -199,7 +199,12 @@ server <- function(input, output, session) {
     }
     
     # Construct command to run Python script
-    command <- "C:\\Python312\\python.exe"
+    if (.Platform$OS.type == "windows") { 
+      command <- "C:\\Python312\\python.exe"
+    } else {
+      command <- "python3"
+    }
+    #command <- "C:\\Python312\\python.exe"
     args <- c(
       "cli.py"
     )
@@ -306,11 +311,52 @@ server <- function(input, output, session) {
   # Download handler for output
   output$downloadData <- downloadHandler(
     filename = function() {
-      paste("coralME-output-", format(Sys.time(), "%Y%m%d-%H%M%S"), ".txt", sep = "")
+      paste("coralME-output-", format(Sys.time(), "%Y%m%d-%H%M%S"), ".zip", sep = "")
     },
     content = function(file) {
-      writeLines(script_output_result(), file)
-    }
+      # Get selected directories
+      log_dir <- parseDirPath(volumes, input$log_directory)
+      out_dir <- parseDirPath(volumes, input$out_directory)
+      
+      # Validate directories
+      if (length(log_dir) == 0 || length(out_dir) == 0) {
+        stop("Please select both log and output directories before downloading.")
+      }
+      if (!dir.exists(log_dir) || !dir.exists(out_dir)) {
+        stop("Selected directories do not exist.")
+      }
+      
+      # Create temporary staging area
+      temp_dir <- tempfile()
+      dir.create(temp_dir)
+      on.exit(unlink(temp_dir, recursive = TRUE), add = TRUE)
+      
+      # Copy directories with preserved structure
+      dir.create(file.path(temp_dir, "log"))
+      dir.create(file.path(temp_dir, "output"))
+      
+      # Copy all contents including hidden files
+      copy_results <- c(
+        file.copy(list.files(log_dir, full.names = TRUE, all.files = TRUE, no.. = TRUE),
+                  file.path(temp_dir, "log"), 
+                  recursive = TRUE),
+        file.copy(list.files(out_dir, full.names = TRUE, all.files = TRUE, no.. = TRUE),
+                  file.path(temp_dir, "output"), 
+                  recursive = TRUE)
+      )
+      
+      if (!all(copy_results)) {
+        stop("Error copying directory contents")
+      }
+      
+      # Create zip file
+      zip_file <- tempfile(fileext = ".zip")
+      zip::zipr(zip_file, files = c("log", "output"), root = temp_dir)
+      
+      # Move to final download location
+      file.rename(zip_file, file)
+    },
+    contentType = "application/zip"
   )
 }
 # Run the application
