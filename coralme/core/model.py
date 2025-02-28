@@ -833,8 +833,12 @@ class MEModel(cobra.core.object.Object):
 				delattr(reaction, 'process_data')
 
 			# WARNING: units system is associated to the model
-			reaction.lower_bound = reaction.lower_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
-			reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+			if isinstance(reaction.lower_bound, (float, int, sympy.Symbol)):
+				reaction.lower_bound = reaction.lower_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+				reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+			else:
+				reaction.lower_bound = reaction.lower_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+				reaction.upper_bound = reaction.upper_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 
 		self.reactions += pruned
 
@@ -1229,7 +1233,7 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def pseudo_genes(self):
-		lst = [ self.all_genes.get_by_id('RNA_' + g.id) for g in [ g for g in self.translation_data if g.pseudo ] if g.id != 'dummy' ]
+		lst = [ self.all_genes.get_by_id('{:s}_RNA_{:s}'.format(self.merging_key, g.id)) for g in [ g for g in self.translation_data if g.pseudo ] if g.id != 'dummy' ]
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
@@ -1623,21 +1627,27 @@ class MEModel(cobra.core.object.Object):
 		Lm = [ x.id for x in self.metabolites ] # metabolite identifiers
 
 		# check how many variables are in the ME-model
-		atoms = set()
+		atoms = [] # SymPyDeprecationWarning
 
 		for idx, rxn in enumerate(self.reactions):
-			# metabolites derives from symbolic_stoichiometry, replacing everything except mu
+			# metabolites derives from symbolic_stoichiometry, replacing everything except self.mu
 			for met, value in rxn.metabolites.items():
 				met_index = self.metabolites.index(met)
 				if hasattr(value, 'subs'):
 					# atoms.add(list(value.free_symbols)[0])
+					# atoms.update(list(value.free_symbols))
 					# TODO: if two or more ME-models are merged, detect if 'mu' is unique
-					atoms.update(list(value.free_symbols))
+					free_symbols = list(value.free_symbols)[0] # only mu
+					if free_symbols not in atoms:
+						atoms.append(free_symbols)
 					Se[met_index, idx] = value
 				else:
 					Sf[met_index, idx] = value
 
-		lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
+		if hasattr(self.mu, 'magnitude'):
+			lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
+		else:
+			lb, ub = zip(*[ (rxn.lower_bound, rxn.upper_bound) if rxn.functional() else (0., 0.) for rxn in self.reactions ])
 		# evaluate bounds (e.g., DNA_replication)
 		lb, ub = zip(*[ (lb.subs(self.default_parameters) if hasattr(lb, 'subs') else lb, ub.subs(self.default_parameters) if hasattr(ub, 'subs') else ub) for lb, ub in zip(lb, ub) ])
 
@@ -1650,14 +1660,14 @@ class MEModel(cobra.core.object.Object):
 			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {}
 			if per_position:
-				fn = numpy.vectorize(lambda x: sympy.lambdify(list(atoms), x, **kwargs))
+				fn = numpy.vectorize(lambda x: sympy.lambdify(atoms, x, **kwargs))
 				lb = [ x for x in fn(lb) ]
 				ub = [ x for x in fn(ub) ]
 				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			else:
-				lb = sympy.lambdify(list(atoms), lb, **kwargs) # 5x faster than [ x for x in fn(lb) ]
-				ub = sympy.lambdify(list(atoms), ub, **kwargs) # 5x faster than [ x for x in fn(lb) ]
-				lambdas = (list(Se.keys()), sympy.lambdify(list(atoms), list(Se.values()),**kwargs))
+				lb = sympy.lambdify(atoms, lb, **kwargs) # 5x faster than [ x for x in fn(lb) ]
+				ub = sympy.lambdify(atoms, ub, **kwargs) # 5x faster than [ x for x in fn(lb) ]
+				lambdas = (list(Se.keys()), sympy.lambdify(atoms, list(Se.values()),**kwargs))
 		else:
 			lambdas = None
 
@@ -1691,7 +1701,7 @@ class MEModel(cobra.core.object.Object):
 		    Sp[idx, idj] = Sf[idx, idj]
 
 		for idx, idj in Se.keys():
-		    Sp[idx, idj] = float(Se[idx, idj].subs({ self.mu : mu }))
+		    Sp[idx, idj] = float(Se[idx, idj].subs({ self.mu.magnitude : mu }))
 
 		return numpy.linalg.matrix_rank(Sp.todense())
 
