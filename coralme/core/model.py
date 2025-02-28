@@ -345,6 +345,9 @@ class MEModel(cobra.core.object.Object):
 		self.troubleshooted = False
 		self.troubleshooting = False
 
+		# merging flags
+		self.merged_models = {}
+
 	def __getstate__(self):
 		state = self.__dict__.copy()
 		# Don't pickle unit_registry
@@ -666,8 +669,45 @@ class MEModel(cobra.core.object.Object):
 		return reactions_to_prune
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
-	def merge(self, right, prefix_existing=None, inplace=True, objective='left'):
-		return NotImplemented
+	# WARNING: NEW IMPLEMENTATION AND VERY EXPERIMENTAL
+	@staticmethod
+	def merge(models_to_merge = {}, id_or_model = 'merge', name = 'merge'):
+		# check if models' mu values are different
+		mus = [ v.mu for v in models_to_merge.values() ]
+		if not len(mus) == len(set(mus)):
+			raise ValueError('')
+
+		# create an empty coralME model, and copy the merging models into merged_models dictionary
+		merge = coralme.core.model.MEModel(id_or_model = id_or_model, name = name)
+		merge.reactions[0].remove_from_model()
+		merge.metabolites[0].remove_from_model()
+
+		for org, me in list(models_to_merge.items()):
+			merge.merged_models[org] = me.copy()
+			merge.merged_models[org].merging_key = org
+
+			# add tags to merging models to make them unique in the new model
+			for data in me.process_data:
+				data.id = '{:s}_{:s}'.format(org, data.id)
+				if hasattr(data, '_stoichiometry'):
+					for met in list(data._stoichiometry.keys()):
+						data._stoichiometry['{:s}_{:s}'.format(org, met)] = data._stoichiometry.pop(met)
+
+			for data in me.metabolites:
+				if not data.id.startswith('_e'): # do not modify medium
+					data._id = '{:s}_{:s}'.format(org, data.id)
+
+			for data in me.reactions:
+				if not data.id.startswith('EX_'): # do not modify medium
+					data._id = '{:s}_{:s}'.format(org, data.id)
+
+		# add renamed process_data, metabolites, and reactions to merge model
+		for org, me in list(models_to_merge.items()):
+			merge.add_processdata(me.process_data)
+			merge.add_metabolites(me.metabolites)
+			merge.add_reactions(me.reactions)
+
+		return merge
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	@property
@@ -1233,8 +1273,8 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def pseudo_genes(self):
-		lst = [ self.all_genes.get_by_id('{:s}_RNA_{:s}'.format(self.merging_key, g.id)) for g in [ g for g in self.translation_data if g.pseudo ] if g.id != 'dummy' ]
-		return cobra.core.dictlist.DictList(lst)
+		lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
+		return lst
 
 	@property
 	def find_complex(m):
