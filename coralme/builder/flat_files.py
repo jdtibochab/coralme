@@ -164,7 +164,12 @@ def process_m_model(
 		if rxn.id.startswith(('EX_', 'DM_', 'SK_')):
 			continue
 
-		check = rxn.check_mass_balance()
+		try:
+			check = rxn.check_mass_balance()
+		except ValueError:
+			logging.warning('Missing formula on one or more metabolites in reaction \'{:s}\'.'.format(rxn.id))
+			continue
+
 		if check == {}:
 			continue
 		elif set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
