@@ -455,6 +455,7 @@ class ME_NLP:
             return muf, x_new, y_new, z_new, basis, stat_new
 
     def varyme(self, mu_fixed, obj_inds0, obj_coeffs, basis = None, verbosity = False):
+        from coralme.solver import qvaryME
         """
         fva_result, fva_stats = varyme(self, mu_fixed, obj_inds0, obj_coeffs)
 
