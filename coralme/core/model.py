@@ -394,7 +394,7 @@ class MEModel(cobra.core.object.Object):
 			new_reaction.gpr = reaction.gpr
 			for met, stoichiometry in reaction.metabolites.items():
 				new_reaction.add_metabolites({ model.metabolites.get_by_id(met.id): stoichiometry })
-			new_reaction.cofactors = reaction.cofactors
+			#new_reaction.cofactors = reaction.cofactors
 			return new_reaction
 
 		def metabolite_from_cobra_model(model, metabolite):
