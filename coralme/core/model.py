@@ -873,11 +873,14 @@ class MEModel(cobra.core.object.Object):
 				delattr(reaction, 'process_data')
 
 			# WARNING: units system is associated to the model
-			if isinstance(reaction.lower_bound, (float, int, sympy.Symbol)):
+			if isinstance(reaction.lower_bound, (numpy.floating, float, numpy.integer, int, sympy.Symbol)):
 				reaction.lower_bound = reaction.lower_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
-				reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 			else:
 				reaction.lower_bound = reaction.lower_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+
+			if isinstance(reaction.upper_bound, (numpy.floating, float, numpy.integer, int, sympy.Symbol)):
+				reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+			else:
 				reaction.upper_bound = reaction.upper_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 
 		self.reactions += pruned
