@@ -106,7 +106,7 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 		:class:`coralme.core.component.TranscribedGene`
 			Metabolite object for the RNA product
 	"""
-	gene = coralme.core.component.TranscribedGene('RNA_' + locus_id, rna_type, seq)
+	gene = coralme.core.component.TranscribedGene('RNA_' + locus_id, rna_type, str(seq).upper())
 	fn = lambda x: int(x.replace('>', '').replace('<', ''))
 	gene.left_pos = sorted(left_pos.split(','), key = fn) if left_pos is not None else None
 	gene.right_pos = sorted(right_pos.split(','), key = fn) if right_pos is not None else None
@@ -433,7 +433,7 @@ def build_reactions_from_genbank(
 			if len(dna) == 0:
 				logging.warning('The knockouts dictionary instructed to completely delete \'{:s}\' from the ME-model.'.format(tu_id))
 			else:
-				add_transcription_reaction(me_model, tu_id, set(), str(dna), organelle, update = False)
+				add_transcription_reaction(me_model, tu_id, set(), str(dna), organelle = organelle, update = False)
 
 	canonical_aas = [
 		'Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Gln', 'Glu', 'Gly', 'His', 'Ile',
@@ -598,7 +598,7 @@ def build_reactions_from_genbank(
 			if len(parent_tu) == 0:
 				tu_id = 'TU_' + bnum
 				parent_tu = [tu_id]
-				add_transcription_reaction(me_model, tu_id, set(), str(seq), organelle, update = False)
+				add_transcription_reaction(me_model, tu_id, set(), str(seq), organelle = organelle, update = False)
 				logging.warning('No Trancriptional Unit found for {:s} {:s}. Created a dummy TU_{:s} component.'.format(rna_type, bnum, bnum))
 
 			for TU_id in parent_tu:
