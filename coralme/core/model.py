@@ -232,82 +232,8 @@ class MEModel(cobra.core.object.Object):
 				}
 			}
 
-		# model parameters as symbols
-		# Create a unit registry
-		ureg = pint.UnitRegistry()
-		self.unit_registry = ureg
-
-		self.symbols = {}
-		for var, unit in [('P', 'grams per gram'), ('R', 'grams per gram'), ('k_t', '1 per hour'), ('r_0', None), ('k^mRNA_deg', '1 per hour'), ('m_rr', 'gram per mmol'), ('m_aa', 'gram per mmol'), ('m_nt', 'gram per mmol'), ('f_rRNA', None), ('f_mRNA', None), ('f_tRNA', None), ('m_tRNA', 'gram per mmol'), ('k^default_cat', '1 per second'), ('temperature', 'K'), ('propensity_scaling', None), ('g_p_gdw_0', 'grams per gram'), ('g_per_gdw_inf', 'grams per gram'), ('b', '1 per hour**{:f}'.format(self.default_parameters[sympy.Symbol('d', positive = True)])), ('d', None)]:
-			# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if the types of mu and d are pint.Quantity
-			if var == 'b':
-				self.symbols[var] = ureg.Quantity(sympy.Symbol(var, positive = True))
-			elif unit is None:
-				self.symbols[var] = ureg.Quantity(sympy.Symbol(var, positive = True))
-			else:
-				self.symbols[var] = sympy.Symbol(var, positive = True) * ureg.parse_units(unit)
-
-		# set growth rate symbolic variable
-		self._mu = sympy.Symbol(mu, positive = True) * ureg.parse_units('1 per hour')
-		# allows the change of symbolic variables through the ME-model object
-		self._mu_old = self.mu
-
-		# derived parameters that are common throughout the ME-model
-		# WARNING: The equation are written following O'Brien 2013 paper, no COBRAme documentation
-		# https://www.embopress.org/doi/full/10.1038/msb.2013.52#supplementary-materials
-		# Empirical relationship between measured ratio of RNA (R) to Protein (P)
-		self.symbols['P'] # grams of amino acids per gDW
-		self.symbols['R'] # grams of nucleotides per gDW
-
-		# [R/P] = grams of nucleotides per grams of amino acids := dimensionless
-		self.symbols['R/P'] = (self._mu / self.symbols['k_t']) + self.symbols['r_0'] # eq 1, page 15
-		# [P/R] = grams of amino acids per grams of nucleotides := dimensionless
-		self.symbols['P/R'] = 1. / self.symbols['R/P']
-
-		# 70S ribosomes (page 16)
-		# this is Ps in the supplementary material; [Ps] = millimoles of average amino acids per gDW per hour
-		self.symbols['p_rate'] = self._mu * self.symbols['P'] / self.symbols['m_aa']
-		# [R times f_rRNA] = grams of nucleotides in rRNA per gDW
-		# this is nr in the supplementary material; [nr] = millimoles of nucleotides in rRNA per gDW
-		self.symbols['n_ribo'] = self.symbols['R'] * self.symbols['f_rRNA'] / self.symbols['m_rr']
-
-		# Hyperbolic ribosome catalytic rate
-		self.symbols['c_ribo'] = self.symbols['m_rr'] / (self.symbols['m_aa'] * self.symbols['f_rRNA']) # eq 2, page 16
-		# [kribo = p_rate / n_ribo] = millimoles of average amino acids per millimoles of nucleotides in rRNA per hour := per hour
-		self.symbols['k_ribo'] = self.symbols['c_ribo'] * self._mu / self.symbols['R/P']
-		# WARNING: the ribosome coupling coefficient in translation reactions is 'v_ribo' times protein length
-		self.symbols['v_ribo'] = 1. / (1. * self.symbols['k_ribo'] / self._mu) # page 17
-
-		# RNA Polymerase
-		# WARNING: the RNAP coupling coefficient in transcription reactions is 'v_rnap' times RNA length
-		self.symbols['v_rnap'] = 1. / (3. * self.symbols['k_ribo'] / self._mu) # page 17
-
-		# mRNA coupling
-		self.symbols['c_mRNA'] = self.symbols['m_nt'] / (self.symbols['f_mRNA'] * self.symbols['m_aa']) # page 19
-		# Hyperbolic mRNA catalytic rate
-		self.symbols['k_mRNA'] = 3 * self.symbols['c_mRNA'] * self._mu / self.symbols['R/P'] # 3 nt per aa
-
-		# mRNA dilution, degradation, and translation
-		self.symbols['alpha_1'] = self._mu / self.symbols['k^mRNA_deg']
-		# WARNING: There is an error in O'Brien 2013; corrected in COBRAme docs
-		self.symbols['alpha_2'] = self.symbols['R/P'] / (3 * self.symbols['alpha_1'] * self.symbols['c_mRNA'])
-		# mRNA dilution, degradation, and translation
-		self.symbols['rna_amount'] = self._mu / self.symbols['k_mRNA'] # == alpha_1 * alpha_2
-		self.symbols['deg_amount'] = self.symbols['k^mRNA_deg'] / self.symbols['k_mRNA'] # == alpha_2
-
-		# tRNA coupling
-		self.symbols['c_tRNA'] = self.symbols['m_tRNA'] / (self.symbols['f_tRNA'] * self.symbols['m_aa']) # page 20
-		# Hyperbolic tRNA efficiency
-		self.symbols['k_tRNA'] = self.symbols['c_tRNA'] * self._mu / self.symbols['R/P']
-
-		# Remaining Macromolecular Synthesis Machinery
-		self.symbols['v^default_enz'] = 1. / (1. * (self.symbols['k^default_cat'].to('1 per hour')) / self._mu) # page 20, k^default_cat in 1/s
-
-		# DNA replication (derivation not in documentation or supplementary material)
-		# c = g_per_gdw_inf
-		# a = g_p_gdw_0 - g_per_gdw_inf
-		# g_p_gdw = (-a * gr ** d) / (b + gr ** d) + a + c, with a + c => g_p_gdw_0 - g_per_gdw_inf + g_per_gdw_inf <=> g_p_gdw_0
-		self.symbols['dna_g_per_g'] = ((self.symbols['g_p_gdw_0'] - self.symbols['g_per_gdw_inf']) * self._mu.magnitude**self.symbols['d'] / (self.symbols['b'] + self._mu.magnitude**self.symbols['d'])) + self.symbols['g_p_gdw_0']
+		# instantiate model parameters as symbols
+		self.parameters = coralme.core.parameters.MEParameters(self)
 
 		# Create basic M-model structures
 		self.reactions = cobra.core.dictlist.DictList()
@@ -357,7 +283,7 @@ class MEModel(cobra.core.object.Object):
 	def __setstate__(self, state):
 		self.__dict__.update(state)
 		# Add unit_registry back since it doesn't exist in the pickle
-		self.unit_registry = pint.UnitRegistry()
+		self.unit_registry = self.mu._REGISTRY
 
 	def perform_gene_knockouts(self, genes):
 		return coralme.util.essentiality.perform_gene_knockouts(self, genes)
