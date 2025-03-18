@@ -12,7 +12,7 @@ import coralme
 import Bio
 from Bio import SeqIO, Seq, SeqFeature, SeqUtils
 
-def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, organelle = None, update = True):
+def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, rnap = '', rho_dependent = False, organelle = None, update = True, add_subreactions = False):
 	"""
 	Create TranscriptionReaction object and add it to ME-model.
 	This includes the necessary transcription data.
@@ -48,13 +48,22 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, organelle
 
 	# 2) add TranscriptionData into TranscriptionReaction
 	transcription.transcription_data = coralme.core.processdata.TranscriptionData(
-		id = tu_name, model = me_model, nucleotide_sequence = sequence, rnap = '',
+		id = tu_name, model = me_model, nucleotide_sequence = str(sequence).upper(), rnap = rnap,
 		rna_products = {'RNA_' + i for i in locus_ids}, organelle = organelle
 		)
 
 	# 3) and add TranscriptionReaction into ME-Model
 	me_model.add_reactions([transcription])
 	logging.warning('A TranscriptionReaction with ID \'transcription_{:s}\' was added to the ME-model.'.format(tu_name))
+
+	# 4) if rho termination is set
+	if add_subreactions:
+		if rho_dependent and me_model.process_data.has_id('Transcription_normal_rho_dependent'):
+			transcription.transcription_data.subreactions['Transcription_normal_rho_dependent'] = 1.
+		elif me_model.process_data.has_id('Transcription_normal_rho_independent'):
+			transcription.transcription_data.subreactions['Transcription_normal_rho_independent'] = 1.
+		else:
+			logging.warning('No rho (in)dependent subreaction is present in the model. Please check if it is the correct behaviour.')
 
 	if update:
 		transcription.update()
@@ -110,7 +119,7 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 		me_model.add_metabolites([gene])
 		logging.warning('A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(locus_id))
 
-def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, update = False):
+def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, update = False, add_subreactions = False):
 	"""
 	Creates and adds a TranslationReaction to the ME-model as well as the
 	associated TranslationData
@@ -139,7 +148,7 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 	"""
 	# Add RNA to model if it doesn't exist
 	if 'RNA_' + locus_id not in me_model.metabolites:
-		rna = coralme.core.component.TranscribedGene('RNA_' + locus_id, 'mRNA', dna_sequence)
+		rna = coralme.core.component.TranscribedGene('RNA_' + locus_id, 'mRNA', str(dna_sequence).upper())
 		logging.warning('The \'RNA_{:s}\' component was not present in ME-model and it was created.'.format(locus_id))
 		me_model.add_metabolites(rna)
 
@@ -149,13 +158,21 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 	# 2) add TranslationData into TranslationReaction
 	translation_reaction.translation_data = coralme.core.processdata.TranslationData(
 		id = locus_id, model = me_model, mrna = 'RNA_' + locus_id, protein = 'protein_' + locus_id,
-		nucleotide_sequence = dna_sequence, organelle = organelle, translation = prot_sequence,
+		nucleotide_sequence = str(dna_sequence).upper(), organelle = organelle, translation = str(prot_sequence).upper(),
 		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table], pseudo = pseudo
 		)
 
 	# 3) and add TranslationReaction into ME-Model
 	me_model.add_reactions([translation_reaction])
 	logging.warning('A TranslationReaction with ID \'translation_{:s}\' was added to the ME-model.'.format(locus_id))
+
+	# 4) add subreactions (if running after reconstruction)
+	if add_subreactions:
+		translation_reaction.translation_data.add_initiation_subreactions(start_codons = me_model.global_info['start_codons'], start_subreactions = coralme.builder.preprocess_inputs.get_subreactions(me_model.internal_data['df_data'], 'Translation_initiation'))
+		translation_reaction.translation_data.add_elongation_subreactions(elongation_subreactions = coralme.builder.preprocess_inputs.get_subreactions(me_model.internal_data['df_data'], 'Translation_elongation'))
+		translation_reaction.translation_data.add_termination_subreactions(translation_terminator_dict = me_model.global_info['peptide_release_factors'])
+		for subrxn in me_model.global_info['peptide_processing_subreactions']:
+			translation_reaction.translation_data.subreactions[subrxn] = 1.
 
 	if update:
 		translation_reaction.update()
