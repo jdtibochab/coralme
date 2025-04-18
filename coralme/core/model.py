@@ -209,6 +209,8 @@ class MEModel(cobra.core.object.Object):
 			'braun\'s_lpp_flux' : -0.0,
 			'braun\'s_murein_flux' : -0.0,
 
+			# active biomass reaction, default value
+			'active_biomass_reaction' : 'biomass_constituent_demand'
 			}
 
 		# instantiate model parameters as symbols
@@ -254,6 +256,9 @@ class MEModel(cobra.core.object.Object):
 		# merging flags
 		self.merged_models = {}
 
+		# aliases
+		self._aliases = { 'reactions' : {}, 'metabolites' : {} }
+
 	def __getstate__(self):
 		state = self.__dict__.copy()
 		# Don't pickle unit_registry
@@ -264,6 +269,54 @@ class MEModel(cobra.core.object.Object):
 		self.__dict__.update(state)
 		# Add unit_registry back since it doesn't exist in the pickle
 		self.unit_registry = self.mu._REGISTRY
+
+	@property
+	def active_biomass_reaction(self):
+		return self.get(self.global_info['active_biomass_reaction'])
+
+	@active_biomass_reaction.setter
+	def active_biomass_reaction(self, name):
+		if self.global_info['biomass_reactions'] != ['biomass_constituent_demand']:
+			name = 'biomass_constituent_demand_' + name
+			biomass_reactions = [ 'biomass_constituent_demand_{:s}'.format(x) for x in self.biomass_reactions ]
+		else:
+			name = 'biomass_constituent_demand'
+			biomass_reactions = self.global_info['biomass_reactions']
+
+		# close reaction bounds
+		for rxn in biomass_reactions:
+			self.reactions.get_by_id(rxn).bounds = (0., 0.) # close bounds for every biomass reaction
+
+		if 'lipid_demand_per_condition' in self.global_info:
+			for cond, rxns in self.global_info['lipid_demand_per_condition'].items():
+				for rxn in rxns:
+					self.reactions.get_by_id(rxn).bounds = (0., 0.) # close bounds for every lipid composition reaction
+
+		if not self.reactions.has_id(name):
+			raise ValueError('ME-model has no biomass reaction \'biomass_constituent_demand_{:s}\''.format(name))
+
+		# open bounds for active biomass reaction
+		self.reactions.get_by_id(name).bounds = (self.mu, self.mu)
+		if 'lipid_demand_per_condition' in self.global_info:
+			for rxn in self.global_info['lipid_demand_per_condition'][name.replace('biomass_constituent_demand_', '')]:
+				self.reactions.get_by_id(rxn).bounds = (self.mu, self.mu)
+		self.global_info['active_biomass_reaction'] = name
+
+	@property
+	def aliases(self):
+		return self._aliases
+
+	@aliases.setter
+	def aliases(self, args):
+		if args == {}:
+			self._aliases = { 'reactions' : {}, 'metabolites' : {} }
+		else:
+			self._aliases['metabolites'].update(args.get('metabolites', {}))
+			self._aliases['reactions'].update(args.get('reactions', {}))
+			# add new aliases from metabolite aliases
+			for key, value in self._aliases['metabolites'].items():
+				for reaction in self.reactions.query(value.replace('(', r'\(').replace(')', r'\)').replace('[', r'\[').replace(']', r'\]')):
+					self._aliases['reactions'][reaction.id.replace(value, key)] = reaction.id
 
 	def perform_gene_knockouts(self, genes):
 		return coralme.util.essentiality.perform_gene_knockouts(self, genes)
@@ -1076,6 +1129,22 @@ class MEModel(cobra.core.object.Object):
 			tmp = { k:v for k,v in tmp.items() if v != 0. }
 			self.reactions.ATPM._metabolites = dict(tmp)
 
+	def add_translocation_pathway(self, key = 'new', abbrev: str = 'n', keff: float = 65., length_dependent_energy: bool = False, stoichiometry: str = '', enzymes: dict = {}):
+		# check properties of enzymes
+		for k,v in enzymes.items():
+			if 'fixed_keff' in v and 'length_dependent' in v:
+				pass
+
+		self.global_info['translocation_pathway'][key] = {
+			'abbrev': abbrev,
+			'keff': keff,
+			'length_dependent_energy': length_dependent_energy,
+			'stoichiometry': stoichiometry if self.reactions.has_id(stoichiometry) and stoichiometry != '' else '',
+			'enzymes': enzymes
+			}
+
+		return self.global_info['translocation_pathway']
+
 	# data types generators:
 	# StoichiometricData, ComplexData, TranslationData, TranscriptionData,
 	# GenericData, tRNAData, TranslocationData, PostTranslationData, SubreactionData
@@ -1189,23 +1258,6 @@ class MEModel(cobra.core.object.Object):
 	def pseudo_genes(self):
 		lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
 		return lst
-
-	@property
-	def find_complex(m):
-		if isinstance(m,cobrame.core.component.TranslatedGene):
-			cplxs = []
-			for r in m.reactions:
-				cplxs += find_complex(r)
-			return cplxs
-		if isinstance(m,cobrame.core.reaction.PostTranslationReaction):
-			return find_complex(next(i for i in m.metabolites if isinstance(i,cobrame.core.component.ProcessedProtein)))
-		if isinstance(m,cobrame.core.component.ProcessedProtein):
-			return find_complex(next(i for i in m.reactions if isinstance(i,cobrame.core.reaction.ComplexFormation)))
-		if isinstance(m,cobrame.core.reaction.ComplexFormation):
-			return find_complex(next(i for i in m.metabolites if isinstance(i,cobrame.core.component.Complex)))
-		if isinstance(m,cobrame.core.component.Complex):
-			return [m]
-		return []
 
 	def get_metabolic_flux(self, solution = None):
 		"""Extract the flux state for Metabolic reactions."""
@@ -1504,8 +1556,12 @@ class MEModel(cobra.core.object.Object):
 		if isinstance(x, str):
 			if self.metabolites.has_id(x):
 				return self.metabolites.get_by_id(x)
+			elif self.metabolites.has_id(self.aliases['metabolites'].get(x, None)):
+				return self.metabolites.get_by_id(self.aliases['metabolites'][x])
 			elif self.reactions.has_id(x):
 				return self.reactions.get_by_id(x)
+			elif self.reactions.has_id(self.aliases['reactions'].get(x, None)):
+				return self.reactions.get_by_id(self.aliases['reactions'][x])
 			else:
 				raise ValueError('Query not found.')
 		else:
@@ -2179,22 +2235,6 @@ class MEModel(cobra.core.object.Object):
 				rxn.lower_bound = 0
 			elif rxn.lower_bound < 0:
 				rxn.lower_bound = -1000
-
-	def add_translocation_pathway(self, key = 'new', abbrev: str = 'n', keff: float = 65., length_dependent_energy: bool = False, stoichiometry: str = '', enzymes: dict = {}):
-		# check properties of enzymes
-		for k,v in enzymes.items():
-			if 'fixed_keff' in v and 'length_dependent' in v:
-				pass
-
-		self.global_info['translocation_pathway'][key] = {
-			'abbrev': abbrev,
-			'keff': keff,
-			'length_dependent_energy': length_dependent_energy,
-			'stoichiometry': stoichiometry if self.reactions.has_id(stoichiometry) and stoichiometry != '' else '',
-			'enzymes': enzymes
-			}
-
-		return self.global_info['translocation_pathway']
 
 	# Modified from COBRApy
 	def _repr_html_(self) -> str:

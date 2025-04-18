@@ -1986,32 +1986,53 @@ class MEReconstruction(MEBuilder):
 			if key in me.global_info:
 				setattr(me, key, me.global_info[key])
 
+		# if only one biomass reaction, default ID is 'biomass_constituent_demand'
+		me.global_info['biomass_reactions'] = me.global_info.get('biomass_reactions', ['biomass_constituent_demand'])
 		biomass_constituents = me.global_info.get('flux_of_biomass_constituents', {})
+
+		try:
+			biomass_constituents = pandas.DataFrame(biomass_constituents)
+			for biomass_reaction in me.global_info['biomass_reactions']:
+				if not biomass_reaction in biomass_constituents.index:
+					biomass_constituents.loc[biomass_reaction] = None # add missing conditions
+			if 'All' in biomass_constituents.index: # 'All' contains a value that applies to all the missing conditions
+				for column in biomass_constituents:
+					# get conditions with NaN values
+					empty_value_in_conditions = biomass_constituents[biomass_constituents[column].isna()].index
+					for idx in empty_value_in_conditions:
+						biomass_constituents.loc[idx, column] = biomass_constituents.loc['All', column]
+		except:
+			biomass_constituents = pandas.DataFrame(biomass_constituents, index = me.global_info['biomass_reactions'])
+		biomass_constituents = biomass_constituents.fillna('')
+		me.global_info['biomass_constituents'] = biomass_constituents
+
+		for idx, row in biomass_constituents.iterrows():
 		# replace IDs. New metabolites x types are created during the processing of the m_model
 		# old ID (M-model) : new ID (ME-model)
-		dct = df_mets[df_mets['type'].str.contains('REPLACE')].to_dict()['me_id']
-		for key in list(biomass_constituents.keys()):
-			if key in dct:
-				biomass_constituents[dct[key]] = biomass_constituents.pop(key)
-				logging.warning('Metabolite \'{:s}\' was replaced with \'{:s}\' in MetabolicReaction \'{:s}\'.'.format(key, dct[key], 'biomass_constituent_demand'))
+			dct = df_mets[df_mets['type'].str.contains('REPLACE')].to_dict()['me_id']
+			for key in list(row.keys()):
+				if key in dct:
+					row[dct[key]] = row.pop(key)
+					logging.warning('Metabolite \'{:s}\' was replaced with \'{:s}\' in MetabolicReaction \'{:s}\'.'.format(key, dct[key], 'biomass_constituent_demand'))
 
-		# remove metabolites not in the model or without molecular weight
-		biomass_constituents = { k:v for k,v in biomass_constituents.items() if me.metabolites.has_id(k) and me.metabolites.get_by_id(k).formula_weight }
+			# remove metabolites not in the model or without molecular weight
+			row = { k:v for k,v in row.items() if me.metabolites.has_id(k) and me.metabolites.get_by_id(k).formula_weight }
 
-		problems = list(set(me.global_info.get('flux_of_biomass_constituents', {})).difference(biomass_constituents))
-		if problems:
-			logging.warning('The following biomass constituents are not in the ME-model or have no formula: {:s}.'.format(', '.join(problems)))
-			logging.warning('A second attempt to add biomass constituents will be perform after update of formulas.')
+			problems = list(set(me.global_info.get('flux_of_biomass_constituents', {})).difference(row))
+			if problems:
+				logging.warning('The following biomass constituents, biomass \'{:s}\', are not in the ME-model or have no formula: {:s}.'.format(idx, ', '.join(problems)))
+				logging.warning('A second attempt to add biomass constituents will be perform after update of formulas.')
 
-		rxn = coralme.core.reaction.SummaryVariable('biomass_constituent_demand')
-		me.add_reactions([rxn])
-		# An old bug in the YAML Resolver? YAML files should be written and read by the same version of anyconfig
-		# https://stackoverflow.com/questions/30458977/yaml-loads-5e-6-as-string-and-not-a-number
-		rxn.add_metabolites({ k:-(abs(float(v))) for k,v in biomass_constituents.items() })
-		rxn.lower_bound = me.mu # coralme.util.mu
-		rxn.upper_bound = me.mu # coralme.util.mu
-		constituent_mass = sum([me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in biomass_constituents.items()])
-		rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass})
+			name = 'biomass_constituent_demand' if idx == 'biomass_constituent_demand' else 'biomass_constituent_demand_' + idx
+			rxn = coralme.core.reaction.SummaryVariable(name)
+			me.add_reactions([rxn])
+			# An old bug in the YAML Resolver? YAML files should be written and read by the same version of anyconfig
+			# https://stackoverflow.com/questions/30458977/yaml-loads-5e-6-as-string-and-not-a-number
+			rxn.add_metabolites({ k:-(abs(float(v))) for k,v in row.items() if isinstance(me.metabolites.get_by_id(k), coralme.core.component.Metabolite) and isinstance(v, (float, int)) })
+			rxn.lower_bound = 0. # me.mu # coralme.util.mu
+			rxn.upper_bound = 0. # me.mu # coralme.util.mu
+			constituent_mass = sum([me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in row.items() if isinstance(v, (float, int)) ])
+			rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass})
 
 		# ### 2. Lipid Demand Requirements
 		# Metabolites and coefficients from biomass objective function
@@ -2020,18 +2041,45 @@ class MEReconstruction(MEBuilder):
 		#for key, value in me.global_info.get('flux_of_lipid_constituents', {}).items():
 			#lipid_demand[key] = abs(value)
 
-		if lipid_demand:
+		try:
+			lipid_demand = pandas.DataFrame(lipid_demand)
+			for biomass_reaction in me.global_info['biomass_reactions']:
+				if not biomass_reaction in lipid_demand.index:
+					lipid_demand.loc[biomass_reaction] = None # add missing conditions
+			if 'All' in lipid_demand.index: # 'All' contains a value that applies to all the missing conditions
+				for column in lipid_demand:
+					# get conditions with NaN values
+					empty_value_in_conditions = lipid_demand[lipid_demand[column].isna()].index
+					for idx in empty_value_in_conditions:
+						lipid_demand.loc[idx, column] = lipid_demand.loc['All', column]
+		except:
+			lipid_demand = pandas.DataFrame(lipid_demand, index = me.global_info['biomass_reactions'])
+		lipid_demand = lipid_demand.fillna('')
+
+		if not lipid_demand.empty:
+			me.global_info['lipid_demand_per_condition'] = {}
 			for met, requirement in lipid_demand.items():
-				try:
-					component_mass = me.metabolites.get_by_id(met).formula_weight / 1000.
-					rxn = coralme.core.reaction.SummaryVariable('DM_' + met)
-					me.add_reactions([rxn])
-					rxn.add_metabolites({met: -1 * abs(requirement), 'lipid_biomass': component_mass * abs(requirement)})
-					rxn.lower_bound = me.mu # coralme.util.mu
-					rxn.upper_bound = me.mu # originally 1000.
-				except:
-					msg = 'Metabolite \'{:s}\' lacks a formula. Please correct it in the M-model or the \'metabolites.txt\' metadata file.'
-					logging.warning(msg.format(met))
+				for condition, value in requirement.items():
+					me.global_info['lipid_demand_per_condition'].setdefault(condition, [])
+					try:
+						component_mass = me.metabolites.get_by_id(met).formula_weight / 1000.
+						me.global_info['lipid_demand_per_condition'][condition].append('DM_' + met + '_' + condition)
+						rxn = coralme.core.reaction.SummaryVariable('DM_' + met + '_' + condition)
+						me.add_reactions([rxn])
+						rxn.add_metabolites({met: -1 * abs(value), 'lipid_biomass': component_mass * abs(value)})
+						rxn.lower_bound = 0. # me.mu # coralme.util.mu
+						rxn.upper_bound = 0. # me.mu # originally 1000.
+					except:
+						msg = 'Metabolite \'{:s}\' lacks a formula. Please correct it in the M-model or the \'metabolites.txt\' metadata file.'
+						logging.warning(msg.format(met))
+		else:
+			logging.warning('All metabolites in the \'flux_of_lipid_constituents\' configuration key lack their formulae.')
+
+		# set active biomass reaction and lipid reactions
+		if me.global_info.get('active_biomass_reaction', False):
+			me.active_biomass_reaction = me.global_info['active_biomass_reaction']
+		else:
+			me.active_biomass_reaction = 'biomass_constituent_demand'
 
 		# ### 3. DNA Demand Requirements
 		# Added based on growth rate dependent DNA levels as in [O'brien EJ et al 2013](https://www.ncbi.nlm.nih.gov/pubmed/24084808) (*E. coli* data)
@@ -2647,11 +2695,13 @@ class MEReconstruction(MEBuilder):
 		for r in tqdm.tqdm(me.reactions.query('_mod_glycyl'), 'Updating FormationReactions involving a glycyl radical...', bar_format = bar_format):
 			r.update()
 
-		# Update biomass_constituent_demand reaction
-		constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in biomass_constituents.items())
-		rxn = me.reactions.get_by_id('biomass_constituent_demand')
-		rxn.add_metabolites({ k:-(abs(float(v))) for k,v in biomass_constituents.items() }, combine = False)
-		rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass}, combine = False)
+		# Update biomass_constituent_demand reaction(s) with components that previously has no formula
+		for idx, row in biomass_constituents.iterrows():
+			constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(v) for c,v in row.items() if isinstance(v, (float, int)))
+			name = 'biomass_constituent_demand' if idx == 'biomass_constituent_demand' else 'biomass_constituent_demand_' + idx
+			rxn = me.reactions.get_by_id(name)
+			rxn.add_metabolites({ k:-(abs(v)) for k,v in row.items() if isinstance(v, (float, int)) }, combine = False)
+			rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass}, combine = False)
 
 		# ## Part 8: Set keffs
 		# Step 1. Determine SASA and median SASA
