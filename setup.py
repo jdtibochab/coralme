@@ -100,7 +100,8 @@ def main():
 			'jsonschema<=4.21.1',
 			'tqdm<=4.62.3',
 			'Pint<=0.24.4',
-			'pytest'
+			'pytest',
+			'ipython==8.26.0'
 			],
 
 		# WARNING: seems to be bdist_wheel only
