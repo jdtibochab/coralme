@@ -2632,6 +2632,7 @@ class MEReconstruction(MEBuilder):
 
 		modification_formulas = df_mets[df_mets['type'].str.match('COFACTOR|MOD|MODIFICATION')]
 		modification_formulas = dict(zip(modification_formulas['me_id'], modification_formulas['formula']))
+		me.global_info['modification_formulas'] = modification_formulas
 
 		# Correct formula of complexes based on their base complex
 		# This will add the formula to complexes not formed from a complex formation reaction (e.g. CPLX + na2_c -> CPLX_mod_na2(1))
@@ -2650,25 +2651,48 @@ class MEReconstruction(MEBuilder):
 
 				if mod_name in modification_formulas:
 					mod_elements = coralme.builder.helper_functions.parse_composition(modification_formulas[mod_name])
+					# 2fe2s_c and 4fe4s_c appear as free metabolites in reactions and need to have formula for correct mass balance determination
 					if me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is None:
 						me.metabolites.get_by_id(mod_name + '_c').formula = modification_formulas[mod_name]
+						logging.warning('Formula for \'{:s}\' updated from me_mets.txt file.'.format(mod_name + '_c'))
+					logging.warning('Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
 
 				elif me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is not None:
 					mod_elements = me.metabolites.get_by_id(mod_name + '_c').elements
+					logging.warning('Elemental contribution for \'{:s}\' calculated from metabolite formula.'.format(mod_name))
 
-				# WARNING: flavodoxin homologs might have a different base_complex ID compared to ecolime
+				# WARNING: electron carriers can, assuming they are neutral, transfer also protons
+				# WARNING: Ferredoxins only transfer electrons; thioredoxins and others transfer protons and electrons.
+				elif mod.startswith('Oxidized'):
+					if base_complex in me.global_info['electron_transfers'].get('ferredoxins', []):
+						mod_elements = {'H': 0}
+						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
+					elif base_complex in me.global_info['electron_transfers'].get('cytochromes', []):
+						mod_elements = {'H': 0}
+						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
+					elif 'Oxidized(1)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+						mod_elements = {'H': -2}
+						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
+					elif 'Oxidized(2)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+						mod_elements = {'H': -4}
+						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
+					# TODO: is the fmn cofactor in flavodoxin neutral?
+					# WARNING: flavodoxin homologs might have a different base_complex ID compared to the ecolime model
+					elif 'Oxidized(1)' == mod and base_complex in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+						mod_elements = {'H': 0}
+						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
+					else:
+						logging.warning('Elemental contribution in \'{:s}\' could not be determined. Please check configuration file and add the base complex into the \'electron_transfers\' key.'.format(base_complex))
+
 				# WARNING: Negative elemental contributions cannot be set in the metabolites.txt input file
-				elif 'Oxidized(1)' == mod and 'FLAVODOXIN' not in base_complex:
-					mod_elements = {'H': -2}
-				elif 'Oxidized(2)' == mod and 'FLAVODOXIN' not in base_complex:
-					mod_elements = {'H': -4}
-				elif 'Oxidized(1)' == mod and 'FLAVODOXIN' in base_complex: # TODO: is the fmn cofactor in flavodoxin neutral?
-					mod_elements = {'H': 0}
-
 				elif 'glycyl(1)' == mod:
 					mod_elements = {'H': -1}
+					logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
 				elif 'cosh(1)' == mod:
 					mod_elements = {'H': +1, 'O': -1, 'S': +1}
+					logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
+				else:
+					logging.warning('Elemental contribution for \'{:s}\' could not be determined. Please check me_mets.txt file.'.format(mod_name))
 
 				if mod_elements:
 					mod_elements = collections.Counter(mod_elements)
