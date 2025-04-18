@@ -6,7 +6,7 @@ import tqdm
 import cobra
 import coralme
 from warnings import warn
-
+from collections import Counter
 
 # from cobrame without changes
 def get_base_complex_data(model, complex_id):
@@ -390,3 +390,60 @@ def check_me_coverage(builder):
 			'to_do':'Manually curate the M-model to correct GPRs or incorporate new reactions.'})
 
 	return len(res)
+
+def check_and_correct_stoichiometries(m_model):
+	import logging
+	log = logging.getLogger(__name__)
+
+	# correct stoichiometry if rxn.check_mass_balance() == {'charge': +1.0, 'H': +1.0} or integer multiples of it
+	skip = set()
+	rxn_count = 0
+	met_count = 0
+	for rxn in m_model.reactions:
+		if rxn.id.startswith(('EX_', 'DM_', 'SK_')):
+			continue
+
+		if rxn.id in skip:
+			continue
+
+		any_missing_formula = False
+		for met, coeff in rxn.metabolites.items():
+			if met.formula is None:
+				met_count += 1
+				logging.warning('Missing formula for metabolite \'{:s}\' in reaction \'{:s}\'. Not checking any reaction associated to \'{:s}\'.'.format(met.id, rxn.id, met.id))
+				skip.update([ x.id for x in met.reactions ])
+				any_missing_formula = True
+
+		if any_missing_formula:
+			continue
+
+		check = rxn.check_mass_balance()
+		if check == {}:
+			continue
+		elif set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
+			compt = rxn.get_compartments()
+			if len(compt) == 1:
+				metabolites = Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
+				metabolites.update(Counter({ m_model.metabolites.get_by_id('h_{:s}'.format(compt[0])) : -1 * check['H'] }))
+				m_model.reactions.get_by_id(rxn.id)._metabolites = { k:v for k,v in metabolites.items() if v != 0. }
+				logging.warning('Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
+			else:
+				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction. Please check and correct if it is needed.'.format(rxn.id))
+				rxn_count += 1
+		else:
+			logging.warning('Reaction \'{:s}\' is not mass/charge balanced. Please check and correct if it is needed.'.format(rxn.id))
+			rxn_count += 1
+
+	# Report
+	if rxn_count == 0:
+		logging.warning('No mass/charge imbalance was detected in M-model (excluding prefixed EX, DM, and SK reactions).')
+	else:
+		logging.warning('Stoichiometry problems detected in {:d} reactions.'.format(rxn_count))
+
+	if met_count == 0:
+		logging.warning('No missing formulas were detected in M-model.')
+	else:
+		logging.warning('Missing formulas were detected in {:d} metabolites.'.format(met_count))
+
+
+	return m_model
