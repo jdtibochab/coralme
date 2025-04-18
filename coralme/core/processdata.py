@@ -849,7 +849,7 @@ class TranslationData(ProcessData):
 		being translated
 
 	"""
-	def __init__(self, id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table, pseudo):
+	def __init__(self, id, model, mrna, protein, nucleotide_sequence, organelle, translation, transl_table, pseudo, product):
 		ProcessData.__init__(self, id, model)
 		self.mRNA = mrna
 		self.protein = protein
@@ -858,6 +858,7 @@ class TranslationData(ProcessData):
 		self.translation = translation
 		self.transl_table = transl_table
 		self.pseudo = pseudo
+		self.product = product
 		self.notes = []
 
 		self.subreactions = collections.defaultdict(int)

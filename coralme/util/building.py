@@ -119,7 +119,7 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 		me_model.add_metabolites([gene])
 		logging.warning('A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(locus_id))
 
-def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, update = False, add_subreactions = False):
+def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, product = None, update = False, add_subreactions = False):
 	"""
 	Creates and adds a TranslationReaction to the ME-model as well as the
 	associated TranslationData
@@ -159,7 +159,7 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 	translation_reaction.translation_data = coralme.core.processdata.TranslationData(
 		id = locus_id, model = me_model, mrna = 'RNA_' + locus_id, protein = 'protein_' + locus_id,
 		nucleotide_sequence = str(dna_sequence).upper(), organelle = organelle, translation = str(prot_sequence).upper(),
-		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table], pseudo = pseudo
+		transl_table = Bio.Data.CodonTable.generic_by_id[transl_table], pseudo = pseudo, product = product
 		)
 
 	# 3) and add TranslationReaction into ME-Model
@@ -556,10 +556,11 @@ def build_reactions_from_genbank(
 			if rna_type == 'mRNA':
 				# Add the translation table
 				#prot = feature.qualifiers.get('translation', [''])[0] # get translation from DNA sequence
+				product = feature.qualifiers.get('product', [None])[0]
 				transl_table = feature.qualifiers.get('transl_table', ['1'])[0]
 				prot = seq.translate(transl_table)
 				pseudo = feature.qualifiers.get('pseudo', False)
-				add_translation_reaction(me_model, bnum, dna_sequence = str(seq), prot_sequence = str(prot), organelle = organelle, transl_table = int(transl_table), pseudo = bool(pseudo), update = False)
+				add_translation_reaction(me_model, bnum, dna_sequence = str(seq), prot_sequence = str(prot), organelle = organelle, transl_table = int(transl_table), pseudo = bool(pseudo), product = product, update = False, add_subreactions = False)
 
 				# Add the start codon to the start_codons set
 				start_codons.add(str(seq[:3]).replace('T', 'U'))
@@ -886,7 +887,7 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 
 	transl_table = list(me_model.global_info['transl_tables']['c'])[0]
 	prot_sequence = str(Bio.Seq.Seq(seq).translate(table = transl_table))
-	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, transl_table = transl_table, pseudo = True, update = update)
+	add_translation_reaction(me_model, 'dummy', dna_sequence = seq, prot_sequence = prot_sequence, transl_table = transl_table, pseudo = True, product = 'protein dummy', update = update, add_subreactions = False)
 
 	try:
 		complex_data = coralme.core.processdata.ComplexData('CPLX_dummy', me_model)
