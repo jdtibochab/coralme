@@ -327,7 +327,7 @@ class MEModel(cobra.core.object.Object):
 	def to_pickle(self, outfile):
 		coralme.io.pickle.save_pickle_me_model(self, outfile)
 
-	def minimize(self, id_or_model = 'copy', name = 'copy'):
+	def minimize(self, id_or_model = 'copy', name = 'copy', include_original_m_model = False, include_processed_m_model = False, include_processdata = True):
 		new_model = coralme.core.model.MEModel(id_or_model = id_or_model, name = name)
 		# add_processdata, add_metabolites, and add_reactions take care of
 		# new memory addresses for associated data
@@ -337,9 +337,15 @@ class MEModel(cobra.core.object.Object):
 		new_model.add_metabolites([ x.copy() for x in self.metabolites ])
 		new_model.reactions[0].remove_from_model()
 		# reaction copies should be associated to new process data
-		# the copy includes the objective coefficient
+		# the copy includes the objective coefficient and process data
 		new_model.add_reactions([ x.copy() for x in self.reactions ])
 		new_model.compartments = self.compartments
+		if not include_processdata:
+			del new_model.process_data
+		if include_original_m_model:
+			new_model.gem = self.gem
+		if include_processed_m_model:
+			new_model.processed_m_model = self.processed_m_model
 		return new_model
 
 	@staticmethod
@@ -353,7 +359,7 @@ class MEModel(cobra.core.object.Object):
 			new_reaction.gpr = reaction.gpr
 			for met, stoichiometry in reaction.metabolites.items():
 				new_reaction.add_metabolites({ model.metabolites.get_by_id(met.id): stoichiometry })
-			#new_reaction.cofactors = reaction.cofactors
+			new_reaction.cofactors = reaction.cofactors if hasattr(reaction, 'cofactors') else cobra.core.GPR.from_string('')
 			return new_reaction
 
 		def metabolite_from_cobra_model(model, metabolite):
@@ -2256,6 +2262,11 @@ class MEModel(cobra.core.object.Object):
 		else:
 			mu = dt = numpy.nan
 
+		if hasattr(self, 'process_data'):
+			process_data = len(self.process_data)
+		else:
+			process_data = numpy.nan
+
 		return f"""
 		<table>
 			<tr>
@@ -2278,7 +2289,7 @@ class MEModel(cobra.core.object.Object):
 				<td>{len(self.reactions)}</td>
 			</tr><tr>
 				<td><strong>Number of process data</strong></td>
-				<td>{len(self.process_data)}</td>
+				<td>{process_data}</td>
 			</tr><tr>
 				<td><strong>Number of genes</strong></td>
 				<td>{len(self.all_genes)}</td>
