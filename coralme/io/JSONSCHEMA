@@ -881,6 +881,6 @@
       "type": "integer"
     }
   },
-  "title": "COBRAme",
+  "title": "coralME",
   "type": "object"
 }
