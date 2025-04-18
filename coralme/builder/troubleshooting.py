@@ -17,9 +17,13 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 	Get a dictionary containing information on whether a metabolite has
 	producing or consuming reactions. This is used to find gaps.
 	"""
+	if isinstance(model, coralme.core.model.MEModel):
+		lp = model.construct_lp_problem(as_dict = True)
+		lp['Sf'], lp['Se'], lp['xl'], lp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(Sf = lp['Sf'], Se = lp['Se'], lb = lp['xl'], ub = lp['xu'], atoms = lp['mu'], keys = { model.mu.magnitude : 1. })
+
 	dct = {}
 	for met in model.metabolites:
-		filter1 = type(met) == cobra.core.metabolite.Metabolite or type(met) == coralme.core.component.Metabolite
+		filter1 = isinstance(met, (cobra.core.metabolite.Metabolite, coralme.core.component.Metabolite))
 		filter2 = met.id.startswith('trna')
 		filter3 = met.id.endswith('trna_c')
 
@@ -30,19 +34,29 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 				if rxn.id.startswith('BIOMASS_'):
 					continue
 
-				lb, ub = rxn.lower_bound, rxn.upper_bound
+				# lb, ub = rxn.lower_bound, rxn.upper_bound
 
-				# Replace 'growth_key' if model is a ME-model
-				if hasattr(lb, 'subs'):
-					lb = lb.subs(parameters).subs(growth_key, 1.)
-				if hasattr(ub, 'subs'):
-					ub = ub.subs(parameters).subs(growth_key, 1.)
-				if met not in rxn.metabolites:
-					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
-					continue
-				coeff = rxn.metabolites[met]
-				if hasattr(coeff, 'subs'):
-					coeff = coeff.subs(parameters).subs(growth_key, 1.)
+				# # Replace 'growth_key' if model is a ME-model
+				# if hasattr(lb, 'subs'):
+				# 	lb = lb.subs(parameters).subs(growth_key, 1.)
+				# if hasattr(ub, 'subs'):
+				# 	ub = ub.subs(parameters).subs(growth_key, 1.)
+				# if met not in rxn.metabolites:
+				# 	# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
+				# 	continue
+				# coeff = rxn.metabolites[met]
+				# if hasattr(coeff, 'subs'):
+				# 	coeff = coeff.subs(parameters).subs(growth_key, 1.)
+
+				if isinstance(model, coralme.core.model.MEModel):
+					rpos = model.reactions.index(rxn) # get the position in the stoichiometric matrix
+					mpos = model.metabolites.index(met) # get the position in the stoichiometric matrix
+					lb = lp['xl'][rpos]
+					ub = lp['xu'][rpos]
+					coeff = lp['Sf'][(mpos, rpos)]
+				else:
+					lb, ub = rxn.bounds
+					coeff = rxn.metabolites[met]
 
 				pos = 1 if coeff > 0 else -1
 				rev = 1 if lb < 0 else 0
