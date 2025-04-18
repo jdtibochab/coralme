@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import numpy
 import pathlib
 import pandas

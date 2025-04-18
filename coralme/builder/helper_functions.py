@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import re
 import copy
 import pandas
@@ -207,7 +206,10 @@ def get_metabolites_from_pattern(model,pattern):
 	return [m.id for m in model.metabolites.query(pattern)]
 
 def evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms):
-	"""Get an LP problem from NLP objects"""
+	"""Get an LP problem from NLP objects
+
+	Returns Sf, Se, lb, ub evaluated at keys.values() per every variable in atoms
+	"""
 	lb = [ x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for x in lb ]
 	ub = [ x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for x in ub ]
 	Se = { k:x(*[ keys[x] for x in list(atoms) ]) if hasattr(x, '__call__') else float(x.xreplace(keys)) if hasattr(x, 'subs') else x for k,x in Se.items() }
@@ -258,7 +260,7 @@ def get_all_transport_of_model(model):
 
 
 def format_kcats_from_DLKcat(df):
-	"""Formate the output from DLKcat to coralME-compatible"""
+	"""Format the output from DLKcat to coralME-compatible"""
 	# df = pandas.read_csv("./bacillus/building_data/bacillus_rxn_kcats.tsv",sep='\t',index_col=0).set_index("reaction")
 
 	df2 = pandas.DataFrame(columns=["direction","complex","mods","keff"])

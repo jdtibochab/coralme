@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import cobra
 import glob
 import pandas

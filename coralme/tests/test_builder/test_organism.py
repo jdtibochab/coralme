@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 from coralme.builder.organism import Organism
 from importlib.resources import files
 import anyconfig
@@ -19,7 +18,7 @@ input_nobiocyc = {
 organism = {}
 with open("{}/tests/data/organism.json".format(dir), 'r') as infile:
     organism.update(anyconfig.load(infile))
-    
+
 def test_organism_init():
     config = organism.copy()
     config.update(input_nobiocyc)

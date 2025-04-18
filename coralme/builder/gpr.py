@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import cobra
 from ast import parse as ast_parse, Name, And, Or, BitOr, BitAnd, BoolOp, Expression, NodeTransformer
 import re

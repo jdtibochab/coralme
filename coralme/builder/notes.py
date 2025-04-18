@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import collections
 import json
 import os

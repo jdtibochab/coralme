@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 # ME model troubleshooting
 # Originally developed by JDTB@UCSD, 2022
 # Modified by RSP@UCSD, 2022

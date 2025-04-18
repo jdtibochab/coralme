@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # python imports
 import io
 import os
