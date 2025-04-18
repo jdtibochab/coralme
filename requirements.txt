@@ -4,6 +4,7 @@ cobra==0.29.0
 docplex==2.28.240
 gurobipy==11.0.3
 importlib_resources==6.4.0
+ipython==8.26.0
 jsonschema==4.23.0
 numpy==2.1.2
 openpyxl==3.1.5
