@@ -209,30 +209,10 @@ class MEModel(cobra.core.object.Object):
 			'braun\'s_lpp_flux' : -0.0,
 			'braun\'s_murein_flux' : -0.0,
 
-			'default_parameters' : {
-				sympy.Symbol('k_t', positive = True) : 4.5, # per hour
-				sympy.Symbol('r_0', positive = True) : 0.087, # dimensionless
-				sympy.Symbol('k^mRNA_deg', positive = True) : 12.0, # per hour
-				sympy.Symbol('m_rr', positive = True) : 1453.0, # kDa = g per millimole
-				sympy.Symbol('m_aa', positive = True) : 0.109, # kDa = g per millimole
-				sympy.Symbol('m_nt', positive = True) : 0.324, # kDa = g per millimole
-				sympy.Symbol('f_rRNA', positive = True) : 0.86, # dimensionless, between 0 and 1
-				sympy.Symbol('f_mRNA', positive = True) : 0.02, # dimensionless, between 0 and 1
-				sympy.Symbol('f_tRNA', positive = True) : 0.12, # dimensionless, between 0 and 1
-				sympy.Symbol('m_tRNA', positive = True) : 25.0, # kDa = g per millimole
-				sympy.Symbol('k^default_cat', positive = True) : 65.0, # per second, internally converted to per hour
-				sympy.Symbol('temperature', positive = True) : 37.0, # kelvin
-				sympy.Symbol('propensity_scaling', positive = True) : 0.45, # dimensionless
-				# DNA replication; see dna_replication.percent_dna_template_function
-				sympy.Symbol('g_p_gdw_0', positive = True) : 0.059314110730022594, # dimensionless
-				sympy.Symbol('g_per_gdw_inf', positive = True) : 0.02087208296776481, # dimensionless
-				# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if mu and d types are pint.Quantity
-				sympy.Symbol('b', positive = True) : 0.1168587392731988,
-				sympy.Symbol('d', positive = True) : 3.903641432780327 # dimensionless
-				}
 			}
 
 		# instantiate model parameters as symbols
+		# check me.default_parameters and me.symbols
 		self.parameters = coralme.core.parameters.MEParameters(self)
 
 		# Create basic M-model structures
@@ -364,13 +344,18 @@ class MEModel(cobra.core.object.Object):
 	@default_parameters.setter
 	def default_parameters(self, args):
 		"""
+		This will only update original MEModel symbols.
+
+		Using an empty dictionary will reset the values.
+
+		Use `me.default_parameters.update` to add new symbols and values.
+
 		Use 'kt' instead of 'k_t'
 		Use 'r0' instead of 'r_0'
 		Use 'k_deg' instead of 'k^mRNA_deg'
-		Use 'kt' instead of 'k_t'
 		Use 'kcat' instead of 'k^default_cat'
 		"""
-		self.global_info['default_parameters'] = {
+		self.global_info['default_parameters'].update({
 			sympy.Symbol('k_t', positive = True) : args.get('kt', 4.5),
 			sympy.Symbol('r_0', positive = True) : args.get('r0', 0.087),
 			sympy.Symbol('k^mRNA_deg', positive = True) : args.get('k_deg', 12.0),
@@ -389,7 +374,7 @@ class MEModel(cobra.core.object.Object):
 			sympy.Symbol('g_per_gdw_inf', positive = True) : args.get('g_per_gdw_inf', 0.02087208296776481), # dimensionless
 			sympy.Symbol('b', positive = True) : args.get('b', 0.1168587392731988), # per hour**d
 			sympy.Symbol('d', positive = True) : args.get('c', 3.903641432780327) # dimensionless
-			}
+			})
 
 	@property
 	def mu(self):

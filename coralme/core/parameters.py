@@ -5,6 +5,51 @@ import sympy
 import tqdm
 import coralme
 
+class DefaultParameters(dict):
+	def __init__(self, *args, **kwargs):
+		"""Normalize keys on initialization."""
+		super().__init__()  # Avoid passing args directly
+
+		# Merge args and kwargs into a single dict
+		initial_data = dict(*args, **kwargs)
+		for key, value in initial_data.items():
+			self[key] = value  # Triggers __setitem__
+
+	def __setitem__(self, key, value):
+		"""Ensure all keys are stored as sympy.Symbol with positive=True."""
+		if isinstance(key, str):
+			key = sympy.Symbol(key, positive=True)  # Convert string to Symbol
+		elif isinstance(key, sympy.Symbol):
+			key = sympy.Symbol(key.name, positive=True)  # Normalize existing Symbol
+
+		super().__setitem__(key, value)
+
+	def __getitem__(self, key):
+		"""Ensure keys are normalized before retrieval."""
+		if isinstance(key, str):
+			key = sympy.Symbol(key, positive=True)  # Convert string to Symbol
+		elif isinstance(key, sympy.Symbol):
+			key = sympy.Symbol(key.name, positive=True)  # Normalize existing Symbol
+
+		return super().__getitem__(key)
+
+	def get(self, key, default=None):
+		"""Retrieve the value for a given sympy.Symbol key."""
+		if isinstance(key, str):  # Allow lookup by string name
+			key = sympy.Symbol(key, positive=True)
+		elif isinstance(key, sympy.Symbol):
+			key = sympy.Symbol(key.name, positive=True)
+		return super().get(key, default)
+
+	def update(self, *args, **kwargs):
+		"""Override update to ensure all keys are sympy.Symbol with positive=True."""
+		new_data = dict(*args, **kwargs)
+		converted_data = {
+			(sympy.Symbol(k, positive=True) if isinstance(k, str) else sympy.Symbol(k.name, positive=True)): v
+			for k, v in new_data.items()
+		}
+		super().update(converted_data)  # Call original dict update method
+
 class MEParameters():
 	def __init__(self, model):
 		self._model = model
@@ -13,6 +58,28 @@ class MEParameters():
 		ureg = pint.UnitRegistry()
 		model.unit_registry = ureg
 
+		# WARNING: DefaultParameters class ensures keys are sympy's Symbols and positive
+		model.global_info['default_parameters'] = DefaultParameters({
+			'k_t' : 4.5, # per hour
+			'r_0' : 0.087, # dimensionless
+			'k^mRNA_deg' : 12.0, # per hour
+			'm_rr' : 1453.0, # kDa = g per millimole
+			'm_aa' : 0.109, # kDa = g per millimole
+			'm_nt' : 0.324, # kDa = g per millimole
+			'f_rRNA' : 0.86, # dimensionless, between 0 and 1
+			'f_mRNA' : 0.02, # dimensionless, between 0 and 1
+			'f_tRNA' : 0.12, # dimensionless, between 0 and 1
+			'm_tRNA' : 25.0, # kDa = g per millimole
+			'k^default_cat' : 65.0, # per second, internally converted to per hour
+			'temperature' : 37.0, # kelvin
+			'propensity_scaling' : 0.45, # dimensionless
+			# DNA replication; see dna_replication.percent_dna_template_function
+			'g_p_gdw_0' : 0.059314110730022594, # dimensionless
+			'g_per_gdw_inf' : 0.02087208296776481, # dimensionless
+			# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if mu and d types are pint.Quantity
+			'b' : 0.1168587392731988,
+			'd' : 3.903641432780327 # dimensionless
+			})
 		model.symbols = {}
 		for var, unit in [('P', 'grams per gram'), ('R', 'grams per gram'), ('k_t', '1 per hour'), ('r_0', None), ('k^mRNA_deg', '1 per hour'), ('m_rr', 'gram per mmol'), ('m_aa', 'gram per mmol'), ('m_nt', 'gram per mmol'), ('f_rRNA', None), ('f_mRNA', None), ('f_tRNA', None), ('m_tRNA', 'gram per mmol'), ('k^default_cat', '1 per second'), ('temperature', 'K'), ('propensity_scaling', None), ('g_p_gdw_0', 'grams per gram'), ('g_per_gdw_inf', 'grams per gram'), ('b', '1 per hour**{:f}'.format(model.default_parameters[sympy.Symbol('d', positive = True)])), ('d', None)]:
 			# WARNING: [b] is nominally per hour**d, but mu**d cannot be calculated if the types of mu and d are pint.Quantity

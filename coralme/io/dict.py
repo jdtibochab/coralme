@@ -535,10 +535,10 @@ def me_model_from_dict(obj):
 	# overwriting global_info set by MEModel.__init__()
 	if not 'default_parameters' in model.global_info:
 		# model.default_parameters is a method that set up model.global_info['default_parameters']
-		model.default_parameters = {
-			'kt' : obj['global_info']['kt'],
-			'r0' : obj['global_info']['r0'],
-			'k_deg' : obj['global_info']['k_deg'],
+		model.global_info['default_parameters'] = coralme.core.parameters.DefaultParameters({
+			'k_t' : obj['global_info']['kt'],
+			'r_0' : obj['global_info']['r0'],
+			'k^mRNA_deg' : obj['global_info']['k_deg'],
 			'm_rr' : obj['global_info']['m_rr'],
 			'm_aa' : obj['global_info']['m_aa'],
 			'm_nt' : obj['global_info']['m_nt'],
@@ -546,34 +546,16 @@ def me_model_from_dict(obj):
 			'f_mRNA' : obj['global_info']['f_mRNA'],
 			'f_tRNA' : obj['global_info']['f_tRNA'],
 			'm_tRNA' : obj['global_info']['m_tRNA'],
-			'kcat' : 65.0, # not stored in json with coralME v1.0
+			'k^default_cat' : 65.0, # not stored in json with coralME v1.0
 			'temperature' : obj['global_info']['temperature'],
 			'propensity_scaling' : obj['global_info']['propensity_scaling'],
 			'g_p_gdw_0' : 0.059314110730022594, # not stored in json with coralME v1.0
 			'g_per_gdw_inf' : 0.02087208296776481, # not stored in json with coralME v1.0
 			'b' : 0.1168587392731988, # not stored in json with coralME v1.0
 			'd' : 3.903641432780327, # not stored in json with coralME v1.0
-			}
+			})
 	else:
-		model.default_parameters = {
-			'kt' : obj['global_info']['default_parameters']['k_t'],
-			'r0' : obj['global_info']['default_parameters']['r_0'],
-			'k_deg' : obj['global_info']['default_parameters']['k^mRNA_deg'],
-			'm_rr' : obj['global_info']['default_parameters']['m_rr'],
-			'm_aa' : obj['global_info']['default_parameters']['m_aa'],
-			'm_nt' : obj['global_info']['default_parameters']['m_nt'],
-			'f_rRNA' : obj['global_info']['default_parameters']['f_rRNA'],
-			'f_mRNA' : obj['global_info']['default_parameters']['f_mRNA'],
-			'f_tRNA' : obj['global_info']['default_parameters']['f_tRNA'],
-			'm_tRNA' : obj['global_info']['default_parameters']['m_tRNA'],
-			'kcat' : obj['global_info']['default_parameters']['k^default_cat'],
-			'temperature' : obj['global_info']['default_parameters']['temperature'],
-			'propensity_scaling' : obj['global_info']['default_parameters']['propensity_scaling'],
-			'g_p_gdw_0' : obj['global_info']['default_parameters']['g_p_gdw_0'],
-			'g_per_gdw_inf' : obj['global_info']['default_parameters']['g_per_gdw_inf'],
-			'b' : obj['global_info']['default_parameters']['b'],
-			'd' : obj['global_info']['default_parameters']['d']
-			}
+		model.global_info['default_parameters'] = coralme.core.parameters.DefaultParameters(obj['global_info']['default_parameters'])
 
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
 		_add_metabolite_from_dict(model, metabolite)
