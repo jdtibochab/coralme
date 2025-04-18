@@ -348,7 +348,7 @@ class MEModel(cobra.core.object.Object):
 
 		Using an empty dictionary will reset the values.
 
-		Use `me.default_parameters.update` to add new symbols and values.
+		Use `me.global_info['default_parameters'].update` to add new symbols and values.
 
 		Use 'kt' instead of 'k_t'
 		Use 'r0' instead of 'r_0'

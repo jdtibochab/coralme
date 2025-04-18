@@ -962,14 +962,12 @@ class MetabolicReaction(MEReaction):
 
 	# Backward compatibility
 	@keff.setter
-	def keff(self, value, unit = '1 per second'):
+	def keff(self, value):
 		"""
 		value is the keff in per second, not the coupling coefficient
 		this sets the coupling coefficient as growth rate divided by the keff
 		"""
-		value = value if isinstance(value, pint.Quantity) else value * self._model.unit_registry.parse_units(unit)
-		self._keff = value
-		self._coupling_coefficient_enzyme = self._model.mu * value.to('1 per hour')**-1
+		self.coupling_coefficient_enzyme = value
 
 	@property
 	def coupling_coefficient_enzyme(self):
@@ -984,8 +982,11 @@ class MetabolicReaction(MEReaction):
 		value is the keff in per second, not the coupling coefficient
 		this sets the coupling coefficient as growth rate divided by the keff
 		"""
+		var_name = r'keff\_reaction\_{:s}'.format(self.id)
+		value = coralme.core.parameters.MEParameters.check_parameter(value)
 		self._keff = value
-		self._coupling_coefficient_enzyme = self._model.mu * value.to('1 per hour')**-1
+		self._coupling_coefficient_enzyme = self._model.mu * (sympy.Symbol(var_name, positive = True) * self._model.unit_registry.parse_units('1 per second')).to('1 per hour')**-1
+		self._model.global_info['default_parameters'].update({ var_name : value })
 
 	@property
 	def complex_data(self):

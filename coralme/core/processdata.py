@@ -217,7 +217,7 @@ class SubreactionData(ProcessData):
 		returns the keff value, not the coupling coefficient, in per second
 		"""
 		# value = self._model.mu * sympy.Rational('1/3600') / self._coupling_coefficient_subreaction
-		value = (self._model.mu / self._coupling_coefficient_subreaction).to('1 per second')
+		value = (self._model.mu / self.coupling_coefficient_subreaction).to('1 per second')
 		try:
 			return float(value)
 		except:
@@ -230,7 +230,7 @@ class SubreactionData(ProcessData):
 		value is the keff in per second, not the coupling coefficient
 		"""
 		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
-		self._coupling_coefficient_subreaction = self._model.mu * value.to('1 per hour')**-1
+		self.coupling_coefficient_subreaction = value
 
 	@property
 	def coupling_coefficient_subreaction(self):
@@ -246,7 +246,10 @@ class SubreactionData(ProcessData):
 		this sets the coupling coefficient as growth rate divided by the keff
 		"""
 		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), value**-1, evaluate = False)
-		self._coupling_coefficient_subreaction = self._model.mu * value.to('1 per hour')**-1
+		var_name = r'keff\_subreaction\_{:s}'.format(self.id)
+		value = coralme.core.parameters.MEParameters.check_parameter(value)
+		self._coupling_coefficient_subreaction = self._model.mu * (sympy.Symbol(var_name, positive = True) * self._model.unit_registry.parse_units('1 per second')).to('1 per hour')**-1
+		self._model.global_info['default_parameters'].update({ var_name : value })
 
 	@property
 	def element_contribution(self):
@@ -1239,11 +1242,15 @@ class tRNAData(ProcessData):
 		self.subreactions = collections.defaultdict(int)
 		self.synthetase = None
 
-		self._synthetase_keff = self._model.symbols['k^default_cat']
+		# WARNING:
+		# tRNA coupling coefficient is a function of mu and tRNA effective rate (keff)
+		# tRNA synthetase coupling coefficient is a function of mu, tRNA effective rate (keff), and the synthetase effective rate
 
 		self._coupling_coefficient_trna_keff = self._model.symbols['k_tRNA']
 		# self._coupling_coefficient_trna_amount = sympy.Mul(self._model.mu, self._coupling_coefficient_trna_keff**-1, evaluate = False)
 		self._coupling_coefficient_trna_amount = self._model.mu * self._coupling_coefficient_trna_keff**-1
+
+		self._synthetase_keff = self._model.symbols['k^default_cat']
 		# self._coupling_coefficient_synthetase = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), self._synthetase_keff**-1, (1 + self._coupling_coefficient_trna_amount), evaluate = False)
 		self._coupling_coefficient_synthetase = self._model.mu * self._synthetase_keff.to('1 per hour')**-1 * (1 + self._coupling_coefficient_trna_amount)
 
