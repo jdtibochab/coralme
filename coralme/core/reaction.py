@@ -812,6 +812,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 		"""All required cofactors for reaction are functional.
 		"""
 		if self._model.notes.get('from cobra', False):
+			filter1 = filter2 = True
 			if hasattr(self, 'cofactors'):
 				filter1 = cobra.core.gene.GPR._eval_gpr(self.cofactors, expr = self.cofactors.body, knockouts = {cofactor.id for cofactor in self._model.metabolites if not cofactor.functional})
 			if hasattr(self, 'genes'):
@@ -905,7 +906,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			<tr><td><strong>Lower bound</strong></td><td>{lower}</td></tr>
 			<tr><td><strong>Upper bound</strong></td><td>{upper}</td></tr>
 			<tr><td><strong>Reaction type</strong></td><td>{rxn_type}</td></tr>
-			<tr><td><strong>Flux (value)</strong></td><td>{flux}</td></tr>
+			<tr><td><strong>Flux (growth rate)</strong></td><td>{flux}</td></tr>
 			<tr><td><strong>Reduced cost</strong></td><td>{cost}</td></tr>
 			<tr><td><strong>Bound violation</strong></td><td>{viol}</td></tr>
 			<tr><td><strong>Mass imbalance</strong></td><td>{mass_balance}</td></tr>
