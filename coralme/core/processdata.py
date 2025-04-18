@@ -158,6 +158,15 @@ class StoichiometricData(ProcessData):
 				raise TypeError('Stoichiometry keys must be strings, not \'{:s}\'.'.format(type(k)))
 		self._stoichiometry = value
 
+	@property
+	def flux(self):
+		""" Determines net flux through a reaction, i.e., the sum of fluxes of the parent reactions
+		"""
+		fluxes = []
+		for rxn in self.parent_reactions:
+			fluxes.append(rxn.flux if '_FWD_' in rxn.id else -1*rxn.flux)
+		return sum(fluxes)
+
 class SubreactionData(ProcessData):
 	"""
 	Parameters
