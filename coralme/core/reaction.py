@@ -1,5 +1,6 @@
 import copy
 import collections
+import numpy
 import operator
 import pint
 import sympy
@@ -657,7 +658,8 @@ class MEReaction(cobra.core.reaction.Reaction):
 			self._lower_bound = value
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._lower_bound = value
-		elif isinstance(value, (float, int)):
+		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
+		elif isinstance(float(value), float):
 			self._lower_bound = float(value) * unit
 		else:
 			raise ValueError('The type of the provided lower bound value is not int, float, symbol.Symbol, or pint.Quantity')
@@ -711,7 +713,8 @@ class MEReaction(cobra.core.reaction.Reaction):
 			self._upper_bound = value
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._upper_bound = value
-		elif isinstance(value, (float, int)):
+		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
+		elif isinstance(float(value), float):
 			self._upper_bound = float(value) * unit
 		else:
 			raise ValueError('The type of the provided upper bound value is not int, float, symbol.Symbol, or pint.Quantity')
