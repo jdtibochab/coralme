@@ -32,6 +32,7 @@ dependencies = [
     "tqdm",
     "versioneer",
     "XlsxWriter",
+    "ipython"
 ]
 requires-python = ">=3.7"
 readme = "README.rst"
