@@ -5,6 +5,83 @@ import sympy
 import tqdm
 import coralme
 
+"""
+| coralme†     | Symbol‡      | Value                      | Unit                          | Definition                                              |
+|              |              | (Follows "Symbol" column)  |                               |                                                         |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| me.mu        | μ            | call model.optimize()      | h^-1                          | Specific growth rate = ln(2) / doubling time            |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| R            | R            | See R/P                    | g gDW^-1                      | Total cellular RNA mass per gram of biomass             |
+| P            | P            | See R/P                    | g gDW^-1                      | Total cellular protein mass per gram of biomass         |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| k_t          | κ_t          | 4.5                        | h^-1                          | Slope (Scott et al., 2010)                              |
+| r_0          | r_0          | 0.087                      | dimensionless                 | Intercept (Scott et al., 2010)                          |
+| f_rRNA       | f_rRNA       | 0.86                       | dimensionless                 | Fraction of RNA that is rRNA                            |
+| f_mRNA       | f_mRNA       | 0.02                       | dimensionless                 | Fraction of RNA that is mRNA                            |
+| f_tRNA       | f_tRNA       | 0.12                       | dimensionless                 | Fraction of RNA that is tRNA                            |
+| m_aa         | m_aa         | 0.109                      | g mmol^-1 (:= kDa)            | Molecular weight of average amino acid                  |
+| m_nt         | m_nt         | 0.324                      | g mmol^-1 (:= kDa)            | Molecular weight of average mRNA nucleotide             |
+| m_tRNA       | m_tRNA       | 25.0                       | g mmol^-1 (:= kDa)            | Molecular weight of average tRNA                        |
+| m_rr         | m_rr         | 1453.0                     | g mmol^-1 (:= kDa)            | Molecular weight of rRNA per ribosome                   |
+| k^mRNA_deg   | k^mRNA_deg   | 12.0                       | h^-1                          | First-order mRNA degradation constant                   |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| R/P          | R/P          | (μ κ_t^-1) + r_0           | dimensionless                 | RNA to protein ratio (Scott et al., 2010)               |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| n_ribo       | n_r          | R f_rRNA m_rr^-1           | mmol rRNA gDW^-1              | Concentration of rRNA (Assumption #rRNA = #ribosomes)   |
+| p_rate       | v_trans_mRNA | μ P m_aa^-1                | mmol gDW^-1 h^-1              | Protein synthesis rate (aka, Ps)                        |
+| §            | k'_ribo      |                            | h^-1                          | Average translation rate of an active ribosome          |
+| §            | f_r          |                            | dimensionless                 | Fraction of active ribosomes                            |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| k_ribo       | k_ribo       | v_trans_mRNA n_r^-1        | h^-1                          | Effective ribosomal translation rate (aka, k'_ribo f_r) |
+| v_ribo       | v_ribo       | μ k_ribo^-1                | dimensionless                 | Ribosome coup coeff per aa in translation rxns          |
+| k_rnap       | k_RNAP       | 3 k_ribo                   | h^-1                          | RNA Polymerase transcription rate                       |
+| v_rnap       | v_RNAP       | μ (k_RNAP)^-1              | dimensionless                 | RNA Polymerase per nt coup coeff in transcription rxns  |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| [mRNA]       | [mRNA]       | R f_mRNA m_nt^-1           | mmol gDW^-1                   | mmol of ribonucleotides in mRNA per gDW^-1              |
+| v_dil_mRNA   | v_dil_mRNA   | μ [mRNA]                   | mmol gDW^-1 h^-1              | Dilution rate for mRNA                                  |
+| v_deg_mRNA   | v_deg_mRNA   | k^mRNA_deg [mRNA]          | mmol gDW^-1 h^-1              | Degradation rate for mRNA                               |
+| alpha_1      | α_1          | v_dil_mRNA v_deg_mRNA^-1   | dimensionless                 | Dil-to-deg coup coeff for mRNAs in translation rxns     |
+| 3*deg_amount | α_2          | v_deg_mRNA v_trans_mRNA^-1 | dimensionless                 | Deg-to-trans coup coeff for mRNAs in translation rxns   |
+| k_mRNA/3     | k_mRNA       | v_trans_mRNA [mRNA]^-1     | mmol prot (mmol mRNA)^-1 h^-1 | mRNA catalytic rate                                     |
+| rna_amount   | α_1 α_2      | μ k_mRNA^-1                | dimensionless                 | Dil-to-trans coup coeff for mRNAs in translation rxns   |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| [tRNA]       | [tRNA]       | R f_tRNA m_tRNA^-1         | mmol gDW^-1                   | mmol of ribonucleotides in tRNA per gDW^-1              |
+| v_dil_tRNA   | v_dil_tRNA   | μ [tRNA]                   | mmol gDW^-1 h^-1              | Dilution rate for tRNAs in translation rxns             |
+| v_chrg_tRNA  | v_charg_tRNA | v_trans_mRNA               | mmol gDW^-1 h^-1              | Charging rate for tRNAs (We assume it is v_trans_mRNA)  |
+| alpha_3      | α_3          | v_dil_tRNA v_charg_tRNA^-1 | dimensionless                 | Dil-to-charg coup coeff for tRNAs in translation rxns   |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+| c_ribo       | c_ribo       | m_rr f_rRNA^-1 m_aa^-1     | dimensionless                 | Ribosome catalytic rate                                 |
+| c_mRNA       | c_mRNA       | m_nt f_mRNA^-1 m_aa^-1     | dimensionless                 |                                                         |
+| c_tRNA       | c_tRNA       | m_tRNA f_tRNA^-1 m_aa^-1   | dimensionless                 |                                                         |
+| k_tRNA       | k_tRNA       | μ c_tRNA (R/P)^-1          | mmol prot (mmol tRNA)^-1 h^-1 | tRNA catalytic rate (aka, μ / α_3)                      |
+|--------------|--------------|----------------------------|-------------------------------|---------------------------------------------------------|
+
+# See overleaf
+beta^rnap_transcription   := len(TU) * v_rnap
+
+beta^ribosome_translation := len(protein) * v_ribo
+beta^mRNA_translation     := beta^mRNA_dilution + beta^mRNA_degradation
+beta^mRNA_dilution        := 1/3 α_1 α_2
+beta^mRNA_degradation     := 1/3 α_2
+
+beta^tRNA_translation     := mu / α_3
+beta^tRNA ligase_charging := mu / free_parameter * (1 + beta^tRNA_translation)
+
+Abbreviations:
+aa         : amino acid
+nt         : (ribo)nucleotide
+rnx(s)     : reaction(s)
+coup coeff : coupling coefficient
+dil        : dilution
+deg        : degradation
+trans      : translation
+charg      : charging of tRNA with an amino acid
+
+† Access to the parameter or expression using model.symbols dictionary, e.g., model.symbols['p_rate']
+‡ As in the documentation (overleaf)
+§ Defined in documentation (overleaf, cobrame.readthedocs.io, and/or O'Brien et al., 2013), but never used
+"""
+
 class DefaultParameters(dict):
 	def __init__(self, *args, **kwargs):
 		"""Normalize keys on initialization."""
