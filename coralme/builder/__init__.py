@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-__version__ = "1.0"
-
 import coralme.builder.main
 import coralme.builder.dictionaries
 import coralme.builder.organism
