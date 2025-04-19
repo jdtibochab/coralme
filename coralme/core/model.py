@@ -1051,7 +1051,8 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def get_null_gpr_metabolic_reactions(self):
-		return [ x for x in self.reactions if self.metabolites.get_by_id('CPLX_dummy') in x.metabolites ]
+		# TODO: remove false positive reactions (aka, reactions with an enzyme that also use CPLX_dummy)
+		return [ x for x in self.get('CPLX_dummy').reactions ]
 
 	@property
 	def get_mass_unbalanced_reactions(self):
@@ -1067,11 +1068,11 @@ class MEModel(cobra.core.object.Object):
 			self.add_reactions([summary_variable_obj])
 
 	@property
-	def unmodeled_protein(self):
+	def get_unmodeled_protein(self):
 		return self.metabolites.get_by_id('protein_dummy')
 
 	@property
-	def unmodeled_protein_biomass(self):
+	def get_unmodeled_protein_biomass(self):
 		return self.metabolites.get_by_id('unmodeled_protein_biomass')
 
 	@property
@@ -1093,7 +1094,7 @@ class MEModel(cobra.core.object.Object):
 		else:
 			raise ValueError('The unmodeled protein fraction cannot be exactly 1 or greater.')
 
-		self.reactions.protein_biomass_to_biomass.add_metabolites({self.unmodeled_protein_biomass: -amount}, combine = False)
+		self.reactions.protein_biomass_to_biomass.add_metabolites({self.get_unmodeled_protein_biomass: -amount}, combine = False)
 		self.reactions.protein_biomass_to_biomass.add_metabolites({self._biomass: 1 + amount}, combine = False)
 		self._unmodeled_protein_fraction = value
 
