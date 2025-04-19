@@ -29,7 +29,7 @@ def _update(MEReaction):
 	return None
 
 class MEModel(cobra.core.object.Object):
-	def __init__(self, id_or_model = None, name = 'coralME', mu = 'mu'):
+	def __init__(self, id_or_model = 'coralME', name = 'coralME', mu = 'mu'):
 		#cobra.Model.__init__(self, name)
 		# to avoid setting the solver interface to gurobi or any other
 		cobra.core.object.Object.__init__(self, id_or_model, name = name)
@@ -48,6 +48,15 @@ class MEModel(cobra.core.object.Object):
 			'mg2_per_ribosome' : 171,
 			'amino_acid_loader' : 'generic_Tuf',
 			'feature_types' : [ 'CDS', 'rRNA', 'tRNA', 'ncRNA', 'tmRNA', 'misc_RNA' ],
+
+			'electron_transfers' : {
+				'cytochromes' : [],
+				'ferredoxins' : [],
+				'thioredoxins': [],
+				'glutaredoxins': [],
+				'flavodoxins': [],
+				'peroxiredoxins': [],
+				},
 
 			# analysis
 			'add_lipoproteins' : False, #

@@ -71,8 +71,73 @@ class MEBuilder(object):
 		to update the configuration of the parent class.
 
 	"""
-	def __init__(self, *args, **kwargs):
-		config = {}
+	def __init__(self, *args, m_model_path = None, genbank_path = None, locus_tag = 'locus_tag', blast_threads = None, **kwargs):
+		"""
+		keyword arguments
+			ME-Model-ID, str
+			m-model-path, JSON or SBML file
+			genbank-path, GenBank file only
+
+			df_gene_cplxs_mods_rxns, path to output, must end in '.xlsx'
+			df_TranscriptionalUnits
+			df_matrix_stoichiometry
+			df_matrix_subrxn_stoich
+			df_metadata_orphan_rxns
+			df_metadata_metabolites
+
+			log_directory, str
+			out_directory, str
+
+			dev_reference, default True
+			user_reference, path. If 'user_reference' is defined, dev_reference is False
+			add_lipoproteins, default True
+			estimate_keffs, default True
+		"""
+
+		if blast_threads is None:
+			blast_threads = os.cpu_count()-1
+
+		config = {
+			'ME-Model-ID' : 'coralME',
+			'm-model-path' : m_model_path,
+			'genbank-path' : genbank_path,
+
+			'df_gene_cplxs_mods_rxns' : './automated-org-with-refs.xlsx',
+			'df_TranscriptionalUnits' : '',
+			'df_matrix_stoichiometry' : '',
+			'df_matrix_subrxn_stoich' : '',
+			'df_metadata_orphan_rxns' : '',
+			'df_metadata_metabolites' : '',
+
+			'log_directory' : './',
+			'out_directory' : './',
+
+			'locus_tag' : locus_tag,
+			'run_bbh_blast' : True,
+			'blast_threads' : blast_threads,
+			'dev_reference' : True,
+			'add_lipoproteins' : True,
+			'estimate_keffs' : True,
+
+			'defer_to_rxn_matrix' : [],
+
+			'percent_dna_data' : [0.0592, 0.0512, 0.0330, 0.0252, 0.0222, 0.0208], # E. coli ME-model
+			'gr_data_doublings_per_hour' : [0, 0.6, 1.0, 1.5, 2.0, 2.5], # E. coli ME-model
+
+			'complex_cofactors' : {
+				'fes_transfers' : [],
+				'fes_chaperones' : {},
+				'bmocogdp_chaperones' : {},
+
+				'acps_subreactions': {'mod_pan4p_c': ['acpP_activation']},
+				'biotin_subreactions' : { 'mod_btn_c' : [ 'biotin_ligase' ] },
+				'citx_subreactions': {'mod_2tpr3dpcoa_c': ['citx_transfer_to_citd']},
+				'glycyl_subreactions': {'mod_glycyl_c': ['gre_activation']},
+				'lipoate_subreactions' : { 'mod_lipoyl_c' : [ 'lipoyl_denovo', 'lipoyl_scavenging' ] },
+
+				'FeFe/NiFe' : { 'mod_FeFe_cofactor_c' : '', 'mod_NiFe_cofactor_c' : '' }
+				},
+			}
 
 		for input_file in args:
 			with open(input_file, 'r') as infile:
@@ -80,6 +145,12 @@ class MEBuilder(object):
 
 		if kwargs:
 			config.update(kwargs)
+
+		# User must provide values for m-model-path and genbank-path
+		if not config.get('m-model-path', False):
+			raise ValueError('Configuration must supply a \'m-model-path\' key and value.')
+		if not config.get('genbank-path', False):
+			raise ValueError('Configuration must supply a \'genbank-path\' key and value.')
 
 		self.configuration = config
 		self.me_model = coralme.core.model.MEModel(id_or_model = self.configuration.get('ME-Model-ID', 'coralME'),
@@ -1797,7 +1868,7 @@ class MEReconstruction(MEBuilder):
 		# remove unused genes, reactions, and metabolites
 		cobra.manipulation.delete.remove_genes(me.gem, [ x for x in me.gem.genes if len(x.reactions) == 0 ], remove_reactions = False)
 		coralme.core.model.MEModel.prune_unused_reactions(me.gem) # reactions without metabolites
-		coralme.core.model.MEModel.prune_unused_metabolites(me.gem) # orphan metabolites
+		# coralme.core.model.MEModel.prune_unused_metabolites(me.gem) # orphan metabolites
 
 		# update default options with missing, automated-defined values
 		me.global_info.update(self.configuration)
@@ -2743,7 +2814,8 @@ class MEReconstruction(MEBuilder):
 			median_sasa = numpy.median([ v[0] for k,v in sasa_dct.items() if v[0] != 0 ])
 
 			me.global_info['median_sasa'] = median_sasa
-			me.global_info['sasa_estimation'] = sasa_dct
+			me.global_info['sasa_estimation'] = { k:v[0] for k,v in sasa_dct.items() if v[0] != 0 }
+			me.global_info['sasa_estimation_missing'] = [ v[1] for k,v in sasa_dct.items() if v[0] == 0 ]
 
 			# Step 2: Estimate keff for all the reactions in the model
 			#if "complex" not in df_keffs.columns: #df_keffs.empty: # The if True avoids the estimation if the user uses an "incomplete" input
