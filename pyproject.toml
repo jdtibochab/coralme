@@ -27,7 +27,7 @@ dependencies = [
     "pyranges<=0.1.1",
     "pytest",
     "python-libsbml",
-    "scipy",
+    "scipy<=1.14.0",
     "sympy<=1.12.1",
     "tqdm",
     "versioneer",
