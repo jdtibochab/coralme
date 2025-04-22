@@ -216,7 +216,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 	"""
 	if solver in ['gurobi', 'cplex']:
 		me_model.get_solution = me_model.optimize_windows
-		me_model.get_feasibility =me_model.feas_windows(solver = solver)
+		me_model.get_feasibility = me_model.feas_windows(solver = solver)
 	elif solver == "qminos":
 		me_model.get_solution = me_model.optimize
 		me_model.get_feasibility = me_model.feasibility

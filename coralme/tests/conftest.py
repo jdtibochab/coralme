@@ -4,40 +4,47 @@ import anyconfig
 import pytest
 dir = str(files("coralme"))
 
-def create_builder():
-    config = {
-      # Inputs
-      "m-model-path": "{}/tests/data/m_model.json".format(dir), # Path to model file
-      "genbank-path": "{}/tests/data/genome.gb".format(dir), # Path to genome genbank file
-      # Outputs
-      "df_gene_cplxs_mods_rxns": "{}/tests/data/base_model/building_data/OSM.xlsx".format(dir), # Desired output path of OSM
-      "out_directory": "{}/tests/data/base_model/".format(dir), # Output directory
-      "log_directory": "{}/tests/data/base_model/".format(dir), # Log directory
-      "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag
-      "run_bbh_blast" : True,
-      "dev_reference" : True,
-      "blast_threads" : 4,
-      "ME-Model-ID" : "EXAMPLE-ME" # Name of the ME-model
-    }
-    with open("{}/tests/data/organism.json".format(dir), 'r') as infile:
-        config.update(anyconfig.load(infile))
-    config.update({
-      "biocyc.genes": "{}/tests/data/genes.txt".format(dir),
-      "biocyc.prots": "{}/tests/data/proteins.txt".format(dir),
-      "biocyc.TUs": "{}/tests/data/TUs.txt".format(dir),
-      "biocyc.RNAs": "{}/tests/data/RNAs.txt".format(dir),
-      "biocyc.seqs": "{}/tests/data/sequences.fasta".format(dir),
-    })
-    builder = MEBuilder(**config)
-    builder.generate_files(overwrite=True)
-    builder.save_builder_info()
-    builder.build_me_model(overwrite=False)
-    assert builder.me_model.id is not None
-    return builder
+def create_builder(troubleshoot = False):
+  config = {
+    # Inputs
+    "m-model-path": "{}/tests/data/m_model.json".format(dir), # Path to model file
+    "genbank-path": "{}/tests/data/genome.gb".format(dir), # Path to genome genbank file
+    # Outputs
+    "df_gene_cplxs_mods_rxns": "{}/tests/data/base_model/building_data/OSM.xlsx".format(dir), # Desired output path of OSM
+    "out_directory": "{}/tests/data/base_model/".format(dir), # Output directory
+    "log_directory": "{}/tests/data/base_model/".format(dir), # Log directory
+    "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag
+    "run_bbh_blast" : True,
+    "dev_reference" : True,
+    "blast_threads" : 4,
+    "ME-Model-ID" : "EXAMPLE-ME" # Name of the ME-model
+  }
+  with open("{}/tests/data/organism.json".format(dir), 'r') as infile:
+      config.update(anyconfig.load(infile))
+  config.update({
+    "biocyc.genes": "{}/tests/data/genes.txt".format(dir),
+    "biocyc.prots": "{}/tests/data/proteins.txt".format(dir),
+    "biocyc.TUs": "{}/tests/data/TUs.txt".format(dir),
+    "biocyc.RNAs": "{}/tests/data/RNAs.txt".format(dir),
+    "biocyc.seqs": "{}/tests/data/sequences.fasta".format(dir),
+  })
+  builder = MEBuilder(**config)
+  builder.generate_files(overwrite=True)
+  builder.save_builder_info()
+  builder.build_me_model(overwrite=False)
+  if troubleshoot:
+    guesses = ["dUTPase_c", "pg_c", "apoACP_c", "protein_c", "biomass_c", "zn2_c", "actp_c", "f6p_c","ACP_R_c","fdp_c","fe2_c", "mn2_c"]
+    builder.troubleshoot(growth_key_and_value = { builder.me_model.mu.magnitude : 0.001 },guesses=guesses)
+  assert builder.me_model.id is not None
+  return builder
 
 @pytest.fixture(scope="session")
 def shared_builder():
-    return create_builder()
+  pytest.shared_builder = create_builder(troubleshoot = False)
+
+@pytest.fixture(scope="session")
+def shared_builder_troubleshooted():
+  pytest.shared_builder_troubleshooted = create_builder(troubleshoot = True)
 
 # TODO: fix this test
 # @pytest.fixture(scope="session")
