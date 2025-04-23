@@ -134,6 +134,11 @@ def main():
 			'Bug Reports': 'https://github.com/jdtibochab/coralme/issues',
 			'Source': 'https://github.com/jdtibochab/coralme',
 		},
+		entry_points={
+			'console_scripts': [
+				'coralme = coralme.util.cli:main',
+			],
+		},
 	)
 
 if __name__ == '__main__':

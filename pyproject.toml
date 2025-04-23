@@ -104,3 +104,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
+
+[project.scripts]
+coralme = "coralme.util.cli:main"
