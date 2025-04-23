@@ -1,10 +1,10 @@
 """
-| solver\model type | coralme ME-model | coralme M-model | COBRApy M-model |
-|-------------------|------------------|-----------------|-----------------|
-| qminos            | Correct          | Correct         | Correct         |
-| gurobi            | Correct          | Correct         | Correct         |
-| cplex             | Correct          | Correct         | Correct         |
-|-------------------|------------------|-----------------|-----------------|
+| solver↴ model type→ | coralme ME-model | coralme M-model | COBRApy M-model |
+|---------------------|------------------|-----------------|-----------------|
+| qminos              | Correct          | Correct         | Correct         |
+| gurobi              | Correct          | Correct         | Correct         |
+| cplex               | Correct          | Correct         | Correct         |
+|---------------------|------------------|-----------------|-----------------|
 """
 
 import scipy
@@ -39,6 +39,8 @@ def _check_options(model = None, keys = dict(), tolerance = 1e-6, precision = 'q
 	return keys, tolerance, precision
 
 def _get_evaluated_nlp(model = None, keys = dict(), **kwargs):
+	keys, _, _ = _check_options(model, keys = keys) # tolerance and precision not used here
+
 	# populate with stoichiometry with replacement of mu's (Sf contains Se)
 	# for single evaluations of the LP problem, direct replacement is faster than lambdify
 	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs['lp'] if 'lp' in kwargs else construct_lp_problem(model, lambdify = False)
