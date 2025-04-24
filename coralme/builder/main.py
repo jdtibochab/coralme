@@ -1236,8 +1236,9 @@ class MEBuilder(object):
 				ref_cplx_homolog[i] for i in ref_cplxs if i in ref_cplx_homolog
 			]
 			for i in org_cplxs:
-				if v["stoich"]:
-					org_special_trna_subreactions[k]["stoich"] = v["stoich"]
+				# WARNING: stoichiometry of special modifications is in subreactions.txt
+				# if v["stoich"]:
+				# 	org_special_trna_subreactions[k]["stoich"] = v["stoich"]
 				if self._is_base_complex_in_list(i,defined_cplxs):
 					continue
 				defined_cplxs.append(i)

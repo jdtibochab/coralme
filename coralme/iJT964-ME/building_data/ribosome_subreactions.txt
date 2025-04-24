@@ -1,0 +1,4 @@
+subreaction	enzyme
+RbfA_mono_assembly_factor_phase1	BSU16650-MONOMER
+RimM_mono_assembly_factor_phase1	BSU16020-MONOMER
+gtp_bound_30S_assembly_factor_phase1	BSU25290-MONOMER

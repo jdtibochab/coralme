@@ -1,0 +1,2 @@
+subreaction	enzymes
+sec_addition_at_UGA	CPLX_dummy

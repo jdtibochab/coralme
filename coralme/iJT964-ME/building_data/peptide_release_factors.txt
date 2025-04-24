@@ -1,0 +1,4 @@
+codon	enzyme
+UAA	generic_RF
+UAG	BSU37010-MONOMER
+UGA	BSU35290-MONOMER

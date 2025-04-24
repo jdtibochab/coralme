@@ -167,7 +167,7 @@ def process_m_model(
 	# cobra.manipulation.delete.prune_unused_metabolites(m_model) # orphan metabolites
 
 	# met_data DataFrame
-	mets_data = mets_data[mets_data['type'].isin(['ADD', 'REPLACE'])]
+	mets_data = mets_data[mets_data['type'].isin(['ADD', 'REPLACE', 'CORRECTION'])]
 	mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type']
 	# WARNING: Do we need to rename the index?
 	#mets_data.rename(index = lambda x: x.replace('_DASH_', '__'), inplace = True)

@@ -1,0 +1,13 @@
+subsystem	central_CE	central_AFN	intermediate	secondary	other
+S_Coenzymes_and_prosthetic_groups	0	0	1	0	0
+S_Transport	0	0	0	1	0
+S_Lipids	0	1	0	0	0
+S_Cell_wall	0	0	0	1	0
+Biomass and maintenance functions	0	0	0	1	0
+S_Membrane_bioenergetics	0	0	0	1	0
+S_Nucleotides_and_nucleic_acids	0	1	0	0	0
+S_Carbohydrates_and_related_molecules	1	0	0	0	0
+S_Phosphate_and_sulfur	0	0	0	1	0
+S_Other_function	0	0	0	0	1
+S_Amino_acids_and_related_molecules	0	1	0	0	0
+Extracellular exchange	0	0	0	0	1

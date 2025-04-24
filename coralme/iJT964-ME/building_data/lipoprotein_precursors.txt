@@ -1,0 +1,2 @@
+name,gene
+MetQ,BSU32730
