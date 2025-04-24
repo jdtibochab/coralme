@@ -7,7 +7,7 @@ import cobra
 import sympy
 import pandas
 import logging
-import sys
+
 log = logging.getLogger(__name__)
 
 def process_model(model, growth_key = sympy.Symbol('mu', positive = True), parameters = dict()):
@@ -39,9 +39,9 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 				# 	lb = lb.subs(parameters).subs(growth_key, 1.)
 				# if hasattr(ub, 'subs'):
 				# 	ub = ub.subs(parameters).subs(growth_key, 1.)
-				# if met not in rxn.metabolites:
-				# 	# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
-				# 	continue
+				if met not in rxn.metabolites:
+					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
+					continue
 				# coeff = rxn.metabolites[met]
 				# if hasattr(coeff, 'subs'):
 				# 	coeff = coeff.subs(parameters).subs(growth_key, 1.)
