@@ -265,9 +265,14 @@ class ME_NLP:
             # If lambdify == True
             if isinstance(self.xl,list):
                 # If per_position == True
-                xl = [ fn(*[muf]*len(dct)) for fn in self.xl ]
-                xu = [ fn(*[muf]*len(dct)) for fn in self.xu ]
-                Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
+                if len(self.mu) > 1:
+                    xl = [ fn(*muf) for fn in self.xl ]
+                    xu = [ fn(*muf) for fn in self.xu ]
+                    Se = { k:fn(*muf) for k,fn in self.fn.items() }
+                else:
+                    xl = [ fn(*[muf]*len(dct)) for fn in self.xl ]
+                    xu = [ fn(*[muf]*len(dct)) for fn in self.xu ]
+                    Se = { k:fn(*[muf]*len(dct)) for k,fn in self.fn.items() }
             else:
                 # If per_position == False
                 xl = self.xl(*[muf]*len(dct))
