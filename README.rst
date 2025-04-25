@@ -17,6 +17,18 @@ coralME has four main objectives:
 3. **Reconstruct** a ME-model.
 4. **Troubleshoot** the ME-model to make it functional.
 
+Getting started
+---------------
+With an existing M-model file (JSON or XML) and a corresponding genome GenBank file, run
+
+``coralme --m-model-path PATH_TO_M_MODEL --genbank-path PATH_TO_GENBANK_FILE``
+
+To get help:
+
+``coralme --help``
+
+For more usage information, go to `Tutorials`_.
+
 Installation
 ------------
 
@@ -102,3 +114,4 @@ anyconfig   0.13.0       0.14.0       0.14.0       0.14.0        0.14.0        0
 .. _Gurobi: https://www.gurobi.com/
 .. _cplex: https://www.ibm.com/products/ilog-cplex-optimization-studio/cplex-optimizer
 .. _wsl: https://learn.microsoft.com/en-us/windows/wsl/install
+.. _Tutorials: https://github.com/jdtibochab/coralme/tree/main/tutorials
