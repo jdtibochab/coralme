@@ -88,21 +88,19 @@ def main():
         model_loaded = False
         if args.run_synchronize:
             builder.generate_files(overwrite=True)
-            model_loaded = True
             # builder.save_builder_info()
+
         if args.run_build:
             builder.build_me_model(overwrite=False)
-            if not model_loaded:
-                builder.me_model = coralme.io.pickle.load_pickle_me_model(
-                    builder.configuration["out_directory"] + "MEModel-step2-{}.pkl".format(builder.configuration["ME-Model-ID"])
-                )
-                model_loaded = True
+            model_loaded = True
+
+        if not model_loaded:
+            builder.me_model = coralme.io.pickle.load_pickle_me_model(
+                builder.configuration["out_directory"] + "MEModel-step2-{}.pkl".format(builder.configuration["ME-Model-ID"])
+            )
+            model_loaded = True
+            
         if args.run_troubleshoot:
-            if not model_loaded:
-                builder.me_model = coralme.io.pickle.load_pickle_me_model(
-                    builder.configuration["out_directory"] + "MEModel-step2-{}.pkl".format(builder.configuration["ME-Model-ID"])
-                )
-                model_loaded
             builder.troubleshoot(growth_key_and_value={builder.me_model.mu: 0.001})
         
         print("Script executed successfully.")
