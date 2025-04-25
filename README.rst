@@ -19,7 +19,7 @@ coralME has four main objectives:
 
 Getting started
 ---------------
-With an existing M-model file (JSON or XML) and a corresponding genome GenBank file, run
+With an existing M-model file (JSON or XML) and a corresponding genome GenBank file, run  (only > v1.1.12)
 
 ``coralme --m-model-path PATH_TO_M_MODEL --genbank-path PATH_TO_GENBANK_FILE``
 
