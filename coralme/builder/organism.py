@@ -43,18 +43,19 @@ class Organism(object):
         If True, process as reference organism.
     """
 
-    def __init__(self, config, is_reference):
-        self.available_reference_models = {
-                'iJL1678b' : 'locus_tag', # E. coli, gram negative
-                'iJT964'   : 'old_locus_tag', # B. subtilis, gram positive
-                }
+    def __init__(self, config, is_reference, available_reference_models = None):
+        self.available_reference_models = available_reference_models
 
         if is_reference:
             # check values
             if not bool(config.get('dev_reference', False)) and not bool(config.get('user_reference', False)):
-                raise ValueError('The keys \'dev_reference\' and \'user_reference\' cannot be empty. Use \'iJL1678b\' or \'iJT964\'.')
+                config['dev_reference'] = 'iJL1678b'
+                logging.warning('Using \'iJL1678b\' model as reference. See `builder.available_reference_models` for more information.')
             elif 'dev_reference' in config and 'user_reference' in config:
                 raise ValueError('The keys \'dev_reference\' and \'user_reference\' are mutually exclusive. Please remove one from configuration.')
+            elif config['dev_reference'] is True:
+                config['dev_reference'] = 'iJL1678b'
+                logging.warning('Using \'iJL1678b\' model as reference. See `builder.available_reference_models` for more information.')
             elif config['dev_reference']:
                 if not config['dev_reference'] in self.available_reference_models:
                     raise ValueError('The key \'dev_reference\' must be \'iJL1678b\' (E. coli, gram negative) or \'iJT964\' (B. subtilis, gram positive)')
@@ -202,9 +203,12 @@ class Organism(object):
         """
         Returns the M-model.
         """
-        if self.id in self.available_reference_models:
-            # If reference organism is iJL1678b, read it from m_model.json
-            model = self.directory + 'm_model.json'
+        if self.is_reference:
+            if self.id in self.available_reference_models:
+                # If reference organism is iJL1678b, read it from m_model.json
+                model = self.directory + 'm_model.json'
+            else:
+                raise ValueError('Reference code is not valid. See builder.available_reference_models for available references.')
         else:
             # Read M-model from the configuration file path
             model = self.config['m-model-path']
@@ -314,9 +318,12 @@ class Organism(object):
     def get_genbank_contigs(self):
         """ Reads GenBank file as a list of contigs.
         """
-        if self.id in self.available_reference_models:
-            # If default reference iJL1678b, read from genome.gb
-            gb_it = Bio.SeqIO.parse(self.directory + "genome.gb", "gb")
+        if self.is_reference:
+            if self.id in self.available_reference_models:
+                # If default reference iJL1678b, read from genome.gb
+                gb_it = Bio.SeqIO.parse(self.directory + "genome.gb", "gb")
+            else:
+                raise ValueError('Reference code is not valid. See builder.available_reference_models for available references.')
         else:
             # Read from configuration file path
             gb_it = Bio.SeqIO.parse(self.config['genbank-path'], "gb")
