@@ -694,25 +694,25 @@ class MEModel(cobra.core.object.Object):
 			merge.merged_models[org].merging_key = org
 
 			# add tags to merging models to make them unique in the new model
-			for data in me.process_data:
+			for data in merge.merged_models[org].process_data:
 				data.id = '{:s}_{:s}'.format(org, data.id)
 				if hasattr(data, '_stoichiometry'):
 					for met in list(data._stoichiometry.keys()):
 						data._stoichiometry['{:s}_{:s}'.format(org, met)] = data._stoichiometry.pop(met)
 
-			for data in me.metabolites:
-				if not data.id.startswith('_e'): # do not modify medium
+			for data in merge.merged_models[org].metabolites:
+				if not data.id.endswith('_e'): # do not modify medium
 					data._id = '{:s}_{:s}'.format(org, data.id)
 
-			for data in me.reactions:
+			for data in merge.merged_models[org].reactions:
 				if not data.id.startswith('EX_'): # do not modify medium
 					data._id = '{:s}_{:s}'.format(org, data.id)
 
 		# add renamed process_data, metabolites, and reactions to merge model
-		for org, me in list(models_to_merge.items()):
-			merge.add_processdata(me.process_data)
-			merge.add_metabolites(me.metabolites)
-			merge.add_reactions(me.reactions)
+		for org, me in list(merge.merged_models.items()):
+			merge.add_processdata(merge.merged_models[org].process_data)
+			merge.add_metabolites(merge.merged_models[org].metabolites)
+			merge.add_reactions(merge.merged_models[org].reactions)
 
 		return merge
 
