@@ -21,7 +21,7 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 
 	dct = {}
 	for met in model.metabolites:
-		filter1 = isinstance(met, (cobra.core.metabolite.Metabolite, coralme.core.component.Metabolite))
+		filter1 = type(met) == cobra.core.metabolite.Metabolite or type(met) == coralme.core.component.Metabolite
 		filter2 = met.id.startswith('trna')
 		filter3 = met.id.endswith('trna_c')
 
