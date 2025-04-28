@@ -7,7 +7,7 @@ import cobra
 import sympy
 import pandas
 import logging
-import sys
+
 log = logging.getLogger(__name__)
 
 def process_model(model, growth_key = sympy.Symbol('mu', positive = True), parameters = dict()):
@@ -21,7 +21,7 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 
 	dct = {}
 	for met in model.metabolites:
-		filter1 = isinstance(met, (cobra.core.metabolite.Metabolite, coralme.core.component.Metabolite))
+		filter1 = type(met) == cobra.core.metabolite.Metabolite or type(met) == coralme.core.component.Metabolite
 		filter2 = met.id.startswith('trna')
 		filter3 = met.id.endswith('trna_c')
 
@@ -39,9 +39,9 @@ def process_model(model, growth_key = sympy.Symbol('mu', positive = True), param
 				# 	lb = lb.subs(parameters).subs(growth_key, 1.)
 				# if hasattr(ub, 'subs'):
 				# 	ub = ub.subs(parameters).subs(growth_key, 1.)
-				# if met not in rxn.metabolites:
-				# 	# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
-				# 	continue
+				if met not in rxn.metabolites:
+					# Sometimes it has a ghost association, ? e.g. h_c in ATPM of Synechocystis
+					continue
 				# coeff = rxn.metabolites[met]
 				# if hasattr(coeff, 'subs'):
 				# 	coeff = coeff.subs(parameters).subs(growth_key, 1.)
@@ -216,7 +216,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 	"""
 	if solver in ['gurobi', 'cplex']:
 		me_model.get_solution = me_model.optimize_windows
-		me_model.get_feasibility =me_model.feas_windows(solver = solver)
+		me_model.get_feasibility = me_model.feas_windows(solver = solver)
 	elif solver == "qminos":
 		me_model.get_solution = me_model.optimize
 		me_model.get_feasibility = me_model.feasibility

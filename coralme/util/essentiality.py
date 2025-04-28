@@ -2,7 +2,7 @@ import copy
 import cobra
 import coralme
 
-# Written originally by Rodrigo Santibanez for ME model
+# Written originally by Rodrigo Santibanez for coralME models and COBRApy models
 def perform_gene_knockouts(model, genes, mets_to_test = []):
 	if isinstance(genes, (str, coralme.core.component.TranscribedGene)):
 		genes = set([genes])
@@ -42,7 +42,7 @@ def check_knockout_using_qminos(model, genes, optTol = 1e-15, feasTol = 1e-15):
 	# test = copy.deepcopy(model)
 	test = perform_gene_knockouts(model, genes)
 
-	nlp = coralme.core.model.MEModel.construct_lp_problem(test, lambdify = True, as_dict = True, per_position = False)
+	nlp = coralme.core.optimization.construct_lp_problem(test, lambdify = True, as_dict = True, per_position = False)
 	solver = coralme.solver.solver.ME_NLP(**nlp)
 	solver.opt_realdict['lp']['Optimality tol'] = optTol
 	solver.opt_realdict['lp']['Feasibility tol'] = feasTol
@@ -53,7 +53,7 @@ def check_knockout_using_qminos(model, genes, optTol = 1e-15, feasTol = 1e-15):
 		xopt, yopt, zopt, stat, basis = solver.solvelp(1., None, 'double')
 		muopt = float(sum([ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ]))
 
-	solution = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution(test, muopt, xopt, yopt, zopt, stat)
+	solution = coralme.core.optimization._solver_solution_to_cobrapy_solution(test, muopt, xopt, yopt, zopt, stat)
 	return solution
 
 def create_ko_model_in_lp_format(model, genes, growth_rate, mets_to_test, *args):
@@ -62,7 +62,7 @@ def create_ko_model_in_lp_format(model, genes, growth_rate, mets_to_test, *args)
 
 	test = perform_gene_knockouts(model, genes, mets_to_test)
 	nlp = test.construct_lp_problem(lambdify = False, as_dict = True, per_position = True)
-	nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'], { test.mu : growth_rate }, nlp['mu'])
+	nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'] = coralme.builder.helper_functions.evaluate_lp_problem(nlp['Sf'], nlp['Se'], nlp['xl'], nlp['xu'], { test.mu.magnitude : growth_rate }, nlp['mu'])
 
 	indexes = { met:(test.reactions._dict['SK_{:s}'.format(met)], test.metabolites._dict[met]) for met in mets_to_test }
 
@@ -78,7 +78,7 @@ def check_many_mets_at_a_time(args):
 	nlp = args[0]
 	xopt, yopt, zopt, stat, basis = coralme.solver.solver.ME_NLP(**nlp).solvelp(muf = None, basis = None, precision = 'quad')
 	muopt = [ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ][0]
-	sol = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
+	sol = coralme.core.optimization._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
 	return sol
 
 def check_all_mets_at_a_time(nlp, indexes):
@@ -87,7 +87,7 @@ def check_all_mets_at_a_time(nlp, indexes):
 def get_reduced_costs_from_nlp(nlp, objective_value = 0.1):
 	xopt, yopt, zopt, stat, basis = coralme.solver.solver.ME_NLP(**nlp).solvelp(muf = objective_value, basis = None, precision = 'quad')
 	muopt = [ x*c for x,c in zip(xopt, nlp['c']) if c != 0 ][0]
-	sol = coralme.core.model.MEModel._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
+	sol = coralme.core.optimization._solver_solution_to_cobrapy_solution((nlp['Lr'], nlp['Lm']), muopt, xopt, yopt, zopt, stat)
 	return sol.reduced_costs
 
 def get_reduced_costs_from_model(model, objective_value = 0.1, target_reaction = 'biomass_dilution'):
@@ -114,14 +114,14 @@ def revert_gene_knockouts(model, genes):
 
 def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 	if solver not in [ 'gurobi', 'qminos' ]:
-		raise Exception('The solver argument should be \'qminos\' or any valid for COBRApy models, such as \'gurobi\'.')
+		raise Exception('The solver argument should be \'qminos\' or \'gurobi\'.')
 	if isinstance(gene, (list, set)):
 		raise Exception('The method is limited to one gene only. Use model.perform_gene_knockouts(), followed by model.optimize() or model.feasibility().')
 
 	test = perform_gene_knockouts(model, gene)
 
 	if isinstance(model, coralme.core.model.MEModel):
-		if test.feasibility({ test.mu : threshold }):
+		if test.feasibility({ test.mu.magnitude : threshold }):
 			return gene, False # gene is not essential
 		else:
 			return gene, True # gene is essential
@@ -129,7 +129,7 @@ def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 		if solver == 'qminos':
 			# feasibility developed to work with ME-models only
 			# output is True or False; if True, test.solution is created
-			coralme.core.model.MEModel.optimize(test)
+			coralme.core.optimization.optimize(test)
 		elif solver in ['gurobi']:
 			test.solver = solver
 			test.solution = test.optimize()
