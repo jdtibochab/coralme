@@ -1,0 +1,296 @@
+(All-tRNAs RNAs Misc-RNAs rRNAs)	Common-Name	Gene
+BSU_tRNA_35-tRNA	tRNA-Phe	BSU_tRNA_35
+charged-BSU_tRNA_75-tRNA	charged tRNA-Glu	
+BSU_tRNA_39-tRNA	tRNA-His	BSU_tRNA_39
+BSU_tRNA_66-tRNA	tRNA-Phe	BSU_tRNA_66
+charged-BSU_tRNA_72-tRNA	charged tRNA-Glu	
+BSU_tRNA_1-tRNA	tRNA-Phe	BSU_tRNA_1
+charged-BSU_tRNA_40-tRNA	charged tRNA-Gln	
+BSU_tRNA_83-tRNA	tRNA-Val	BSU_tRNA_83
+charged-BSU_tRNA_11-tRNA	charged tRNA-Glu	
+BSU_tRNA_32-tRNA	tRNA-Val	BSU_tRNA_32
+charged-BSU_tRNA_73-tRNA	charged tRNA-Gln	
+BSU_tRNA_16-tRNA	tRNA-Gly	BSU_tRNA_16
+BSU_tRNA_52-tRNA	tRNA-Val	BSU_tRNA_52
+charged-BSU_tRNA_47-tRNA	charged tRNA-Glu	
+charged-BSU_tRNA_19-tRNA	charged tRNA-Pro	
+BSU_tRNA_68-tRNA	tRNA-Gly	BSU_tRNA_68
+BSU_tRNA_78-tRNA	tRNA-Val	BSU_tRNA_78
+charged-BSU_tRNA_3-tRNA	charged tRNA-Glu	
+charged-BSU_tRNA_27-tRNA	charged tRNA-Pro	
+BSU_tRNA_25-tRNA	tRNA-Gly	BSU_tRNA_25
+BSU_tRNA_12-tRNA	tRNA-Val	BSU_tRNA_12
+charged-BSU_tRNA_17-tRNA	charged tRNA-Leu	
+charged-BSU_tRNA_59-tRNA	charged tRNA-Pro	
+BSU_tRNA_80-tRNA	tRNA-Gly	BSU_tRNA_80
+charged-BSU_tRNA_51-tRNA	charged tRNA-Leu	
+BSU_tRNA_41-tRNA	tRNA-Gly	BSU_tRNA_41
+BSU_tRNA_23-tRNA	tRNA-Asn	BSU_tRNA_23
+charged-BSU_tRNA_43-tRNA	charged tRNA-Leu	
+BSU_tRNA_82-tRNA	tRNA-Gly	BSU_tRNA_82
+BSU_tRNA_29-tRNA	tRNA-Asn	BSU_tRNA_29
+charged-BSU_tRNA_55-tRNA	charged tRNA-Leu	
+BSU_tRNA_56-tRNA	tRNA-Gly	BSU_tRNA_56
+BSU_tRNA_45-tRNA	tRNA-Asn	BSU_tRNA_45
+charged-BSU_tRNA_44-tRNA	charged tRNA-Leu	
+BSU_tRNA_70-tRNA	tRNA-Asn	BSU_tRNA_70
+charged-BSU_tRNA_15-tRNA	charged tRNA-Leu	
+charged-BSU_tRNA_39-tRNA	charged tRNA-His	
+charged-BSU_tRNA_57-tRNA	charged tRNA-Leu	
+charged-BSU_tRNA_67-tRNA	charged tRNA-His	
+charged-BSU_tRNA_50-tRNA	charged tRNA-Leu	
+charged-BSU_tRNA_7-tRNA	charged tRNA-Ser	
+RNA8J2-17	small RNA SR7	G8J2-181
+charged-BSU_tRNA_62-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_30-tRNA	charged tRNA-Ser	
+charged-BSU_tRNA_21-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_71-tRNA	charged tRNA-Ser	
+charged-BSU_tRNA_64-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_46-tRNA	charged tRNA-Ser	
+charged-BSU_tRNA_33-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_63-tRNA	charged tRNA-Ser	
+charged-BSU_tRNA_61-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_76-tRNA	charged tRNA-Thr	
+charged-BSU_tRNA_10-tRNA	charged tRNA-Met	
+charged-BSU_tRNA_24-tRNA	charged tRNA-Thr	
+charged-BSU_tRNA_36-tRNA	charged tRNA-Thr	
+GLUTAMINYL-TRNA-GLN	L-glutaminyl-tRNA<sup>Gln</sup>	
+charged-BSU_tRNA_53-tRNA	charged tRNA-Thr	
+charged-BSU_tRNA_13-tRNA	charged tRNA-Thr	
+BSU_tRNA_75-tRNA	tRNA-Glu	BSU_tRNA_75
+BSU_tRNA_36-tRNA	tRNA-Thr	BSU_tRNA_36
+BSU_tRNA_31-tRNA	tRNA-Glu	BSU_tRNA_31
+BSU_tRNA_53-tRNA	tRNA-Thr	BSU_tRNA_53
+charged-BSU_tRNA_8-tRNA	charged tRNA-Ile	
+BSU_tRNA_47-tRNA	tRNA-Glu	BSU_tRNA_47
+BSU_tRNA_13-tRNA	tRNA-Thr	BSU_tRNA_13
+charged-BSU_tRNA_5-tRNA	charged tRNA-Ile	
+BSU_tRNA_11-tRNA	tRNA-Glu	BSU_tRNA_11
+BSU_tRNA_4-tRNA	tRNA-Lys	BSU_tRNA_4
+BSU_tRNA_76-tRNA	tRNA-Thr	BSU_tRNA_76
+charged-BSU_tRNA_69-tRNA	charged tRNA-Ile	
+BSU_tRNA_72-tRNA	tRNA-Glu	BSU_tRNA_72
+BSU_tRNA_49-tRNA	tRNA-Lys	BSU_tRNA_49
+BSU_tRNA_24-tRNA	tRNA-Thr	BSU_tRNA_24
+BSU_tRNA_3-tRNA	tRNA-Glu	BSU_tRNA_3
+BSU_tRNA_54-tRNA	tRNA-Lys	BSU_tRNA_54
+charged-BSU_tRNA_65-tRNA	charged tRNA-Asp	
+BSU_tRNA_27-tRNA	tRNA-Pro	BSU_tRNA_27
+BSU_tRNA_14-tRNA	tRNA-Lys	BSU_tRNA_14
+charged-BSU_tRNA_29-tRNA	charged tRNA-Asn	
+BSU_tRNA_59-tRNA	tRNA-Pro	BSU_tRNA_59
+BSU_misc_RNA_94-RNA	manganese ion binding riboswitch	BSU_misc_RNA_94
+charged-BSU_tRNA_2-tRNA	charged tRNA-Asp	
+BSU_tRNA_19-tRNA	tRNA-Pro	BSU_tRNA_19
+BSU_misc_RNA_71-RNA	small RNAs controlled by sporulation	BSU_misc_RNA_71
+charged-BSU_tRNA_70-tRNA	charged tRNA-Asn	
+BSU_tRNA_74-tRNA	tRNA-Gln	BSU_tRNA_74
+BSU_misc_RNA_51-RNA	thiamine pyrophosphate riboswitch	BSU_misc_RNA_51
+charged-BSU_tRNA_34-tRNA	charged tRNA-Asp	
+BSU_tRNA_40-tRNA	tRNA-Gln	BSU_tRNA_40
+BSU_misc_RNA_33-RNA	intron of phage SPbeta ribonucleotide reductase	BSU_misc_RNA_33
+charged-BSU_tRNA_22-tRNA	charged tRNA-Asp	
+BSU_tRNA_48-tRNA	tRNA-Gln	BSU_tRNA_48
+BSU_misc_RNA_19-RNA	thiamine pyrophosphate riboswitch	BSU_misc_RNA_19
+charged-BSU_tRNA_45-tRNA	charged tRNA-Asn	
+BSU_tRNA_73-tRNA	tRNA-Gln	BSU_tRNA_73
+BSU_misc_RNA_91-RNA	proline T-box riboswitch	BSU_misc_RNA_91
+charged-BSU_tRNA_23-tRNA	charged tRNA-Asn	
+RNA8J2-6	antisense RNA controlling synthesis of TxpA, membrane associated toxin of a toxin antitoxin system; skin element	G8J2-14
+BSU_misc_RNA_63-RNA	guanine riboswitch	BSU_misc_RNA_63
+RNA8J2-18	small regulatory RNA RosA	G8J2-183
+BSU_misc_RNA_48-RNA	T-box riboswitch specific of threonine tRNA ligase	BSU_misc_RNA_48
+RNA8J2-10	SurF small regulatory RNA	G8J2-161
+BSU_misc_RNA_30-RNA	L19_leader	BSU_misc_RNA_30
+RNA8J2-7	antitoxin small RNA	G8J2-17
+BSU_misc_RNA_15-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_15
+RNA8J2-2	small regulatory RNA and messenger RNA (arginine metabolism)	G8J2-6
+BSU_misc_RNA_88-RNA	riboswitch regulating ptsGHI expression via GlcT binding	BSU_misc_RNA_88
+RNA8J2-12	antisense RNA of toxin SpbT	G8J2-167
+BSU_misc_RNA_60-RNA	guanidine riboswitch (type I)	BSU_misc_RNA_60
+RNA8J2-9	small regulatory RNA (NO regulated)	G8J2-160
+BSU_misc_RNA_44-RNA	T-box riboswitch specific of valine tRNA	BSU_misc_RNA_44
+RNA8J2-5	regulatory RNA controlling iron-dependent metabolism	G8J2-10
+BSU_misc_RNA_28-RNA	pyrimidine biosynthesis operon attenuator	BSU_misc_RNA_28
+RNA8J2-16	small RNA controlling lysogeny of phage SPbeta	G8J2-179
+BSU_misc_RNA_12-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_12
+RNA8J2-4	sporulation-related small untranslated RNA	G8J2-9
+charged-BSU_tRNA_80-tRNA	charged tRNA-Gly	
+BSU_tRNA_38-tRNA	tRNA-Trp	BSU_tRNA_38
+BSU_misc_RNA_85-RNA	putative coenzyme B12 (AdoCbl) riboswitch	BSU_misc_RNA_85
+charged-BSU_tRNA_41-tRNA	charged tRNA-Gly	
+BSU_misc_RNA_58-RNA	T-box riboswitch specific of threonine tRNA ligase	BSU_misc_RNA_58
+charged-BSU_tRNA_82-tRNA	charged tRNA-Gly	
+BSU_misc_RNA_41-RNA	6Sb RNA	BSU_misc_RNA_41
+charged-BSU_tRNA_56-tRNA	charged tRNA-Gly	
+BSU_misc_RNA_25-RNA	T-box riboswitch specific of isoleucine tRNA	BSU_misc_RNA_25
+BSU_tRNA_43-tRNA	tRNA-Leu	BSU_tRNA_43
+charged-BSU_tRNA_16-tRNA	charged tRNA-Gly	
+BSU_misc_RNA_1-RNA	T-box riboswitch specific of serine tRNA ligase	BSU_misc_RNA_1
+BSU_tRNA_55-tRNA	tRNA-Leu	BSU_tRNA_55
+charged-BSU_tRNA_68-tRNA	charged tRNA-Gly	
+RNA8J2-14	putative small conserved untranslated RNA	G8J2-174
+charged-BSU_tRNA_25-tRNA	charged tRNA-Gly	
+BSU_tRNA_44-tRNA	tRNA-Leu	BSU_tRNA_44
+BSU_misc_RNA_80-RNA	antisense RNA	BSU_misc_RNA_80
+BSU_rRNA_3-rRNA	ribosomal RNA-5S	BSU_rRNA_3
+BSU_misc_RNA_55-RNA	transfer-messenger RNA (tmRNA, 10Sa RNA)	BSU_misc_RNA_55
+BSU_tRNA_15-tRNA	tRNA-Leu	BSU_tRNA_15
+BSU_tRNA_46-tRNA	tRNA-Ser	BSU_tRNA_46
+BSU_rRNA_10-rRNA	ribosomal RNA-23S	BSU_rRNA_10
+BSU_misc_RNA_39-RNA	T-box riboswitch controlling synthesis of glycine-tRNA ligase	BSU_misc_RNA_39
+BSU_tRNA_57-tRNA	tRNA-Leu	BSU_tRNA_57
+BSU_tRNA_63-tRNA	tRNA-Ser	BSU_tRNA_63
+BSU_rRNA_27-rRNA	ribosomal RNA-23S	BSU_rRNA_27
+BSU_misc_RNA_22-RNA	preQ1 riboswitch	BSU_misc_RNA_22
+BSU_tRNA_50-tRNA	tRNA-Leu	BSU_tRNA_50
+BSU_tRNA_7-tRNA	tRNA-Ser	BSU_tRNA_7
+BSU_rRNA_21-rRNA	ribosomal RNA-5S	BSU_rRNA_21
+RNA8J2-1	small untranslated regulatory RNA	G8J2-5
+BSU_tRNA_17-tRNA	tRNA-Leu	BSU_tRNA_17
+BSU_tRNA_30-tRNA	tRNA-Ser	BSU_tRNA_30
+BSU_rRNA_18-rRNA	ribosomal RNA-5S	BSU_rRNA_18
+BSU_misc_RNA_73-RNA	putative conserved small untranslated RNA	BSU_misc_RNA_73
+BSU_tRNA_51-tRNA	tRNA-Leu	BSU_tRNA_51
+BSU_tRNA_71-tRNA	tRNA-Ser	BSU_tRNA_71
+BSU_rRNA_14-rRNA	ribosomal RNA-23S	BSU_rRNA_14
+BSU_misc_RNA_52-RNA	cyclic-di-AMP-sensing riboswitch	BSU_misc_RNA_52
+BSU_rRNA_5-rRNA	ribosomal RNA-23S	BSU_rRNA_5
+BSU_misc_RNA_35-RNA	RNA component of ribonuclease P (RNase P) (catalytic subunit, ribozyme)	BSU_misc_RNA_35
+BSU_rRNA_11-rRNA	ribosomal RNA-5S	BSU_rRNA_11
+charged-BSU_tRNA_37-tRNA	charged tRNA-Tyr	
+BSU_misc_RNA_2-RNA	small cytoplasmic RNA (scRNA, 4.5S RNA), signal recognition particle-like (SRP) component	BSU_misc_RNA_2
+BSU_rRNA_28-rRNA	ribosomal RNA-5S	BSU_rRNA_28
+charged-BSU_tRNA_77-tRNA	charged tRNA-Tyr	
+BSU_misc_RNA_92-RNA	antitoxin RNA	BSU_misc_RNA_92
+BSU_rRNA_24-rRNA	ribosomal RNA-5S	BSU_rRNA_24
+BSU_misc_RNA_68-RNA	magnesium riboswitch	BSU_misc_RNA_68
+BSU_rRNA_2-rRNA	ribosomal RNA-23S	BSU_rRNA_2
+BSU_misc_RNA_49-RNA	T-box riboswitch specific of leucine tRNA ligase	BSU_misc_RNA_49
+BSU_rRNA_15-rRNA	ribosomal RNA-5S	BSU_rRNA_15
+BSU_misc_RNA_31-RNA	AdoMet riboswitch	BSU_misc_RNA_31
+BSU_rRNA_7-rRNA	ribosomal RNA-23S	BSU_rRNA_7
+BSU_misc_RNA_16-RNA	guanidine-sensing riboswitch (binds free guanidinium)	BSU_misc_RNA_16
+BSU_rRNA_12-rRNA	ribosomal RNA-23S	BSU_rRNA_12
+BSU_misc_RNA_89-RNA	small untranslated RNA of unknown function	BSU_misc_RNA_89
+BSU_rRNA_29-rRNA	ribosomal RNA-23S	BSU_rRNA_29
+BSU_misc_RNA_61-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_61
+BSU_rRNA_26-rRNA	ribosomal RNA-5S	BSU_rRNA_26
+charged-BSU_tRNA_85-tRNA	charged tRNA-Arg	
+BSU_misc_RNA_45-RNA	T-box controlling synthesis of branched chain amino acids	BSU_misc_RNA_45
+BSU_rRNA_20-rRNA	ribosomal RNA-23S	BSU_rRNA_20
+charged-BSU_tRNA_79-tRNA	charged tRNA-Arg	
+BSU_misc_RNA_29-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_29
+BSU_rRNA_17-rRNA	ribosomal RNA-23S	BSU_rRNA_17
+charged-BSU_tRNA_18-tRNA	charged tRNA-Arg	
+BSU_tRNA_37-tRNA	tRNA-Tyr	BSU_tRNA_37
+BSU_misc_RNA_13-RNA	T-box riboswitch specific of tryptophan tRNA	BSU_misc_RNA_13
+BSU_rRNA_8-rRNA	ribosomal RNA-5S	BSU_rRNA_8
+charged-BSU_tRNA_81-tRNA	charged tRNA-Arg	
+BSU_tRNA_77-tRNA	tRNA-Tyr	BSU_tRNA_77
+RNA8J2-8	small regulatory RNA	G8J2-159
+BSU_rRNA_13-rRNA	ribosomal RNA-5S	BSU_rRNA_13
+charged-BSU_tRNA_26-tRNA	charged tRNA-Arg	
+BSU_misc_RNA_86-RNA	putative small RNA or mRNA leader sequence	BSU_misc_RNA_86
+charged-BSU_tRNA_84-tRNA	charged tRNA-Arg	
+BSU_misc_RNA_59-RNA	T-box riboswitch specific of tyrosine tRNA ligase	BSU_misc_RNA_59
+charged-BSU_tRNA_58-tRNA	charged tRNA-Arg	
+BSU_misc_RNA_42-RNA	T-box riboswitch controlling synthesis of histidine and aspartate tRNA ligases	BSU_misc_RNA_42
+BSU_misc_RNA_26-RNA	pyrimidine biosynthesis operon attenuator	BSU_misc_RNA_26
+charged-BSU_tRNA_66-tRNA	charged tRNA-Phe	
+BSU_misc_RNA_10-RNA	guanine riboswitch	BSU_misc_RNA_10
+charged-BSU_tRNA_1-tRNA	charged tRNA-Phe	
+RNA8J2-15	putative antisense RNA for type I YuzJ toxin	G8J2-178
+charged-BSU_tRNA_35-tRNA	charged tRNA-Phe	
+BSU_misc_RNA_83-RNA	T-Box riboswitch specific of tyrosine tRNA ligase	BSU_misc_RNA_83
+charged-BSU_tRNA_86-tRNA	charged tRNA-Ala	
+BSU_misc_RNA_56-RNA	T-box riboswitch controlling synthesis of an amino acid transporter	BSU_misc_RNA_56
+charged-BSU_tRNA_83-tRNA	charged tRNA-Val	
+charged-BSU_tRNA_28-tRNA	charged tRNA-Ala	
+BSU_misc_RNA_4-RNA	putative L13_leader	BSU_misc_RNA_4
+charged-BSU_tRNA_32-tRNA	charged tRNA-Val	
+charged-BSU_tRNA_9-tRNA	charged tRNA-Ala	
+BSU_misc_RNA_23-RNA	sporulation-specific regulatory RNA	BSU_misc_RNA_23
+charged-BSU_tRNA_52-tRNA	charged tRNA-Val	
+charged-BSU_tRNA_6-tRNA	charged tRNA-Ala	
+RNA8J2-11	small regulatory antitoxin RNA, toxin-antitoxin type I system (BsrE/AsrE)	G8J2-164
+charged-BSU_tRNA_78-tRNA	charged tRNA-Val	
+charged-BSU_tRNA_60-tRNA	charged tRNA-Ala	
+BSU_misc_RNA_76-RNA	intron of subunit F of phage SPbeta ribonucleotide reductase containing CDS for homing endonuclease	BSU_misc_RNA_76
+charged-BSU_tRNA_12-tRNA	charged tRNA-Val	
+charged-BSU_tRNA_20-tRNA	charged tRNA-Ala	
+BSU_misc_RNA_53-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_53
+BSU_tRNA_20-tRNA	tRNA-Ala	BSU_tRNA_20
+BSU_misc_RNA_36-RNA	flavin riboswitch	BSU_misc_RNA_36
+BSU_tRNA_86-tRNA	tRNA-Ala	BSU_tRNA_86
+BSU_misc_RNA_20-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_20
+BSU_tRNA_28-tRNA	tRNA-Ala	BSU_tRNA_28
+BSU_misc_RNA_93-RNA	ribosomal protein S4 leader mRNA sequence	BSU_misc_RNA_93
+BSU_tRNA_9-tRNA	tRNA-Ala	BSU_tRNA_9
+BSU_misc_RNA_7-RNA	ATP-, cyclic di-AMP-sensing riboswitch	BSU_misc_RNA_7
+BSU_tRNA_6-tRNA	tRNA-Ala	BSU_tRNA_6
+BSU_misc_RNA_50-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_50
+BSU_tRNA_60-tRNA	tRNA-Ala	BSU_tRNA_60
+BSU_misc_RNA_32-RNA	6Sa RNA	BSU_misc_RNA_32
+BSU_rRNA_6-rRNA	ribosomal RNA-16S	BSU_rRNA_6
+BSU_misc_RNA_18-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_18
+BSU_rRNA_25-rRNA	ribosomal RNA-16S	BSU_rRNA_25
+BSU_misc_RNA_9-RNA	guanine riboswitch	BSU_misc_RNA_9
+BSU_rRNA_19-rRNA	ribosomal RNA-16S	BSU_rRNA_19
+charged-BSU_tRNA_38-tRNA	charged tRNA-Trp	
+BSU_misc_RNA_62-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_62
+BSU_rRNA_9-rRNA	ribosomal RNA-16S	BSU_rRNA_9
+charged-BSU_tRNA_49-tRNA	charged tRNA-Lys	
+BSU_misc_RNA_46-RNA	lysine riboswitch	BSU_misc_RNA_46
+BSU_rRNA_30-rRNA	ribosomal RNA-16S	BSU_rRNA_30
+charged-BSU_tRNA_54-tRNA	charged tRNA-Lys	
+BSU_misc_RNA_3-RNA	L10_leader	BSU_misc_RNA_3
+BSU_rRNA_22-rRNA	ribosomal RNA-16S	BSU_rRNA_22
+charged-BSU_tRNA_14-tRNA	charged tRNA-Lys	
+BSU_misc_RNA_14-RNA	thiamine pyrophosphate riboswitch	BSU_misc_RNA_14
+BSU_rRNA_1-rRNA	ribosomal RNA-16S	BSU_rRNA_1
+charged-BSU_tRNA_4-tRNA	charged tRNA-Lys	
+BSU_misc_RNA_87-RNA	manganese ion riboswitch	BSU_misc_RNA_87
+BSU_rRNA_4-rRNA	ribosomal RNA-16S	BSU_rRNA_4
+BSU_tRNA_61-tRNA	tRNA-Met	BSU_tRNA_61
+BSU_misc_RNA_6-RNA	T-box riboswitch specific of tryptophan tRNA ligase	BSU_misc_RNA_6
+BSU_rRNA_23-rRNA	ribosomal RNA-16S	BSU_rRNA_23
+BSU_tRNA_5-tRNA	tRNA-Ile	BSU_tRNA_5
+BSU_tRNA_10-tRNA	tRNA-Met	BSU_tRNA_10
+BSU_misc_RNA_43-RNA	ribosomal protein L21 leader mRNA sequence	BSU_misc_RNA_43
+BSU_rRNA_16-rRNA	ribosomal RNA-16S	BSU_rRNA_16
+charged-BSU_tRNA_42-tRNA	charged tRNA-Cys	
+BSU_tRNA_62-tRNA	tRNA-Met	BSU_tRNA_62
+BSU_misc_RNA_27-RNA	pyrimidine biosynthesis operon attenuator	BSU_misc_RNA_27
+BSU_tRNA_69-tRNA	tRNA-Ile	BSU_tRNA_69
+BSU_tRNA_79-tRNA	tRNA-Arg	BSU_tRNA_79
+BSU_tRNA_21-tRNA	tRNA-Met	BSU_tRNA_21
+BSU_misc_RNA_11-RNA	thiamine pyrophosphate riboswitch	BSU_misc_RNA_11
+BSU_tRNA_8-tRNA	tRNA-Ile	BSU_tRNA_8
+BSU_tRNA_64-tRNA	tRNA-Met	BSU_tRNA_64
+RNA8J2-3	small untranslated RNA controlled by sporulation	G8J2-8
+BSU_tRNA_18-tRNA	tRNA-Arg	BSU_tRNA_18
+BSU_tRNA_33-tRNA	tRNA-Met	BSU_tRNA_33
+BSU_misc_RNA_84-RNA	small regulatory RNA or messenger RNA	BSU_misc_RNA_84
+BSU_tRNA_81-tRNA	tRNA-Arg	BSU_tRNA_81
+BSU_misc_RNA_57-RNA	T-box	BSU_misc_RNA_57
+BSU_tRNA_26-tRNA	tRNA-Arg	BSU_tRNA_26
+BSU_misc_RNA_40-RNA	T-box riboswitch specific of alanine tRNA	BSU_misc_RNA_40
+BSU_tRNA_84-tRNA	tRNA-Arg	BSU_tRNA_84
+BSU_misc_RNA_24-RNA	thiamine pyrophosphate riboswitch	BSU_misc_RNA_24
+BSU_tRNA_22-tRNA	tRNA-Asp	BSU_tRNA_22
+BSU_tRNA_58-tRNA	tRNA-Arg	BSU_tRNA_58
+RNA8J2-13	ICEBs1 mobile element: conserved small untranslated RNA	G8J2-172
+BSU_tRNA_34-tRNA	tRNA-Asp	BSU_tRNA_34
+BSU_tRNA_85-tRNA	tRNA-Arg	BSU_tRNA_85
+BSU_misc_RNA_78-RNA	flavin mononucleotide riboswitch	BSU_misc_RNA_78
+BSU_tRNA_65-tRNA	tRNA-Asp	BSU_tRNA_65
+BSU_tRNA_42-tRNA	tRNA-Cys	BSU_tRNA_42
+BSU_misc_RNA_54-RNA	lysine riboswitch	BSU_misc_RNA_54
+BSU_tRNA_2-tRNA	tRNA-Asp	BSU_tRNA_2
+charged-BSU_tRNA_74-tRNA	charged tRNA-Gln	
+BSU_misc_RNA_37-RNA	dual aptamer glycine riboswitch	BSU_misc_RNA_37
+charged-BSU_tRNA_48-tRNA	charged tRNA-Gln	
+BSU_misc_RNA_21-RNA	S-adenosylmethionine riboswitch	BSU_misc_RNA_21
+charged-BSU_tRNA_31-tRNA	charged tRNA-Glu	
+BSU_tRNA_67-tRNA	tRNA-His	BSU_tRNA_67

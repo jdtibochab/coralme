@@ -1,0 +1,142 @@
+id	me_id	name	formula	compartment	type
+2fe1s_c					REMOVE
+3haACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ha(1)				REPLACE
+3hcddec5eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcddec5e(1)				REPLACE
+3hcmrs7eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcmrs7e(1)				REPLACE
+3hcpalm9eACP_c					CURATE
+3hcvac11eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hcvac11e(1)				REPLACE
+3hddecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hddec(1)				REPLACE
+3hdecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hdec(1)				REPLACE
+3hhexACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hhex(1)				REPLACE
+3hmrsACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hmrs(1)				REPLACE
+3hoctACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hoct(1)				REPLACE
+3hoctaACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hocta(1)				REPLACE
+3hpalmACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3hpalm(1)				REPLACE
+3ocddec5eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ocddec5e(1)				REPLACE
+3ocmrs7eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ocmrs7e(1)				REPLACE
+3ocpalm9eACP_c					CURATE
+3ocvac11eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ocvac11e(1)				REPLACE
+3oddecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3oddec(1)				REPLACE
+3odecACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3odec(1)				REPLACE
+3ohexACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ohex(1)				REPLACE
+3omrsACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3omrs(1)				REPLACE
+3ooctACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ooct(1)				REPLACE
+3ooctdACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3ooctd(1)				REPLACE
+3opalmACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_3opalm(1)				REPLACE
+ACP_c	BSU15920-MONOMER_mod_pan4p(1)				REPLACE
+LI_c					CURATE
+acACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_ac(1)				REPLACE
+actACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_act(1)				REPLACE
+alatrna_c					REMOVE
+alpp_p					CURATE
+apoACP_c	BSU15920-MONOMER				REPLACE
+argtrna_c					REMOVE
+asntrna_c					REMOVE
+asptrna_c					REMOVE
+but2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_but2e(1)				REPLACE
+butACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_but(1)				REPLACE
+bwco1gdp_c					REMOVE
+bwco_c					REMOVE
+bwcogdp_c					REMOVE
+cddec5eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_cddec5e(1)				REPLACE
+cdec3eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_cdec3e(1)				REPLACE
+cystrna_c					REMOVE
+dcaACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_dca(1)				REPLACE
+ddcaACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_ddca(1)				REPLACE
+dsbaox_p					CURATE
+dsbard_p					CURATE
+dsbcox_p					CURATE
+dsbcrd_p					CURATE
+dsbdox_c					CURATE
+dsbdrd_c					CURATE
+dsbgox_p					CURATE
+dsbgrd_p					CURATE
+egmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_egme(1)				REPLACE
+epmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_epme(1)				REPLACE
+fldox_c	BSU14170-MONOMER_mod_Oxidized(1)				REPLACE
+fldrd_c	BSU14170-MONOMER				REPLACE
+flxr_c	BSU14170-MONOMER				REPLACE
+flxso_c	BSU14170-MONOMER_mod_Oxidized(1)				REPLACE
+fmettrna_c					REMOVE
+glntrna_c					REMOVE
+glutrna_c					REMOVE
+glytrna_c					REMOVE
+gmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_gme(1)				REPLACE
+grxox_c					CURATE
+grxrd_c					CURATE
+hdeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_hde(1)				REPLACE
+hexACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_hex(1)				REPLACE
+hgmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_hgme(1)				REPLACE
+histrna_c					REMOVE
+hpmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_hpme(1)				REPLACE
+iletrna_c					REMOVE
+iscs_c	BSU27510-MONOMER_mod_pydx5p(2)				REPLACE
+iscssh_c	BSU27510-MONOMER_mod_pydx5p(2)_mod_SH(1)				REPLACE
+iscu_c	BSU32680-MONOMER				REPLACE
+leutrna_c					REMOVE
+lipopb_c					REMOVE
+lpp_p					CURATE
+lystrna_c					REMOVE
+malACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_mal(1)				REPLACE
+mettrna_c					REMOVE
+moadamp_c	BSU14310-MONOMER_mod_amp(1)				REPLACE
+moadcoo_c	BSU14310-MONOMER_mod_coo(1)				REPLACE
+moadcosh_c	BSU14310-MONOMER_mod_cosh(1)				REPLACE
+myrsACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_myrs(1)				REPLACE
+ocACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_oc(1)				REPLACE
+ocdcaACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_ocdca(1)				REPLACE
+octapb_c					REMOVE
+octeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_octe(1)				REPLACE
+ogmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_ogme(1)				REPLACE
+opmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_opme(1)				REPLACE
+palmACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_palm(1)				REPLACE
+phetrna_c					REMOVE
+pimACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_pim(1)				REPLACE
+pmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_pme(1)				REPLACE
+protrna_c					REMOVE
+sectrna_c					REMOVE
+sertrna[sec]_c					REMOVE
+sertrna_c					REMOVE
+sufbcd_c					CURATE
+sufse_c					CURATE
+sufsesh_c					CURATE
+t3c11vaceACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_t3c11vace(1)				REPLACE
+t3c5ddeceACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_t3c5ddece(1)				REPLACE
+t3c7mrseACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_t3c7mrse(1)				REPLACE
+t3c9palmeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_t3c9palme(1)				REPLACE
+tddec2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_tddec2e(1)				REPLACE
+tdeACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_tde(1)				REPLACE
+tdec2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_tdec2e(1)				REPLACE
+thex2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_thex2e(1)				REPLACE
+thrtrna_c					REMOVE
+tmrs2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_tmrs2e(1)				REPLACE
+toct2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_toct2e(1)				REPLACE
+toctd2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_toctd2e(1)				REPLACE
+tpalm2eACP_c	BSU15920-MONOMER_mod_pan4p(1)_mod_tpalm2e(1)				REPLACE
+trdox_c	BSU28500-MONOMER_mod_Oxidized(1)				REPLACE
+trdrd_c	BSU28500-MONOMER				REPLACE
+trnaala_c					REMOVE
+trnaarg_c					REMOVE
+trnaasn_c					REMOVE
+trnaasp_c					REMOVE
+trnacys_c					REMOVE
+trnagln_c					REMOVE
+trnaglu_c					REMOVE
+trnagly_c					REMOVE
+trnahis_c					REMOVE
+trnaile_c					REMOVE
+trnaleu_c					REMOVE
+trnalys_c					REMOVE
+trnamet_c					REMOVE
+trnaphe_c					REMOVE
+trnapro_c					REMOVE
+trnasecys_c					REMOVE
+trnaser_c					REMOVE
+trnathr_c					REMOVE
+trnatrp_c					REMOVE
+trnatyr_c					REMOVE
+trnaval_c					REMOVE
+trptrna_c					REMOVE
+tyrtrna_c					REMOVE
+valtrna_c					REMOVE
+wco_c					REMOVE

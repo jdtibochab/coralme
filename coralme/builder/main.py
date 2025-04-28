@@ -71,7 +71,7 @@ class MEBuilder(object):
 		to update the configuration of the parent class.
 
 	"""
-	def __init__(self, *args, m_model_path = None, genbank_path = None, locus_tag = 'locus_tag', blast_threads = None, **kwargs):
+	def __init__(self, *args, m_model_path = False, genbank_path = False, locus_tag = 'locus_tag', blast_threads = None, **kwargs):
 		"""
 		keyword arguments
 			ME-Model-ID, str
@@ -93,6 +93,11 @@ class MEBuilder(object):
 			add_lipoproteins, default True
 			estimate_keffs, default True
 		"""
+
+		self.available_reference_models = {
+				'iJL1678b' : 'locus_tag', # E. coli, gram negative
+				'iJT964'   : 'old_locus_tag', # B. subtilis, gram positive
+				}
 
 		if blast_threads is None:
 			blast_threads = os.cpu_count()-1
@@ -265,7 +270,7 @@ class MEBuilder(object):
 		if bool(config.get('dev_reference', False)) or bool(config.get('user_reference', False)):
 			logging.warning("Reading reference")
 
-			self.ref = coralme.builder.organism.Organism(config.copy(), is_reference = True)
+			self.ref = coralme.builder.organism.Organism(config.copy(), is_reference = True, available_reference_models = self.available_reference_models)
 			self.ref.get_organism()
 
 			folder = self.org.blast_directory
@@ -1236,8 +1241,9 @@ class MEBuilder(object):
 				ref_cplx_homolog[i] for i in ref_cplxs if i in ref_cplx_homolog
 			]
 			for i in org_cplxs:
-				if v["stoich"]:
-					org_special_trna_subreactions[k]["stoich"] = v["stoich"]
+				# WARNING: stoichiometry of special modifications is in subreactions.txt
+				# if v["stoich"]:
+				# 	org_special_trna_subreactions[k]["stoich"] = v["stoich"]
 				if self._is_base_complex_in_list(i,defined_cplxs):
 					continue
 				defined_cplxs.append(i)

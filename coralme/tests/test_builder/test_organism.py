@@ -23,13 +23,13 @@ def test_organism_init():
     config = organism.copy()
     config.update(input_nobiocyc)
     org = Organism(config,is_reference=False)
-    ref = Organism(config,is_reference=True)
+    ref = Organism(config,is_reference=True,available_reference_models={'iJL1678b':'locus_tag'})
 
 def test_get_organism_nobiocyc():
     config = organism.copy()
     config.update(input_nobiocyc)
     Organism(config,is_reference=False).get_organism()
-    Organism(config,is_reference=True).get_organism()
+    Organism(config,is_reference=True,available_reference_models={'iJL1678b':'locus_tag'}).get_organism()
 
 def test_get_organism_withbiocyc():
     config = organism.copy()
@@ -42,4 +42,4 @@ def test_get_organism_withbiocyc():
       "biocyc.seqs": "{}/tests/data/sequences.fasta".format(dir),
     })
     Organism(config,is_reference=False).get_organism()
-    Organism(config,is_reference=True).get_organism()
+    Organism(config,is_reference=True,available_reference_models={'iJL1678b':'locus_tag'}).get_organism()
