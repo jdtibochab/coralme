@@ -1773,7 +1773,8 @@ class MEReconstruction(MEBuilder):
 		# step1: reactions, complexes, modification of complexes, enzyme-to-reaction mapping
 		# step2a: generics, dnap stoichiometry, ribosome stoichiometry, degradosome stoichiometry, tRNA ligases, RNA modifications
 		# step2b: folding pathways (DnaK, GroEL), N-terminal Methionine Processing, translocation pathways
-		filename = config.get('df_gene_cplxs_mods_rxns', '')
+		config['df_gene_cplxs_mods_rxns'] = './automated-org-with-refs.xlsx' if config.get('df_gene_cplxs_mods_rxns', '') == '' else config['df_gene_cplxs_mods_rxns']
+		filename = config['df_gene_cplxs_mods_rxns']
 		if overwrite:
 			try:
 				pathlib.Path(filename).unlink(missing_ok = True) # python>=3.8
@@ -1789,7 +1790,7 @@ class MEReconstruction(MEBuilder):
 			# detect if the genbank file was modified using biocyc data
 			gb = '{:s}/building_data/genome_modified.gb'.format(config.get('out_directory', '.'))
 			gb = gb if pathlib.Path(gb).exists() else config['genbank-path']
-			ListHandler.print_and_log('Writting the Organism-Specific Matrix...')
+			ListHandler.print_and_log('Writting the Organism-Specific Matrix to {:s}...'.format(config['df_gene_cplxs_mods_rxns']))
 			# generate a minimal dataframe from the genbank and m-model files
 			df_data = coralme.builder.preprocess_inputs.generate_organism_specific_matrix(gb, config.get('locus_tag', 'locus_tag'), model = m_model)
 			# complete minimal dataframe with automated info from homology
