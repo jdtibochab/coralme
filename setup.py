@@ -114,12 +114,7 @@ def main():
 		# bdist_wheel only
 		package_data = {
 			'coralme' : [
-				'iJL1678b-ME/*',
-				'iJL1678b-ME/building_data/*',
-				'solver/*.so',
-				'io/JSONSCHEMA',
-				'builder/column_format.json',
-				'licenses/*'
+				'**/*'
 				]
 			},
 
