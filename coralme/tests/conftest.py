@@ -4,7 +4,7 @@ import anyconfig
 import pytest
 dir = str(files("coralme"))
 
-def create_builder(troubleshoot = False):
+def create_builder(troubleshoot = False, reference = True):
   config = {
     # Inputs
     "m-model-path": "{}/tests/data/m_model.json".format(dir), # Path to model file
@@ -15,7 +15,7 @@ def create_builder(troubleshoot = False):
     "log_directory": "{}/tests/data/base_model/".format(dir), # Log directory
     "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag
     "run_bbh_blast" : True,
-    "dev_reference" : True,
+    "dev_reference" : reference,
     "blast_threads" : 4,
     "ME-Model-ID" : "EXAMPLE-ME" # Name of the ME-model
   }
@@ -43,8 +43,16 @@ def shared_builder():
   pytest.shared_builder = create_builder(troubleshoot = False)
 
 @pytest.fixture(scope="session")
+def shared_builder_bsub_reference():
+  pytest.shared_builder_bsub_reference = create_builder(troubleshoot = False, reference = 'iJT964')
+
+@pytest.fixture(scope="session")
 def shared_builder_troubleshooted():
   pytest.shared_builder_troubleshooted = create_builder(troubleshoot = True)
+
+@pytest.fixture(scope="session")
+def shared_builder_troubleshooted_bsub_reference():
+  pytest.shared_builder_troubleshooted_bsub_reference = create_builder(troubleshoot = True, reference = 'iJT964')
 
 # TODO: fix this test
 # @pytest.fixture(scope="session")

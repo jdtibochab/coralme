@@ -15,6 +15,12 @@ def test_troubleshoot(shared_builder):
     builder1.troubleshoot(growth_key_and_value = { builder1.me_model.mu.magnitude : 0.001 },guesses=guesses)
     assert builder1.me_model.solution is not None
 
+def test_troubleshoot_bsub_reference(shared_builder_troubleshooted_bsub_reference):
+    builder1 = pytest.shared_builder_troubleshooted_bsub_reference
+    guesses = ["dUTPase_c", "pg_c", "apoACP_c", "protein_c", "biomass_c", "zn2_c", "actp_c", "f6p_c","ACP_R_c","fdp_c","fe2_c", "mn2_c"]
+    builder1.troubleshoot(growth_key_and_value = { builder1.me_model.mu.magnitude : 0.001 },guesses=guesses)
+    assert builder1.me_model.solution is not None
+
 @pytest.mark.parametrize("builder_fixture,reaction_id",
                          [
                              ("shared_builder","ARTIFICIAL_RXN_0_FWD_ARTIFICIAL_COMPLEX_0"),
