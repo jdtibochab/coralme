@@ -63,16 +63,19 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 				annots['reactome'] = mets.iloc[idx]['reactome.compound'].split(';') if (mets.iloc[idx]['reactome.compound'] != '') else []
 			annots = str(annots).replace('{', '{\n\t').replace('}', '\n\t}').replace(', ', ',\n\t') if annots else '{}'
 
-			tmp = base.format(
-				mets.iloc[idx]['_id'].replace('-', '_DASH_'),
-				mets.iloc[idx]['_id'],
-				mets.iloc[idx]['formula'],
-				mets.iloc[idx]['name'].replace('\'', '\\\''),
-				mets.iloc[idx]['compartment'],
-				int(mets.iloc[idx]['charge']),
-				mets.iloc[idx]['_id'].replace('-', '_DASH_'),
-				annots,
-				mets.iloc[idx]['_id'].replace('-', '_DASH_'))
+			try:
+				tmp = base.format(
+					mets.iloc[idx]['_id'].replace('-', '_DASH_'),
+					mets.iloc[idx]['_id'],
+					mets.iloc[idx]['formula'],
+					mets.iloc[idx]['name'].replace('\'', '\\\''),
+					mets.iloc[idx]['compartment'],
+					int(mets.iloc[idx]['charge']),
+					mets.iloc[idx]['_id'].replace('-', '_DASH_'),
+					annots,
+					mets.iloc[idx]['_id'].replace('-', '_DASH_'))
+			except:
+				raise ValueError('Incorrect format detected at \'{:s}\' metabolite entry.'.format(mets.iloc[idx]['_id']))
 
 			code.append(tmp)
 
@@ -173,13 +176,16 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 				annots['kegg.reaction'] = rxns.iloc[idx]['kegg.reaction'].split(';') if (rxns.iloc[idx]['kegg.reaction'] != '') else []
 			annots = str(annots).replace('{', '{\n\t').replace('}', '\n\t}').replace(', ', ',\n\t') if annots else '{}'
 
-			tmp = base.format(
-				rxns.iloc[idx]['_id'],
-				rxns.iloc[idx]['name'].replace('\'', '\\\''),
-				rxns.iloc[idx]['subsystem'],
-				lower, upper, mets, annots,
-				rxns.iloc[idx]['_gpr'],
-				rxns.iloc[idx]['_cofactors'] if '_cofactors' in rxns.columns else '')
+			try:
+				tmp = base.format(
+					rxns.iloc[idx]['_id'],
+					rxns.iloc[idx]['name'].replace('\'', '\\\''),
+					rxns.iloc[idx]['subsystem'],
+					lower, upper, mets, annots,
+					rxns.iloc[idx]['_gpr'],
+					rxns.iloc[idx]['_cofactors'] if '_cofactors' in rxns.columns else '')
+			except:
+				raise ValueError('Incorrect format detected at \'{:s}\' reaction entry.'.format(rxns.iloc[idx]['_id']))
 
 			code.append(tmp)
 
