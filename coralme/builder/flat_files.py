@@ -50,6 +50,10 @@ def get_reaction_matrix_dict(matrix_df, compartments = {}, complex_set = set()) 
 	metabolic_reaction_dict = defaultdict(dict)
 	for idx, row in matrix_df.iterrows():
 		reaction = fix_id(row['Reaction'])
+		metabolic_reaction_dict[reaction] = Counter() # allows doing math with repeated entries in a reaction/subreaction_matrix file
+
+	for idx, row in matrix_df.iterrows():
+		reaction = fix_id(row['Reaction'])
 		metabolite = fix_id(row['Metabolites'])
 		stoichiometry = row['Stoichiometry']
 		#if compartments.get(row['Compartment']) is None:
@@ -60,7 +64,7 @@ def get_reaction_matrix_dict(matrix_df, compartments = {}, complex_set = set()) 
 		# use compartment to append appropriate suffix
 		#if metabolite.split('_mod_')[0] not in complex_set:
 			#metabolite += compartment_id
-		metabolic_reaction_dict[reaction][metabolite] = float(stoichiometry)
+		metabolic_reaction_dict[reaction].update({ metabolite : float(stoichiometry) })
 
 	return metabolic_reaction_dict
 
@@ -126,6 +130,7 @@ def remove_compartment(id_str):
 	return '_'.join(id_str.split('_')[:-1]) # compartment ID follows the last underscore
 
 def process_reaction_matrix_dict(reaction_matrix, cplx_data, me_compartments = set()):
+	reaction_matrix = reaction_matrix.copy(deep = True)
 	reaction_matrix['Reaction'] = reaction_matrix['Reaction'].str.split(',')
 	reaction_matrix = reaction_matrix.explode('Reaction')
 	complex_dct = get_complex_subunit_stoichiometry(cplx_data)
