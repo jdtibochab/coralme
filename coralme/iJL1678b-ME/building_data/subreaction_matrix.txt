@@ -54,7 +54,6 @@ gre_activation	met__L_c	1.0
 
 # CoA-[4'-phosphopantetheine]:apo-[acyl-carrier protein] 4'-pantetheinephosphotransferase
 acpP_activation	coa_c	-1.0
-acpP_activation	h_c	+1.0
 acpP_activation	pap_c	+1.0
 
 # lipid modifications
@@ -211,9 +210,8 @@ mnm5s2U	RED-THIOREDOXIN-MONOMER_mod_Oxidized(1)	+1.0
 # per PMID 23543739, grxD is involved in repairing miaB 4fe4s prosthetic group after accepting electron
 ms2i6A	dmpp_c	-1.0
 ms2i6A	ppi_c	+1.0
-ms2i6A	amet_c	-1.0
+ms2i6A	amet_c	-2.0
 ms2i6A	ahcys_c	+1.0
-ms2i6A	amet_c	-1.0
 ms2i6A	met__L_c	+1.0
 ms2i6A	dad_5_c	+1.0
 ms2i6A	IscS_mod_pydx5p(2)_mod_SH(1)	-1.0

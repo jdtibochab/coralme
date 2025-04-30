@@ -19,9 +19,9 @@ EX_fe2_e,Iron(II) exchange,,fe2_e <=>,
 PYRIS,Pyridoxal 5 phsophate synthase,BSU00110 and BSU00120,g3p_c + gln__L_c + r5p_c --> glu__L_c + pydx5p_c + pi_c + 3 h2o_c + h_c,"{'original_bigg_ids': ['PYRIS']}"
 
 # Thiamine biosynthesis
-TYRL,tyrosine lyase,BSU11690,amet_c + nadph_c + tyr__L_c --> 4crsol_c + dad__5_c + dhgly_c + h_c + met__L_c + nadp_c,
+TYRL,tyrosine lyase,BSU11690,amet_c + nadph_c + tyr__L_c --> 4crsol_c + dad_5_c + dhgly_c + h_c + met__L_c + nadp_c,
 DM_4CRSOL,Sink needed to allow p-Cresol to leave system,,4crsol_c -->,
-5DOAN,5'-deoxyadenosine nuclosidase,BSU27270,dad__5_c + h2o_c --> 5drib_c + ade_c,
+5DOAN,5'-deoxyadenosine nuclosidase,BSU27270,dad_5_c + h2o_c --> 5drib_c + ade_c,
 DM_5DRIB,Sink needed to allow 5'-deoxyribose to leave system,,5drib_c -->,
 
 # From paper

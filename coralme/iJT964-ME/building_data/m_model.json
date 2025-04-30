@@ -6938,7 +6938,7 @@
 "formula":"CH4O1"
 },
 {
-"id":"dad__5_c",
+"id":"dad_5_c",
 "name":"",
 "compartment":"c",
 "formula":"C10H13N5O3"
@@ -24786,7 +24786,7 @@
 "metabolites":{
 "4crsol_c":1,
 "amet_c":-1,
-"dad__5_c":1,
+"dad_5_c":1,
 "dhgly_c":1,
 "h_c":1,
 "met__L_c":1,
@@ -24814,7 +24814,7 @@
 "metabolites":{
 "5drib_c":1,
 "ade_c":1,
-"dad__5_c":-1,
+"dad_5_c":-1,
 "h2o_c":-1
 },
 "lower_bound":0,
