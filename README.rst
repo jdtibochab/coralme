@@ -51,7 +51,7 @@ Install using docker (tested on Ubuntu 22.04)
 
 Install using docker (to run MINOS and quad MINOS for Apple Silicon)
 ====================================================================
-1. Install OrbStack (Docker Desktop alternative - recommended because it automatically uses Rosetta for AMD images). 
+1. Install OrbStack (Docker Desktop alternative - recommended because it automatically uses Rosetta for AMD images).
 2. Clone repository and navigate to coralme/.
 3. ``docker buildx create --name multiarch --use``
 4. ``docker buildx build --platform linux/amd64 --file "./Dockerfile-Python3.10" . -t "python3.10-coralme:amd64" --load``
@@ -71,19 +71,19 @@ coralME was tested with the following package versions:
 
 Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
 
-- Python3, versions 3.7.17, 3.8.17, 3.9.17, and 3.10.12
+- Python3, versions 3.7.17, 3.8.20, 3.9.21, and 3.10.16
 - wheel 0.38.4
-- numpy 1.21.6
-- scipy 1.7.3
 - cython 0.29.32
-- cpython 0.0.6
+- numpy 1.21.6
 
 Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
 
-- Python3, versions 3.11.9 and 3.12.4
+- Python3, versions 3.11.11, 3.12.9, 3.13.2
 - wheel 0.43.0
-- numpy 2.0.0
 - cython 3.0.10
+- numpy 2.0.0
+- meson 1.8.0
+- ninja 1.11.1.4
 
 Documentation
 -------------
@@ -96,12 +96,12 @@ Development
 The coralME package has been tested using the most recent package versions available for each python3 version, except for numpy
 
 ========== ============ ============ ============ ============= ============= =============
-Package     Python 3.7   Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12 
+Package     Python 3.7   Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12
 ========== ============ ============ ============ ============= ============= =============
-cobra       0.28.0       0.29.0       0.29.0       0.29.0        0.29.0        0.29.0      
-numpy       1.21.6       1.24.4       1.26.4       1.26.4        2.0.1         2.0.1       
-scipy       1.7.3        1.10.1       1.13.1       1.14.0        1.14.0        1.14.0      
-pandas      1.3.5        2.0.3        2.2.2        2.2.2         2.2.2         2.2.2       
+cobra       0.28.0       0.29.0       0.29.0       0.29.0        0.29.0        0.29.0
+numpy       1.21.6       1.24.4       1.26.4       1.26.4        2.0.1         2.0.1
+scipy       1.7.3        1.10.1       1.13.1       1.14.0        1.14.0        1.14.0
+pandas      1.3.5        2.0.3        2.2.2        2.2.2         2.2.2         2.2.2
 sympy       1.10.1       1.13.1       1.13.1       1.13.1        1.13.1        1.13.1
 anyconfig   0.13.0       0.14.0       0.14.0       0.14.0        0.14.0        0.14.0
 ========== ============ ============ ============ ============= ============= =============
