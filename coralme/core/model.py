@@ -278,13 +278,19 @@ class MEModel(cobra.core.object.Object):
 
 	def __getstate__(self):
 		state = self.__dict__.copy()
+
 		# Don't pickle unit_registry
 		del state["unit_registry"]
+		# Don't pickle optimization methods
 		del state["optimize"]
 		del state["optimize_windows"]
 		del state["feasibility"]
 		del state["feas_windows"]
 		del state["construct_lp_problem"]
+		# Don't pickle troubleshooting methods
+		if hasattr(self, 'get_solution'):
+			del state['get_solution']
+			del state['check_feasibility']
 		return state
 
 	def __setstate__(self, state):
