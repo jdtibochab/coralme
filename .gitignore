@@ -143,11 +143,11 @@ dmypy.json
 *.zip
 
 # Temporary test files
-coralme/tests/data/building_data/
-coralme/tests/data/base_model/
-coralme/tests/data/generified_model/
-coralme/tests/data/blast_files_and_results/
-coralme/tests/data/curation_notes*
-coralme/tests/data/coralme-config.yaml
-coralme/tests/test_builder/tmp.ipynb
+tests/data/building_data/
+tests/data/base_model/
+tests/data/generified_model/
+tests/data/blast_files_and_results/
+tests/data/curation_notes*
+tests/data/coralme-config.yaml
+tests/test_builder/tmp.ipynb
 
