@@ -371,7 +371,7 @@ def fva(model,
 	# https://www.nature.com/articles/s41564-019-0423-8
 
 	# check options
-	keys, tolerance, precision = _check_options(keys = keys, tolerance = tolerance, precision = precision)
+	keys, tolerance, precision = _check_options(model = model, keys = keys, tolerance = tolerance, precision = precision)
 	fraction_of_optimum = fraction_of_optimum if fraction_of_optimum <= 1.0 and fraction_of_optimum >= 0.0 else 1.0
 	if isinstance(reaction_list, str):
 		reaction_list = [reaction_list]
@@ -650,7 +650,7 @@ def feas_gurobi(model, keys = dict(), precision = 'quad', **kwargs):
 		return False
 
 def feasibility(model, keys = dict(), tolerance = 1e-6, precision = 'quad', basis = None, **kwargs):
-	keys, tolerance, precision = _check_options(keys = keys, tolerance = tolerance, precision = precision)
+	keys, tolerance, precision = _check_options(model = model, keys = keys, tolerance = tolerance, precision = precision)
 	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = _get_evaluated_nlp(model, keys = keys, **kwargs)
 
 	#me_nlp = ME_NLP(me)

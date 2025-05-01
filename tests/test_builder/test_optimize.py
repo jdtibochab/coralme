@@ -12,6 +12,16 @@ def test_optimize_me_model(shared_builder_troubleshooted):
         builder1.me_model.optimize(solver = 'cplex') # needs CPLEX runtime installed manually (only python 3.10?)
         assert builder1.me_model.solution is not None
 
+def test_feasibility_me_model(shared_builder_troubleshooted):
+    builder1 = pytest.shared_builder_troubleshooted
+    builder1.me_model.feasibility()
+    assert builder1.me_model.solution is not None
+    builder1.me_model.feas_gurobi()
+    assert builder1.me_model.solution is not None
+    if sys.version_info == (3,10):
+        builder1.me_model.feas_cplex() # needs CPLEX runtime installed manually (only python 3.10?)
+        assert builder1.me_model.solution is not None
+
 def test_optimize_m_model(shared_builder_troubleshooted):
     builder1 = pytest.shared_builder_troubleshooted
     coralme.core.optimization.optimize(builder1.me_model.gem, solver = 'qminos')

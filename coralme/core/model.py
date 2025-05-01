@@ -38,8 +38,9 @@ class MEModel(cobra.core.object.Object):
 		# simulation methods in optimization.py
 		self.optimize = types.MethodType(coralme.core.optimization.optimize, self)
 		self.optimize_windows = types.MethodType(coralme.core.optimization.optimize_windows, self)
-		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self)
-		self.feas_windows = types.MethodType(coralme.core.optimization.feas_windows, self)
+		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self) # qminos
+		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
+		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
 		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
 
 		self.model_version = coralme.__version__
@@ -285,7 +286,8 @@ class MEModel(cobra.core.object.Object):
 		del state["optimize"]
 		del state["optimize_windows"]
 		del state["feasibility"]
-		del state["feas_windows"]
+		del state["feas_gurobi"]
+		del state["feas_cplex"]
 		del state["construct_lp_problem"]
 		# Don't pickle troubleshooting methods
 		if hasattr(self, 'get_solution'):
@@ -301,8 +303,9 @@ class MEModel(cobra.core.object.Object):
 		# simulation methods in optimization.py
 		self.optimize = types.MethodType(coralme.core.optimization.optimize, self)
 		self.optimize_windows = types.MethodType(coralme.core.optimization.optimize_windows, self)
-		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self)
-		self.feas_windows = types.MethodType(coralme.core.optimization.feas_windows, self)
+		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self) # qminos
+		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
+		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
 		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
 
 	@property
