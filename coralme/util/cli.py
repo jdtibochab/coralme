@@ -4,7 +4,7 @@ from coralme.builder.main import MEBuilder
 import sys
 from pathlib import Path
 import coralme
-#df_reaction_keff_consts
+
 def parse_arguments():
     def str2bool(v):
         if isinstance(v, bool):
@@ -35,11 +35,12 @@ def parse_arguments():
     parser.add_argument('--include-pseudo-genes', help='Include pseudogenes', default=True)
     parser.add_argument('--estimate-keffs', help='Estimate Keffs', default=True)
     parser.add_argument('--add-lipoproteins', help='Add lipoproteins', default=True)
-    
+    parser.add_argument('--add-translocases', help='Add translocases associated to CPLX_dummy', default=False)
+
     # Directory paths
     parser.add_argument('--log-directory', help='Path to logging directory', default="./")
     parser.add_argument('--out-directory', help='Path to output directory', default="./")
-    
+
     # Optional file inputs
     parser.add_argument('--df-gene-cplxs-mods-rxns', help='Path to organism-specific matrix file',default="./automated-org-with-refs.xlsx")
     parser.add_argument('--df-TranscriptionalUnits', help='Path to Transcription Units file', default=None)
@@ -47,14 +48,14 @@ def parse_arguments():
     parser.add_argument('--df_matrix_subrxn_stoich', help='Path to Subreactions file', default=None)
     parser.add_argument('--df_metadata_orphan_rxns', help='Path to Orphan Reactions file', default=None)
     parser.add_argument('--df_metadata_metabolites', help='Path to Metabolites mappings to E-matrix components file', default=None)
-    
+
     # BioCyc related inputs
     parser.add_argument('--biocyc-genes', help='Path to BioCyc genes file', default=None)
     parser.add_argument('--biocyc-proteins', help='Path to BioCyc proteins file', default=None)
     parser.add_argument('--biocyc-tu', help='Path to BioCyc TU file', default=None)
     parser.add_argument('--biocyc-rna', help='Path to BioCyc RNA file', default=None)
     parser.add_argument('--biocyc-sequences', help='Path to BioCyc sequences file', default=None)
-    
+
     return parser.parse_args()
 
 def main():
@@ -73,7 +74,7 @@ def main():
                 config[key] = value
         # Print configuration for debugging
         print("Configuration:", config)
-        
+
         # Initialize builder with configuration, including organism.json as the first parameter
         if args.organism_json:
             builder_args = [args.organism_json]
@@ -83,7 +84,7 @@ def main():
 
         builder = MEBuilder(*builder_args, **config)
         print(builder.configuration)
-        
+
         # Run coralME modules based on command line arguments
         model_loaded = False
         if args.run_synchronize:
@@ -99,10 +100,10 @@ def main():
                 builder.configuration["out_directory"] + "MEModel-step2-{}.pkl".format(builder.configuration["ME-Model-ID"])
             )
             model_loaded = True
-            
+
         if args.run_troubleshoot:
             builder.troubleshoot(growth_key_and_value={builder.me_model.mu: 0.001})
-        
+
         print("Script executed successfully.")
         sys.exit(0)
     except Exception as e:
