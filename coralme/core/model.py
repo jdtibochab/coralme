@@ -293,6 +293,7 @@ class MEModel(cobra.core.object.Object):
 		if hasattr(self, 'get_solution'):
 			del state['get_solution']
 			del state['check_feasibility']
+		if hasattr(self, 'get_feasibility'):
 			del state['get_feasibility']
 		return state
 
