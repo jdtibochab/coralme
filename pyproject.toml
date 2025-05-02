@@ -35,7 +35,7 @@ dependencies = [
     "XlsxWriter",
     "ipython"
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 readme = "README.rst"
 license = {file = "LICENSE"}
 keywords = ["metabolism", "biology", "constraint-based", "linear programming", "mixed-integer", "optimization", "flux-balance analysis", "reconstruction"]
@@ -48,12 +48,12 @@ classifiers = [
     "Operating System :: Microsoft :: Windows",
     "Operating System :: Unix",
     'Programming Language :: Python :: 3 :: Only',
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
@@ -97,12 +97,12 @@ classifiers = [
     "Operating System :: MacOS",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: Unix",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
