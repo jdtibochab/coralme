@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7.17, 3.8.20, 3.9.21, 3.10.16, 3.11.11, 3.12.9]
+        python-version: [3.7.17, 3.8.20, 3.9.21, 3.10.16, 3.11.11, 3.12.9, 3.13.2]
       fail-fast: false
 
     steps:
@@ -51,6 +51,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          /opt/python-${{ matrix.python-version }}/bin/pip3 install setuptools # 3.7 install version 47.1.0
           /opt/python-${{ matrix.python-version }}/bin/pip3 install --no-warn-script-location . > /dev/null
 
       - name: Run tests
