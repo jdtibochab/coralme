@@ -20,39 +20,39 @@ jobs:
 
       - name: Install dialog apt-utils
         run: |
-          sudo apt-get update
-          sudo apt-get install -y dialog apt-utils
+          sudo apt-get update > /dev/null
+          sudo apt-get install -y dialog apt-utils > /dev/null
 
       - name: Download and compile python ${{ matrix.python-version }}
         run: |
-          sudo apt-get update
+          sudo apt-get update > /dev/null
           sudo apt-get install -y python3-pip python3-tk python3-h5py build-essential \
-          checkinstall libssl-dev zlib1g-dev libncurses5-dev libffi-dev \
-          libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev \
-          libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev uuid-dev
+            checkinstall libssl-dev zlib1g-dev libncurses5-dev libffi-dev \
+            libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev \
+            libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev uuid-dev > /dev/null
 
           mkdir -p /opt/ubuntu-software
 
           wget https://www.python.org/ftp/python/${{ matrix.python-version }}/Python-${{ matrix.python-version }}.tgz -O /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz
           if [ -d /opt/Python-${{ matrix.python-version }} ]; then rm -rf /opt/Python-${{ matrix.python-version }}; fi
-          tar xvzf /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz -C /opt
+          tar xvzf /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz -C /opt > /dev/null
           cd /opt/Python-${{ matrix.python-version }}
           #if [ -f Makefile ]; then make clean; fi
           if [ -d /opt/python-${{ matrix.python-version }} ]; then rm -rf /opt/python-${{ matrix.python-version }}; fi
-          ./configure --prefix=/opt/python-${{ matrix.python-version }} --with-ensurepip=install --with-pymalloc
-          make
-          make install
+          ./configure --prefix=/opt/python-${{ matrix.python-version }} --with-ensurepip=install --with-pymalloc > /dev/null
+          make > /dev/null 2> /dev/null
+          make install > /dev/null
           rm -rf /opt/Python-${{ matrix.python-version }}
 
-      - name: Install libgfortran
+      - name: Install libgfortran libglpk-dev
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libgfortran5
+          sudo apt-get update > /dev/null
+          sudo apt-get install -y cmake libgfortran5 swig libglpk-dev > /dev/null
 
       - name: Install dependencies
         run: |
-          /opt/python-${{ matrix.python-version }}/bin/pip3 install --upgrade pip
-          /opt/python-${{ matrix.python-version }}/bin/pip3 install .
+          /opt/python-${{ matrix.python-version }}/bin/pip3 install --upgrade --no-warn-script-location pip > /dev/null
+          /opt/python-${{ matrix.python-version }}/bin/pip3 install --no-warn-script-location . > /dev/null
 
       - name: Run tests
         run: |
