@@ -12,6 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7.17, 3.8.20, 3.9.21, 3.10.16, 3.11.11, 3.12.9]
+      fail-fast: false
 
     steps:
       - name: Checkout repository
@@ -50,10 +51,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          /opt/python-${{ matrix.python-version }}/bin/pip3 install --upgrade pip
           /opt/python-${{ matrix.python-version }}/bin/pip3 install .
 
       - name: Run tests
         run: |
           cd tests/test_qminos/
-          /opt/python-${{ matrix.python-version }}/bin/python script.py
+          /opt/python-${{ matrix.python-version }}/bin/python3 script.py
