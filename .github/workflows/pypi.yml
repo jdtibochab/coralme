@@ -44,7 +44,7 @@ jobs:
           make install > /dev/null
           rm -rf /opt/Python-${{ matrix.python-version }}
 
-      - name: Install libgfortran libglpk-dev
+      - name: Install libgfortran libglpk-dev libopenblas-dev
         run: |
           sudo apt-get update > /dev/null
           sudo apt-get install -y cmake libgfortran5 swig libglpk-dev > /dev/null

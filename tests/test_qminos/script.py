@@ -3,6 +3,8 @@ import pandas
 import pickle
 import coralme
 
+_ = coralme.check_installed_packages()
+
 with open('lp.pkl', 'rb') as infile:
     lp = pickle.load(infile)
 
