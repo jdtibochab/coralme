@@ -51,7 +51,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          /opt/python-${{ matrix.python-version }}/bin/pip3 install --upgrade --no-warn-script-location pip > /dev/null
           /opt/python-${{ matrix.python-version }}/bin/pip3 install --no-warn-script-location . > /dev/null
 
       - name: Run tests
