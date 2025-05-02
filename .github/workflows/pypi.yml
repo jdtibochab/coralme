@@ -11,21 +11,37 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, 3.10, 3.11, 3.12]
+        python-version: [3.7.17, 3.8.20, 3.9.21, 3.10.16, 3.11.11, 3.12.9]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
       - name: Install dialog apt-utils
         run: |
           sudo apt-get update
           sudo apt-get install -y dialog apt-utils
+
+      - name: Download and compile python ${{ matrix.python-version }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-tk python3-h5py build-essential \
+          checkinstall libssl-dev zlib1g-dev libncurses5-dev libffi-dev \
+          libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev \
+          libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev uuid-dev
+
+          mkdir -p /opt/ubuntu-software
+
+          wget https://www.python.org/ftp/python/${{ matrix.python-version }}/Python-${{ matrix.python-version }}.tgz -O /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz
+          if [ -d /opt/Python-${{ matrix.python-version }} ]; then rm -rf /opt/Python-${{ matrix.python-version }}; fi
+          tar xvzf /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz -C /opt
+          cd /opt/Python-${{ matrix.python-version }}
+          #if [ -f Makefile ]; then make clean; fi
+          if [ -d /opt/python-${{ matrix.python-version }} ]; then rm -rf /opt/python-${{ matrix.python-version }}; fi
+          ./configure --prefix=/opt/python-${{ matrix.python-version }} --with-ensurepip=install --with-pymalloc
+          make
+          make install
+          rm -rf /opt/Python-${{ matrix.python-version }}
 
       - name: Install libgfortran
         run: |
@@ -35,9 +51,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install .
+          /opt/python-${{ matrix.python-version }}/bin/pip3 install .
 
       - name: Run tests
         run: |
           cd tests/test_qminos/
-          python script.py
+          /opt/python-${{ matrix.python-version }}/bin/python script.py
