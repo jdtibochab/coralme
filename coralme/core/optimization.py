@@ -12,6 +12,7 @@ import numpy
 import pint
 import sympy
 import sys
+import pandas
 
 import cobra
 import coralme
@@ -371,7 +372,7 @@ def fva(model,
 	# https://www.nature.com/articles/s41564-019-0423-8
 
 	# check options
-	keys, tolerance, precision = _check_options(model = model, keys = keys, tolerance = tolerance, precision = precision)
+	_, tolerance, precision = _check_options(model = model, tolerance = tolerance, precision = precision)
 	fraction_of_optimum = fraction_of_optimum if fraction_of_optimum <= 1.0 and fraction_of_optimum >= 0.0 else 1.0
 	if isinstance(reaction_list, str):
 		reaction_list = [reaction_list]
