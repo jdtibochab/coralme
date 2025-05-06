@@ -122,7 +122,7 @@ class MEBuilder(object):
 			'blast_threads' : blast_threads,
 			'dev_reference' : True,
 			'add_lipoproteins' : True,
-			'add_translocases' : False,
+			# 'add_translocases' : False,
 			'estimate_keffs' : True,
 
 			'defer_to_rxn_matrix' : [],
