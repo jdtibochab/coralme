@@ -42,6 +42,7 @@ class MEModel(cobra.core.object.Object):
 		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
 		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
 		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
+		self.fva = types.MethodType(coralme.core.optimization.fva, self)
 
 		self.model_version = coralme.__version__
 
@@ -289,6 +290,7 @@ class MEModel(cobra.core.object.Object):
 		del state["feas_gurobi"]
 		del state["feas_cplex"]
 		del state["construct_lp_problem"]
+		del state["fva"]
 		# Don't pickle troubleshooting methods
 		if hasattr(self, 'get_solution'):
 			del state['get_solution']
@@ -309,6 +311,7 @@ class MEModel(cobra.core.object.Object):
 		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
 		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
 		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
+		self.fva = types.MethodType(coralme.core.optimization.fva, self)
 
 	@property
 	def active_biomass_reaction(self):
@@ -441,6 +444,7 @@ class MEModel(cobra.core.object.Object):
 		new_model.optimize = types.MethodType(coralme.core.optimization.optimize, new_model)
 		new_model.feasibility = types.MethodType(coralme.core.optimization.feasibility, new_model)
 		new_model.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, new_model)
+		new_model.fva = types.MethodType(coralme.core.optimization.fva, new_model)
 
 		return new_model
 
