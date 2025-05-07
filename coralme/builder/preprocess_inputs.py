@@ -307,11 +307,23 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 	# intermediate dictionary: (Complex, Cofactors) : Reaction ID
 	dct = { k:v['Reaction'] for k,v in dct.iterrows() }
 	# correction based on generics -> NEW complex <-> list of reactions
-	df = builder.org.complexes_df.copy(deep = True)
-	df = { idx:[ x[8:-2] for x in row['genes'].split(' AND ')] for idx,row in df[df['genes'].str.contains('generic')].iterrows() }
-	for cplx, generics in df.items():
+	# df = builder.org.complexes_df.copy(deep = True)
+	# df = { idx:[ x[8:-2] for x in row['genes'].split(' AND ')] for idx,row in df[df['genes'].str.contains('generic')].iterrows() }
+	# for cplx, generics in df.items():
+	# 	for generic in generics:
+	# 		dct.update({ (generic, 'None') : dct[(cplx, 'None')] })
+
+	tmp1 = builder.org.protein_mod
+	tmp1 = { v['Core_enzyme']:k for k,v in tmp1.iterrows() }
+
+	tmp2 = builder.org.complexes_df.copy(deep = True)
+	tmp2 = { k:{ x.split('(')[0]:x.split('(')[1][:-1] if x.split('(')[1][:-1] != '' else '1' for x in v['genes'].split(' AND ') } for k,v in tmp2.iterrows() }
+
+	tmp3 = builder.org.complexes_df.copy(deep = True)
+	tmp3 = { idx:[ x.split('(')[0][8:] for x in row['genes'].split(' AND ') if 'generic' in x ] for idx,row in tmp3[tmp3['genes'].str.contains('generic')].iterrows() }
+	for cplx, generics in tmp3.items():
 		for generic in generics:
-			dct.update({ (generic, 'None') : dct[(cplx, 'None')] })
+			dct.update({ (generic, 'None') : dct[(cplx, ' AND '.join(tmp1.get(cplx, 'None_mod_None').split('_mod_')[1:]))] })
 
 	fn = lambda x: dct.get((str(x['Complex ID']).split(':')[0], str(x['Cofactors in Modified Complex'])), [None]) + dct.get((str(x['Generic Complex ID']).split(':')[0], str(x['Cofactors in Modified Complex'])), [None])
 

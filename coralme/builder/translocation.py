@@ -117,7 +117,7 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 
 			for mod in lipid_modifications:
 				reaction_prefix = protein + '_lipid_modification_' + mod
-				add_lipoprotein_data_and_reaction(mod, 'pe160_p')
+				# add_lipoprotein_data_and_reaction(mod, 'pe160_p')
 				add_lipoprotein_data_and_reaction(mod, 'pg160_p')
 
 		if model.metabolites.has_id('protein_' + protein) and compartment is None:

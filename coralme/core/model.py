@@ -321,7 +321,7 @@ class MEModel(cobra.core.object.Object):
 	def active_biomass_reaction(self, name):
 		if self.global_info['biomass_reactions'] != ['biomass_constituent_demand']:
 			name = 'biomass_constituent_demand_' + name
-			biomass_reactions = [ 'biomass_constituent_demand_{:s}'.format(x) for x in self.biomass_reactions ]
+			biomass_reactions = [ 'biomass_constituent_demand_{:s}'.format(x) for x in self.global_info['biomass_reactions'] ]
 		else:
 			name = 'biomass_constituent_demand'
 			biomass_reactions = self.global_info['biomass_reactions']
