@@ -557,6 +557,7 @@ def me_model_from_dict(obj):
 	else:
 		model.global_info['default_parameters'] = coralme.core.parameters.DefaultParameters(obj['global_info']['default_parameters'])
 
+	print("[!] Stoichiometric data is reconstructed from process_data, changes to other fields will not be reflected in the ME-model.")
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
 		_add_metabolite_from_dict(model, metabolite)
 
