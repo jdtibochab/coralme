@@ -58,6 +58,14 @@ Install using docker (to run MINOS and quad MINOS for Apple Silicon)
 5. ``docker run --detach -p 10000:8888 -v USER/PATH/TO/coralme/:/opt/notebooks/ python3.10-coralme:amd64``
 6. In your browser, go to ``localhost:10000``
 
+CLI and GUI
+===========
+To perform a ME-model reconstruction, command-line and graphical-user interfaces are provided for quick setup:
+
+- To execute the command-line interface, type ``coralme``. At least, the model and the genome files must be provided. For help, execute ``coralme --help``
+
+- To execute the graphical-user interface, the user must have installed R and `shiny <shiny_>`_. Then, in a terminal, execute ``runApp('app.R')`` and a browser tab should open with the ShinyApp.
+
 Requirements
 ------------
 
@@ -115,3 +123,4 @@ gurobipy    11.0.0       11.0.0       11.0.0        11.0.0        11.0.0        
 .. _cplex: https://www.ibm.com/products/ilog-cplex-optimization-studio/cplex-optimizer
 .. _wsl: https://learn.microsoft.com/en-us/windows/wsl/install
 .. _Tutorials: https://github.com/jdtibochab/coralme/tree/main/tutorials
+.. _shiny: https://cran.r-project.org/web/packages/shiny/index.html
