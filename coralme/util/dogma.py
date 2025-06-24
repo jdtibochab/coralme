@@ -122,10 +122,10 @@ amino_acids_fullname = {
 #transcription_table.update(ambiguous_nucleotides)
 
 transcription_table = {
-	'c' : { 'A': 'utp_c', 'T': 'atp_c', 'C': 'gtp_c', 'G': 'ctp_c' }, # cytosol
-	'n' : { 'A': 'utp_n', 'T': 'atp_n', 'C': 'gtp_n', 'G': 'ctp_n' }, # nucleus
-	'm' : { 'A': 'utp_m', 'T': 'atp_m', 'C': 'gtp_m', 'G': 'ctp_m' }, # mitochondria
-	'h' : { 'A': 'utp_h', 'T': 'atp_h', 'C': 'gtp_h', 'G': 'ctp_h' }, # chloroplast
+	'c' : { 'A': 'atp_c', 'T': 'utp_c', 'C': 'ctp_c', 'G': 'gtp_c' }, # cytosol
+	'n' : { 'A': 'atp_n', 'T': 'utp_n', 'C': 'ctp_n', 'G': 'gtp_n' }, # nucleus
+	'm' : { 'A': 'atp_m', 'T': 'utp_m', 'C': 'ctp_m', 'G': 'gtp_m' }, # mitochondria
+	'h' : { 'A': 'atp_h', 'T': 'utp_h', 'C': 'ctp_h', 'G': 'gtp_h' }, # chloroplast
 	}
 
 import random
