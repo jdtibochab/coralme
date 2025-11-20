@@ -17,6 +17,8 @@ coralME has four main objectives:
 3. **Reconstruct** a ME-model.
 4. **Troubleshoot** the ME-model to make it functional.
 
+If you use coralME in your research, please cite https://doi.org/10.1016/j.cels.2025.101451
+
 Getting started
 ---------------
 With an existing M-model file (JSON or XML) and a corresponding genome GenBank file, run  (only v1.2.0+)
