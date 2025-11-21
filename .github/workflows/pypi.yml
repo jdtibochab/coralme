@@ -33,7 +33,7 @@ jobs:
 
           mkdir -p /opt/ubuntu-software
 
-          wget https://www.python.org/ftp/python/${{ matrix.python-version }}/Python-${{ matrix.python-version }}.tgz -O /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz  > /dev/null
+          wget https://www.python.org/ftp/python/${{ matrix.python-version }}/Python-${{ matrix.python-version }}.tgz -O /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz  > /dev/null 2> /dev/null
           if [ -d /opt/Python-${{ matrix.python-version }} ]; then rm -rf /opt/Python-${{ matrix.python-version }}; fi
           tar xvzf /opt/ubuntu-software/Python-${{ matrix.python-version }}.tgz -C /opt > /dev/null
           cd /opt/Python-${{ matrix.python-version }}
