@@ -23,6 +23,11 @@ jobs:
           sudo apt-get update > /dev/null
           sudo apt-get install -y dialog apt-utils > /dev/null
 
+      - name: Install NCBI BLAST+
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ncbi-blast+
+
       - name: Download and compile python ${{ matrix.python-version }}
         run: |
           sudo apt-get update > /dev/null
