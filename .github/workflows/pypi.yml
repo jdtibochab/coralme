@@ -54,7 +54,5 @@ jobs:
           /opt/python-${{ matrix.python-version }}/bin/pip3 install --no-warn-script-location . > /dev/null
           /opt/python-${{ matrix.python-version }}/bin/pip3 freeze
 
-      - name: Run tests
-        run: |
-          cd tests/test_qminos/
-          /opt/python-${{ matrix.python-version }}/bin/python3 script.py
+      - name: Run reconstruction tests
+        run: /opt/python-${{ matrix.python-version }}/bin/pytest
