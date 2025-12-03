@@ -20,14 +20,14 @@ jobs:
           python-version: "3.10"
       - name: Install NCBI BLAST+
         run: |
-          apt-get update > /dev/null 2> /dev/null
-          apt-get install -y ncbi-blast+ > /dev/null 2> /dev/null
+          sudo apt-get update
+          sudo apt-get install -y ncbi-blast+
       - name: Install dependencies
         run: |
-          apt-get install -y cmake swig gfortran libgfortran5 libglpk-dev > /dev/null 2> /dev/null
+          sudo apt-get install -y cmake swig gfortran libgfortran5 libglpk-dev
       - name: Install coralME
         run: |
           pip install --quiet --editable .
       - name: Run pytest
         run: |
-          pytest > /dev/null 2> /dev/null
+          pytest
