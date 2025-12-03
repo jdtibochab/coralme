@@ -71,7 +71,20 @@ class MEBuilder(object):
 		to update the configuration of the parent class.
 
 	"""
-	def __init__(self, *args, m_model_path = False, genbank_path = False, locus_tag = 'locus_tag', blast_threads = None, **kwargs):
+	def __init__(self, *args,
+			m_model_path = False,
+			genbank_path = False,
+			locus_tag = 'locus_tag',
+			blast_threads = None, # if zero, no run_bbh_blast
+			df_gene_cplxs_mods_rxns = 'automated-org-with-refs.xlsx',
+			df_TranscriptionalUnits = '',
+			df_matrix_stoichiometry = '',
+			df_matrix_subrxn_stoich = '',
+			df_metadata_orphan_rxns = '',
+			df_metadata_metabolites = '',
+			out_directory = './',
+			log_directory = './',
+			debug = False, **kwargs):
 		"""
 		keyword arguments
 			ME-Model-ID, str
@@ -99,6 +112,10 @@ class MEBuilder(object):
 				'iJT964'   : 'old_locus_tag', # B. subtilis, gram positive
 				}
 
+		run_bbh_blast = True
+		if blast_threads == 0:
+			run_bbh_blast = False
+
 		if blast_threads is None:
 			blast_threads = os.cpu_count()-1
 
@@ -107,18 +124,18 @@ class MEBuilder(object):
 			'm-model-path' : m_model_path,
 			'genbank-path' : genbank_path,
 
-			'df_gene_cplxs_mods_rxns' : './automated-org-with-refs.xlsx',
-			'df_TranscriptionalUnits' : '',
-			'df_matrix_stoichiometry' : '',
-			'df_matrix_subrxn_stoich' : '',
-			'df_metadata_orphan_rxns' : '',
-			'df_metadata_metabolites' : '',
+			'df_gene_cplxs_mods_rxns' : '{:s}/{:s}'.format(out_directory, df_gene_cplxs_mods_rxns),
+			'df_TranscriptionalUnits' : df_TranscriptionalUnits,
+			'df_matrix_stoichiometry' : df_matrix_stoichiometry,
+			'df_matrix_subrxn_stoich' : df_matrix_subrxn_stoich,
+			'df_metadata_orphan_rxns' : df_metadata_orphan_rxns,
+			'df_metadata_metabolites' : df_metadata_metabolites,
 
-			'log_directory' : './',
-			'out_directory' : './',
+			'log_directory' : log_directory,
+			'out_directory' : out_directory,
 
 			'locus_tag' : locus_tag,
-			'run_bbh_blast' : True,
+			'run_bbh_blast' : run_bbh_blast,
 			'blast_threads' : blast_threads,
 			'dev_reference' : True,
 			'add_lipoproteins' : True,
