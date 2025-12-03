@@ -449,3 +449,21 @@ def check_and_correct_stoichiometries(m_model):
 
 
 	return m_model
+
+def _copy_m_model(m_model):
+	import sys
+	if sys.version_info >= (3, 14):
+		return m_model.copy() # RecursionError: maximum recursion depth exceeded
+
+	# this avoids gurobipy copying the LP problem
+	new_model = cobra.core.model.Model(id_or_model = m_model.id, name = m_model.name)
+	new_model.add_metabolites([ x.copy() for x in m_model.metabolites ])
+	new_model.add_reactions([ x.copy() for x in m_model.reactions ])
+
+	bof = m_model.objective.expression.as_coefficients_dict()
+	for variable, objective_coefficient in bof.items():
+		if 'reverse' in variable.name:
+			continue
+		new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
+
+	return new_model

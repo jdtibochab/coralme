@@ -435,7 +435,10 @@ class MEModel(cobra.core.object.Object):
 				if 'reverse' in variable.name:
 					continue
 				new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
-		new_model.gem = copy.deepcopy(model)
+
+		new_model.gem = coralme.builder.helper_functions._copy_m_model(model) # troubleshooter will report model and model.gem optimization
+		new_model.gem.notes = { 'deepcopy' : True }
+
 		new_model.notes = {
 			'from cobra' : True
 			}
