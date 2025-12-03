@@ -10,19 +10,24 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v6
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: Install NCBI BLAST+
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ncbi-blast+
+          apt-get update > /dev/null 2> /dev/null
+          apt-get install -y ncbi-blast+ > /dev/null 2> /dev/null
       - name: Install dependencies
         run: |
-          pip install -e .
+          apt-get install -y cmake swig gfortran libgfortran5 libglpk-dev > /dev/null 2> /dev/null
+      - name: Install coralME
+        run: |
+          pip install --quiet --editable .
       - name: Run pytest
-        run: pytest
+        run: |
+          pytest > /dev/null 2> /dev/null

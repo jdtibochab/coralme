@@ -1,19 +1,21 @@
 from coralme.builder.main import MEBuilder
-from importlib.resources import files
+# from importlib.resources import files
 import anyconfig
 import pytest
 # dir = str(files("coralme"))
 
-def create_builder(troubleshoot = False, reference = True):
+def create_builder(temp_dir, troubleshoot = False, reference = True, builder_type = None):
+  temp_dir = str(temp_dir)
+  print(temp_dir)
   config = {
     # Inputs
     "m-model-path": "./tests/data/m_model.json", # Path to model file
     "genbank-path": "./tests/data/genome.gb", # Path to genome genbank file
     # Outputs
-    "df_gene_cplxs_mods_rxns": "./tests/data/base_model/building_data/OSM.xlsx", # Desired output path of OSM
-    "out_directory": "./tests/data/base_model/", # Output directory
-    "log_directory": "./tests/data/base_model/", # Log directory
-    "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag
+    "df_gene_cplxs_mods_rxns": "building_data/OSM.xlsx", # Desired output path of OSM := out_directory + df_gene_cplxs_mods_rxns
+    "out_directory": "{:s}/base_model_{:s}/".format(temp_dir, builder_type), # Output directory
+    "log_directory": "{:s}/base_model_{:s}/".format(temp_dir, builder_type), # Log directory
+    "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag, protein_id
     "run_bbh_blast" : True,
     "dev_reference" : reference,
     "blast_threads" : 4,
@@ -34,25 +36,30 @@ def create_builder(troubleshoot = False, reference = True):
   builder.build_me_model(overwrite=False)
   if troubleshoot:
     guesses = ["dUTPase_c", "pg_c", "apoACP_c", "protein_c", "biomass_c", "zn2_c", "actp_c", "f6p_c","ACP_R_c","fdp_c","fe2_c", "mn2_c"]
-    builder.troubleshoot(growth_key_and_value = { builder.me_model.mu.magnitude : 0.001 },guesses=guesses)
+    builder.troubleshoot(growth_key_and_value = { builder.me_model.mu.magnitude : 0.01 },guesses=guesses)
   assert builder.me_model.id is not None
   return builder
 
 @pytest.fixture(scope="session")
-def shared_builder():
-  pytest.shared_builder = create_builder(troubleshoot = False)
+def temp_dir(tmp_path_factory):
+  path = tmp_path_factory.mktemp("session")
+  yield path
 
 @pytest.fixture(scope="session")
-def shared_builder_bsub_reference():
-  pytest.shared_builder_bsub_reference = create_builder(troubleshoot = False, reference = 'iJT964')
+def shared_builder(temp_dir):
+  pytest.shared_builder = create_builder(temp_dir, troubleshoot = False, reference = 'iJL1678b', builder_type = 'no-troubleshooted')
 
 @pytest.fixture(scope="session")
-def shared_builder_troubleshooted():
-  pytest.shared_builder_troubleshooted = create_builder(troubleshoot = True)
+def shared_builder_bsub_reference(temp_dir):
+  pytest.shared_builder_bsub_reference = create_builder(temp_dir, troubleshoot = False, reference = 'iJT964', builder_type = 'no-troubleshooted-bsub-reference')
 
 @pytest.fixture(scope="session")
-def shared_builder_troubleshooted_bsub_reference():
-  pytest.shared_builder_troubleshooted_bsub_reference = create_builder(troubleshoot = True, reference = 'iJT964')
+def shared_builder_troubleshooted(temp_dir):
+  pytest.shared_builder_troubleshooted = create_builder(temp_dir, troubleshoot = True, reference = 'iJL1678b', builder_type = 'troubleshooted')
+
+@pytest.fixture(scope="session")
+def shared_builder_troubleshooted_bsub_reference(temp_dir):
+  pytest.shared_builder_troubleshooted_bsub_reference = create_builder(temp_dir, troubleshoot = True, reference = 'iJT964', builder_type = 'troubleshooted-bsub-reference')
 
 # TODO: fix this test
 # @pytest.fixture(scope="session")

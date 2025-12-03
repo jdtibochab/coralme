@@ -8,30 +8,29 @@ on:
 
 jobs:
   pypi:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.8.20, 3.9.21, 3.10.16, 3.11.11, 3.12.9, 3.13.2, 3.14.0, 3.15.0]
+        # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+        python-version: [3.8.18, 3.9.25, 3.10.19, 3.11.14, 3.12.12, 3.13.9, 3.14.0]
+        # python-version: [3.14.0]
       fail-fast: false
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
-      - name: Install dialog apt-utils
-        run: |
-          sudo apt-get update > /dev/null
-          sudo apt-get install -y dialog apt-utils > /dev/null
-
-      - name: Install NCBI BLAST+
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ncbi-blast+
+      - name: Set up Python
+        id: setup_primary
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+        continue-on-error: true
 
       - name: Download and compile python ${{ matrix.python-version }}
+        if: steps.setup_primary.outcome == 'failure'
         run: |
-          sudo apt-get update > /dev/null
-          sudo apt-get install -y python3-pip python3-tk python3-h5py build-essential \
+          apt-get install -y python3-pip python3-tk python3-h5py build-essential \
             checkinstall libssl-dev zlib1g-dev libncurses5-dev libffi-dev \
             libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev \
             libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev uuid-dev > /dev/null
@@ -49,15 +48,26 @@ jobs:
           make install > /dev/null
           rm -rf /opt/Python-${{ matrix.python-version }}
 
-      - name: Install libgfortran libglpk-dev libopenblas-dev
-        run: |
-          sudo apt-get update > /dev/null
-          sudo apt-get install -y cmake libgfortran5 swig libglpk-dev > /dev/null
+          export PATH=/opt/python-${{ matrix.python-version }}:$PATH
 
-      - name: Install coralme
+      - name: Install NCBI BLAST+
         run: |
-          /opt/python-${{ matrix.python-version }}/bin/pip3 install --no-warn-script-location . > /dev/null
-          /opt/python-${{ matrix.python-version }}/bin/pip3 freeze
+          apt-get update > /dev/null 2> /dev/null
+          apt-get install -y ncbi-blast+ > /dev/null 2> /dev/null
 
-      - name: Run reconstruction tests
-        run: /opt/python-${{ matrix.python-version }}/bin/pytest
+      - name: Install dependencies
+        run: |
+          apt-get install -y cmake swig gfortran libgfortran5 libglpk-dev libopenblas-dev > /dev/null 2> /dev/null
+
+      - name: Install coralME
+        run: |
+          pip3 install --quiet --editable .
+
+      - name: Run pytest
+        run: |
+          pytest > /dev/null 2> /dev/null
+
+      - name: Summary
+        if: ${{ always() }}
+        run: |
+          echo "${{ matrix.python-version }} → ${{ job.status }}"

@@ -68,6 +68,7 @@ def main():
 			'Programming Language :: Python :: 3.11',
 			'Programming Language :: Python :: 3.12',
 			'Programming Language :: Python :: 3.13',
+			'Programming Language :: Python :: 3.14',
 
 			# other classifiers added by author
 			'Environment :: Console',
@@ -88,23 +89,22 @@ def main():
 			'reconstruction'
 			],
 		install_requires=[
-			'gurobipy<=11',
-			'cobra<=0.29.0',
-			'python-libsbml<=5.20.1',
-			'Biopython==1.80',
-			'anyconfig<=0.13.0',
-			'pyranges<=0.0.129',
-			'XlsxWriter<=3.1.2',
-			'openpyxl<=3.1.2',
-			'numpy<=1.26.4',
-			'scipy<=1.11.1',
-			'sympy<=1.12',
-			'pandas<=1.5.1',
-			'jsonschema<=4.21.1',
-			'tqdm<=4.62.3',
-			'Pint<=0.24.4',
+			'anyconfig==0.14.0',
+			'Biopython==1.84',
+			'cobra',
+			'docplex==2.28.240',
+			'jsonschema==4.23.0',
+			'numpy',
+			'openpyxl==3.1.5',
+			'pandas==2.2.3',
+			'Pint==0.24.4',
+			'pyranges',
 			'pytest',
-			'ipython==8.26.0'
+			'scipy==1.14.0',
+			'sympy==1.12.1',
+			'tqdm==4.66.4',
+			'versioneer==0.29',
+			'xlsxwriter==3.2.0',
 			],
 
 		# WARNING: seems to be bdist_wheel only
@@ -140,4 +140,4 @@ def main():
 	)
 
 if __name__ == '__main__':
-    main()
+	main()
