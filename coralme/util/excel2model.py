@@ -3,7 +3,7 @@ import sys
 import numpy
 import cobra
 import pandas
-from IPython.display import display, HTML
+# from IPython.display import display, HTML
 
 def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debug:bool = False) -> cobra.core.model.Model:
 	code = []
@@ -112,7 +112,7 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 			except Exception as e:
 				if rxns.iloc[idx]['model'] != '__BIOMASS__' and debug:
 					print('Error in:')
-					display(rxns.iloc[idx].to_frame().T)
+					print(rxns.iloc[idx].to_frame().T.to_string())
 				#traceback.print_exc()
 
 			try:
@@ -120,7 +120,7 @@ def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debu
 			except Exception as e:
 				if rxns.iloc[idx]['model'] != '__BIOMASS__' and debug:
 					print('Error in:')
-					display(rxns.iloc[idx].to_frame().T)
+					print(rxns.iloc[idx].to_frame().T.to_string())
 				#traceback.print_exc()
 
 			# correct strings
