@@ -48,13 +48,12 @@ Install using pip
 
 Install locally
 ===============
-1. Clone repository and navigate to coralme/.
-2. ``pip install -r requirements.txt``
-3. ``python3 setup.py clean build install``
+1. Clone repository and navigate to it.
+2. ``pip install --editable .``
 
 Install using docker (tested on Ubuntu 22.04)
 =============================================
-1. Clone repository and navigate to coralme/
+1. Clone repository and navigate to it.
 2. ``docker build --file "./Dockerfile-Python3.10" . -t "python3.10-coralme"``
 3. ``docker run --detach -p 10000:8888 -v USER/PATH/TO/coralme/:/opt/notebooks/ python3.10-coralme``
 4. In your browser, go to ``localhost:10000``
@@ -79,10 +78,9 @@ To perform a ME-model reconstruction, command-line and graphical-user interfaces
 Requirements
 ------------
 
-- Python3, version 3.8, 3.9, 3.10, 3.11, 3.12, or 3.13
-- COBRApy
-- GUROBIpy (license is required)
+- Python3, version 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 or 3.14
 - Ubuntu 22.04 is recommended (libgfortran.so.5 is required to execute MINOS and quad MINOS)
+- GUROBI and gurobipy are optional. Instead, the user should install GLPK or any solver compatible with COBRApy.
 - Windows and MacOS users need to install `Gurobi`_ or `IBM CPLEX Optimizer <cplex_>`_. Alternatively, Windows users can install `WSL <wsl_>`_ and Ubuntu. Windows and MacOS users can use as well Docker Desktop to install it. We recommend the installation of Jupyter in the guest and its access through a browser from the host.
 
 Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
@@ -98,7 +96,7 @@ Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralm
 - wheel 0.43.0
 - cython 3.0.10
 - numpy 2.0.0
-- meson 1.8.0
+- meson 1.8.1
 - ninja 1.11.1.4
 
 Documentation
@@ -111,18 +109,18 @@ Development
 
 The coralME package has been tested using the following package versions:
 
-========== ============ ============ ============= ============= ============= =============
-Package     Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12   Python 3.13
-========== ============ ============ ============= ============= ============= =============
-cobra       0.29.0       0.29.0       0.29.0        0.29.0        0.29.0        0.29.0
-numpy       1.24.4       1.26.4       1.26.4        2.2.5         2.2.5         2.2.5
-scipy       1.10.1       1.13.1       1.14.0        1.14.0        1.14.0        1.14.1
-pandas      2.0.3        2.2.3        2.2.3         2.2.3         2.2.3         2.2.3
-sympy       1.12.1       1.12.1       1.12.1        1.12.1        1.12.1        1.12.1
-pint        0.21.1       0.24.4       0.24.4        0.24.4        0.24.4        0.24.4
-anyconfig   0.14.0       0.14.0       0.14.0        0.14.0        0.14.0        0.14.0
-gurobipy    11.0.0       11.0.0       11.0.0        11.0.0        11.0.0        12.0.0
-========== ============ ============ ============= ============= ============= =============
+========== ============ ============ ============= ============= ============= ============= =============
+Package     Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12   Python 3.13   Python 3.14
+========== ============ ============ ============= ============= ============= ============= =============
+cobra       0.30.0       0.30.0       0.30.0        0.30.0        0.30.0        0.30.0        0.30.0       
+numpy       1.24.4       1.26.4       1.26.4        2.2.6         2.2.6         2.2.6         2.2.6        
+scipy       1.10.1       1.13.1       1.14.0        1.14.0        1.14.0        1.14.1        1.14.0       
+pandas      2.0.3        2.3.3        2.3.3         2.3.3         2.3.3         2.3.3         2.3.3        
+biopython   1.83         1.85         1.86          1.86          1.86          1.86          1.86         
+sympy       1.12.1       1.12.1       1.12.1        1.12.1        1.12.1        1.12.1        1.12.1       
+pint        0.21.1       0.24.4       0.24.4        0.25.2        0.25.2        0.25.2        0.25.2       
+anyconfig   0.14.0       0.14.0       0.14.0        0.14.0        0.14.0        0.14.0        0.14.0       
+========== ============ ============ ============= ============= ============= ============= =============
 
 .. refs
 .. _COBRAme: https://github.com/SBRG/cobrame
