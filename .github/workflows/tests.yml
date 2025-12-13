@@ -2,11 +2,13 @@ name: Run Tests
 
 on:
   push:
+    paths:
+      - "coralme/**"
     branches:
       - main
   pull_request:
-    branches:
-      - main
+    paths:
+      - "coralme/**"
 
 jobs:
   test:

@@ -2,9 +2,13 @@ name: Python Package Test
 
 on:
   push:
+    paths:
+      - "coralme/**"
     branches:
       - main
   pull_request:
+    paths:
+      - "coralme/**"
 
 jobs:
   pypi:
