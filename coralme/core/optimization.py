@@ -24,7 +24,9 @@ def _check_options(model = None, keys = dict(), tolerance = 1e-6, precision = 'q
 	precision = precision if precision in [ 'quad', 'double', 'dq', 'dqq' ] else 'quad'
 
 	if isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
-		if len(keys.items()) == 0.:
+		if isinstance(keys, float):
+			keys = { model.mu.magnitude : keys }
+		elif len(keys.items()) == 0.:
 			keys = { model.mu.magnitude : 0.01 }
 
 		for key in list(keys.keys()):
@@ -34,8 +36,9 @@ def _check_options(model = None, keys = dict(), tolerance = 1e-6, precision = 'q
 				pass
 			else:
 				keys[sympy.Symbol(key, positive = True)] = keys.pop(key)
-	elif isinstance(model, coralme.core.model.MEModel) and model.notes['from cobra'] or isinstance(model, cobra.core.model.Model):
-		keys = {} # M-models do not require setting up a key dictionary (mu symbols and their values)
+
+	# elif isinstance(model, coralme.core.model.MEModel) and model.notes['from cobra'] or isinstance(model, cobra.core.model.Model):
+	# 	keys = {} # M-models do not require setting up a key dictionary (mu symbols and their values)
 
 	return keys, tolerance, precision
 
@@ -119,9 +122,10 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 				# atoms.add(list(value.free_symbols)[0])
 				# atoms.update(list(value.free_symbols))
 				# TODO: if two or more ME-models are merged, detect if 'mu' is unique or not
-				free_symbols = list(value.free_symbols)[0] # only mu
-				if free_symbols not in atoms:
-					atoms.append(free_symbols)
+				# free_symbols = list(value.free_symbols)[0] # only mu
+				free_symbols = list(value.free_symbols) # if symbolic coefficient is zero
+				if free_symbols and free_symbols[0] not in atoms:
+					atoms.append(free_symbols[0])
 				Se[met_index, idx] = value
 			else:
 				Sf[met_index, idx] = value
@@ -161,6 +165,7 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 	if statistics:
 		print('Sf has {:d} non-zero coefficients ({:.2%})'.format(len(Sf), len(Sf) / (len(Lm)*len(Lr)) ))
 		print('Se has {:d} non-zero coefficients ({:.2%})'.format(len(Se), len(Se) / (len(Lm)*len(Lr)) ))
+		print('Total sparsity is {:.2%}'.format((len(Sf) + len(Se)) / (len(Lm)*len(Lr)) ))
 
 	#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
 	#model.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
@@ -469,6 +474,7 @@ def optimize(model,
 	# https://www.nature.com/articles/s41564-019-0423-8
 	min_mu = min_mu if min_mu >= 0. else 0.
 	max_mu = max_mu if max_mu <= 2.8100561374051836 else 2.8100561374051836
+	assert min_mu < max_mu
 
 	keys, tolerance, precision = _check_options(model, keys = dict(), tolerance = tolerance, precision = precision)
 
@@ -667,7 +673,8 @@ def feasibility(model, keys = dict(), tolerance = 1e-6, precision = 'quad', basi
 
 	if stat == 'optimal':
 		if len(model.reactions) > 1 and len(model.metabolites) > 1:
-			model.solution = _solver_solution_to_cobrapy_solution(model, list(keys.values())[0], xopt, yopt, zopt, stat)
+			# list(keys.values())[0] is valid only using coralme ME-models, defaulted to 0.01
+			model.solution = _solver_solution_to_cobrapy_solution(model, muopt, xopt, yopt, zopt, stat)
 		else:
 			x_primal = xopt[ 0:len(Lr) ]   # The remainder are the slacks
 			x_dict = { rxn : xopt[idx] for idx, rxn in enumerate(Lr) }
