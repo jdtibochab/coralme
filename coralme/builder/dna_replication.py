@@ -1,4 +1,3 @@
-import math
 import numpy
 import scipy
 
@@ -14,15 +13,17 @@ def percent_dna_template_function(params, gr):
 	[g_p_gdw_0, g_per_gdw_inf, b, d] = params
 	c = g_per_gdw_inf
 	a = g_p_gdw_0 - g_per_gdw_inf
-	g_p_gdw = (-a * gr ** d) / (b + gr ** d) + a + c
+	g_p_gdw = (-a * gr ** d) / (b + gr ** d) + (a + c)
 	return g_p_gdw
 
-def optimize_dna_function(gr, percent_dna):
-	params = numpy.array([0.9, 0.3, 0.2, 1.0])
+def _minimization_function(params, gr, percent_dna):
+	return percent_dna_template_function(params, gr) - percent_dna
 
-	def _minimization_function(params, gr, percent_dna):
-		return percent_dna_template_function(params, gr) - percent_dna
-	a = scipy.optimize.leastsq(_minimization_function, params, args = (gr, percent_dna))
+def optimize_dna_function(gr, percent_dna):
+	params = numpy.array([0.9, 0.3, 0.2, 1.0]) # The starting estimate for the minimization
+
+	# WARNING: scipy.optimize.leastsq faster than scipy.optimize.least_squares
+	a = scipy.optimize.leastsq(_minimization_function, x0 = params, args = (gr, percent_dna))
 	return a[0]
 
 def get_dna_mw_no_ppi_dict(model):
@@ -60,14 +61,14 @@ def return_gr_dependent_dna_demand(model, gc_fraction, percent_dna_data, gr_data
 	if len(percent_dna_data) == len(gr_data_doublings_per_hour):
 		pass
 	else:
-		raise Exception('The \'percent DNA data\' and \'growth data have different\' lengths.')
+		raise Exception('The \'percent DNA data\' and \'growth data\' have different lengths.')
 
-	gr_data = [m * math.log(2) for m in gr_data_doublings_per_hour]
+	gr_data = [m * numpy.log(2) for m in gr_data_doublings_per_hour]
 	fit_params = optimize_dna_function(gr_data, percent_dna_data)
 	# set fit_params in model.default_parameters
-	model.default_parameters = { k:v for k,v in zip(['g_p_gdw_0', 'g_per_gdw_inf', 'b', 'c'], fit_params) }
+	model.global_info['default_parameters'].update({ k:v for k,v in zip(['g_p_gdw_0', 'g_per_gdw_inf', 'b', 'c'], fit_params) })
 	# dna_g_per_g = percent_dna_template_function(fit_params, model.mu.magnitude)  # gDNA / gDW
-	dna_g_per_g = model.symbols['dna_g_per_g']
+	dna_g_per_g = model.symbols['dna_g_per_g'] # This is a function
 
 	# average dinucleotide molecular weight
 	dna_mw = get_dna_mw_no_ppi_dict(model)
