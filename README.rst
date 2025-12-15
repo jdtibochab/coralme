@@ -107,6 +107,8 @@ You can find the documentation as a combined PDF called coralME_Documentation.pd
 Development
 -----------
 
+Test environments using ``gh act --bind -j test --rm --rebuild | tee act.log``. Use the ``version.sh`` script to gather information about package versions.
+
 The coralME package has been tested using the following package versions:
 
 ========== ============ ============ ============= ============= ============= ============= =============
