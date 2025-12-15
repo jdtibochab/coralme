@@ -565,7 +565,7 @@ EG50003-MONOMER_mod_pan4p(1)_mod_3hocta(1)	EG50003-MONOMER	pan4p(1) AND 3hocta(1
 MiaB_mono_mod_4fe4s(1)	MiaB_mono	4fe4s(1)	2011_Updated_E_recon
 RumB_mono_mod_4fe4s(1)	RumB_mono	4fe4s(1)	2011_Updated_E_recon
 RumA_mono_mod_4fe4s(1)	RumA_mono	4fe4s(1)	2011_Updated_E_recon
-rpL7/12_mod_acetyl(1)	rpL7/12	acetyl(1)	2011_Updated_E_recon
+rpL7/12_mod_acetyl(1)	rpL7/12	acetyl(2)	2011_Updated_E_recon
 Def_mono_mod_fe2(1)	Def_mono	fe2(1)	2011_Updated_E_recon
 Map_mono_mod_fe2(2)	Map_mono	fe2(2)	2011_Updated_E_recon
 Mfd_mono_mod_mg2(1)	Mfd_mono	mg2(1)	2011_Updated_E_recon
@@ -618,3 +618,7 @@ CPLX0-7824_mod_2fe2s(1)	CPLX0-7824	2fe2s(1)	Manual
 CPLX0-7824_mod_4fe4s(1)	CPLX0-7824	4fe4s(1)	Manual
 IscA_tetra_mod_2fe2s(1)	IscA_tetra	2fe2s(1)	Manual
 IscA_tetra_mod_4fe4s(1)	IscA_tetra	4fe4s(1)	Manual
+OX-FERREDOXIN_mod_4fe4s(1)_mod_Oxidized(2)	OX-FERREDOXIN	4fe4s(1) AND Oxidized(1)	Manual
+FERREDOXIN-MONOMER_mod_4fe4s(1)	FERREDOXIN-MONOMER	4fe4s(1)	Manual
+OX-FERREDOXIN_mod_2fe2s(1)_mod_Oxidized(1)	OX-FERREDOXIN	2fe2s(1) AND Oxidized(1)	Manual
+FERREDOXIN-MONOMER_mod_2fe2s(1)	FERREDOXIN-MONOMER	2fe2s(1)	Manual

@@ -1303,3 +1303,5 @@ FtsY_MONOMER	SRP receptor	b3464(1)	2011_Updated_E_recon
 CPLX0-7617	iron-sulfur cluster insertion protein ErpA	b0156(2)	Manual
 EG11910-MONOMER_dimer_EG11911-MONOMER	default_name	b3951(2) AND b3952(1)	Manual
 YdaO_dim	predicted C32 tRNA thiolase	b1344(2)	2011_Updated_E_recon
+OX-FERREDOXIN	oxidized ferredoxin	b2525(1)	Manual
+FERREDOXIN-MONOMER	ferredoxin	b2525(1)	Manual

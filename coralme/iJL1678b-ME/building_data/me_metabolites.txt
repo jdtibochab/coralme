@@ -1,5 +1,5 @@
 id	me_id	name	formula	compartment	type
-LI_c			Li		
+LI_c			Li		REPLACE
 alatrna_c					REMOVE
 argtrna_c					REMOVE
 asntrna_c					REMOVE
@@ -146,3 +146,10 @@ iscu__2fe2s2_c	IscU_mod_2fe2s(2)				REPLACE
 iscu__4fe4s_c	IscU_mod_4fe4s(1)				REPLACE
 trdrd_c	RED-THIOREDOXIN-MONOMER				REPLACE
 trdox_c	RED-THIOREDOXIN-MONOMER_mod_Oxidized(1)				REPLACE
+fdox_c	OX-FERREDOXIN_mod_4fe4s(1)_mod_Oxidized(2)				REPLACE
+fdred_c	FERREDOXIN-MONOMER_mod_4fe4s(1)				REPLACE
+fdxo_2_2_c	OX-FERREDOXIN_mod_2fe2s(1)_mod_Oxidized(1)				REPLACE
+fdxrd_c	FERREDOXIN-MONOMER_mod_2fe2s(1)				REPLACE
+fdxo_22_c	OX-FERREDOXIN_mod_2fe2s(1)_mod_Oxidized(1)				REPLACE
+fdxr_22_c	FERREDOXIN-MONOMER_mod_2fe2s(1)				REPLACE
+flutox_c	GLUTAREDOXIN-MONOMER_mod_gthrd(1)				REPLACE
