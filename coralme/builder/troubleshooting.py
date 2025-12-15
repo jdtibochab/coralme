@@ -302,6 +302,10 @@ def get_mets_from_type(me_model,met_type):
 		return set(coralme.builder.troubleshooting.gap_find(me_model))
 	elif met_type == 'Cofactors':
 		return set(get_cofactors_in_me_model(me_model))
+	elif met_type == 'Biomass':
+		return set(get_biomass_constituents(me_model))
+	elif met_type == 'Amino-acids':
+		return set(['ala__L_c', 'arg__L_c', 'asn__L_c', 'asp__L_c', 'cys__L_c', 'gln__L_c', 'glu__L_c', 'gly_c', 'his__L_c', 'ile__L_c', 'leu__L_c', 'lys__L_c', 'met__L_c', 'phe__L_c', 'pro__L_c', 'ser__L_c', 'thr__L_c', 'trp__L_c', 'tyr__L_c', 'val__L_c'])
 	else:
 		mets = set()
 		for met in me_model.metabolites:
@@ -361,3 +365,14 @@ def get_cofactors_in_me_model(me):
 			if v < 0:
 				cofactors.add(k)
 	return list(cofactors)
+
+def get_biomass_constituents(me):
+	"""Get metabolites that define the biomass_constituent_demand"""
+	if me.reactions.has_id('biomass_constituent_demand'): # me is a coralme ME-model
+		constituents = [ x.id for x in me.reactions.biomass_constituent_demand.reactants ]
+	elif hasattr(me, 'active_biomass_reaction'): # me is a coralme ME-model
+		constituents = [ x.id for x in me.active_biomass_reaction.reactants ]
+	else:
+		objective = str(me.objective.expression.as_two_terms()[0]).split('*')[1]
+		constituents = [ x.id for x in objective.reactants ]
+	return constituents
