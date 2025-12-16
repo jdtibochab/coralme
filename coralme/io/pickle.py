@@ -14,9 +14,17 @@ def patched_init(self, *args, **kwargs):
 
 GPR.__init__ = patched_init
 
+# Custom unpickler to remap old references
+class FixDefaultParamsUnpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if module == "coralme.core.parameters" and name == "DefaultParameters":
+            from coralme.core.extended_classes import DefaultParameters
+            return DefaultParameters
+        return super().find_class(module, name)
+
 def load_pickle_me_model(path):
     with open(path, "rb") as infile:
-        return pickle.load(infile)
+        return FixDefaultParamsUnpickler(infile).load()
 
 def save_pickle_me_model(me, path):
     with open(path, "wb") as outfile:

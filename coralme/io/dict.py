@@ -535,7 +535,7 @@ def me_model_from_dict(obj):
 	# overwriting global_info set by MEModel.__init__()
 	if not 'default_parameters' in model.global_info:
 		# model.default_parameters is a method that set up model.global_info['default_parameters']
-		model.global_info['default_parameters'] = coralme.core.parameters.DefaultParameters({
+		model.global_info['default_parameters'] = coralme.core.extended_classes.DefaultParameters({
 			'k_t' : obj['global_info']['kt'],
 			'r_0' : obj['global_info']['r0'],
 			'k^mRNA_deg' : obj['global_info']['k_deg'],
@@ -555,7 +555,7 @@ def me_model_from_dict(obj):
 			'd' : 3.903641432780327, # not stored in json with coralME v1.0
 			})
 	else:
-		model.global_info['default_parameters'] = coralme.core.parameters.DefaultParameters(obj['global_info']['default_parameters'])
+		model.global_info['default_parameters'] = coralme.core.extended_classes.DefaultParameters(obj['global_info']['default_parameters'])
 
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
 		_add_metabolite_from_dict(model, metabolite)

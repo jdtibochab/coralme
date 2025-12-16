@@ -1,10 +1,3 @@
-import logging
-import numpy
-import pint
-import sympy
-import tqdm
-import coralme
-
 """
 | coralme†     | Symbol‡      | Value                      | Unit                          | Definition                                              |
 |              |              | (Follows "Symbol" column)  |                               |                                                         |
@@ -82,50 +75,10 @@ charg      : charging of tRNA with an amino acid
 § Defined in documentation (overleaf, cobrame.readthedocs.io, and/or O'Brien et al., 2013), but never used
 """
 
-class DefaultParameters(dict):
-	def __init__(self, *args, **kwargs):
-		"""Normalize keys on initialization."""
-		super().__init__()  # Avoid passing args directly
-
-		# Merge args and kwargs into a single dict
-		initial_data = dict(*args, **kwargs)
-		for key, value in initial_data.items():
-			self[key] = value  # Triggers __setitem__
-
-	def __setitem__(self, key, value):
-		"""Ensure all keys are stored as sympy.Symbol with positive=True."""
-		if isinstance(key, str):
-			key = sympy.Symbol(key, positive=True)  # Convert string to Symbol
-		elif isinstance(key, sympy.Symbol):
-			key = sympy.Symbol(key.name, positive=True)  # Normalize existing Symbol
-
-		super().__setitem__(key, value)
-
-	def __getitem__(self, key):
-		"""Ensure keys are normalized before retrieval."""
-		if isinstance(key, str):
-			key = sympy.Symbol(key, positive=True)  # Convert string to Symbol
-		elif isinstance(key, sympy.Symbol):
-			key = sympy.Symbol(key.name, positive=True)  # Normalize existing Symbol
-
-		return super().__getitem__(key)
-
-	def get(self, key, default=None):
-		"""Retrieve the value for a given sympy.Symbol key."""
-		if isinstance(key, str):  # Allow lookup by string name
-			key = sympy.Symbol(key, positive=True)
-		elif isinstance(key, sympy.Symbol):
-			key = sympy.Symbol(key.name, positive=True)
-		return super().get(key, default)
-
-	def update(self, *args, **kwargs):
-		"""Override update to ensure all keys are sympy.Symbol with positive=True."""
-		new_data = dict(*args, **kwargs)
-		converted_data = {
-			(sympy.Symbol(k, positive=True) if isinstance(k, str) else sympy.Symbol(k.name, positive=True)): v
-			for k, v in new_data.items()
-		}
-		super().update(converted_data)  # Call original dict update method
+import pint
+import sympy
+import tqdm
+import coralme
 
 class MEParameters():
 	def __init__(self, model):
@@ -136,7 +89,7 @@ class MEParameters():
 		model.unit_registry = ureg
 
 		# WARNING: DefaultParameters class ensures keys are sympy's Symbols and positive
-		model.global_info['default_parameters'] = DefaultParameters({
+		model.global_info['default_parameters'] = coralme.core.extended_classes.DefaultParameters({
 			'k_t' : 4.5, # per hour
 			'r_0' : 0.087, # dimensionless
 			'k^mRNA_deg' : 12.0, # per hour

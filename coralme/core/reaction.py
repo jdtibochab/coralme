@@ -113,11 +113,31 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 	@property
 	def symbolic_stoichiometry(self):
-		return { k.id:v for k,v in self._metabolites.items() }
+		mets = { k.id:v for k,v in self._metabolites.items() }
+		return coralme.core.extended_classes.ScalableKeyDict(mets)
+
+	def stoichiometry(self, keys = dict()):
+		"""
+		Evaluate the stoichiometry.
+
+		If keys is empty, evaluate it at current model.growth_rate
+		"""
+		if not keys and not numpy.isnan(self._model.growth_rate):
+			keys = { self._model.mu.magnitude : self._model.growth_rate.magnitude }
+		elif isinstance(float(keys), float):
+			keys = { self._model.mu.magnitude : keys }
+		else:
+			raise NotImplementedError
+
+		mets = { k.id:v for k,v in self._metabolites.items() }
+		mets = { k:v.subs(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in mets.items() }
+		mets = { k:v.subs(keys) if hasattr(v, 'subs') else v for k,v in mets.items() }
+		return coralme.core.extended_classes.ScalableKeyDict(mets)
 
 	@property
 	def metabolites(self):
-		return { k:v.xreplace(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in self._metabolites.items() }
+		mets = { k:v.xreplace(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in self._metabolites.items() }
+		return coralme.core.extended_classes.ScalableKeyDict(mets)
 
 	@property
 	def objective_coefficient(self):
@@ -551,13 +571,19 @@ class MEReaction(cobra.core.reaction.Reaction):
 		>>> solution.fluxes.PFK
 		7.4773819621602833
 		"""
+
+		if hasattr(self._model, 'unit_registry'):
+			unit = self._model.unit_registry.parse_units('mmols per gram per hour')
+		else:
+			unit = 1.
+
 		if hasattr(self._model, 'solution'):
 			try:
-				return self._model.solution.fluxes[self.id]
+				return coralme.core.extended_classes.ExtendedQuantity(self._model.solution.fluxes[self.id] * unit)
 			except KeyError:
 				raise RuntimeError(f"reaction '{self.id}' is not part of a model")
 		else:
-			raise RuntimeError(f"ME-model has not been optimize or it is not feasible.")
+			raise RuntimeError(f"ME-model has not been optimized or it is not feasible.")
 
 	@property
 	def reduced_cost(self) -> float:

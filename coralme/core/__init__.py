@@ -4,3 +4,4 @@ import coralme.core.parameters
 import coralme.core.processdata
 import coralme.core.reaction
 import coralme.core.optimization
+import coralme.core.extended_classes

@@ -129,7 +129,7 @@ def load_json_me_model(file_name):
 
 	# Old code works in a separate script; but it works if we remove the old handler
 	logging.basicConfig(filename = 'MELoader.log', filemode = 'w', level = logging.WARNING, format = log_format)
-	log.addHandler(coralme.builder.main.ListHandler([]))
+	log.addHandler(coralme.core.extended_classes.ListHandler([]))
 	#log.addHandler(logging.StreamHandler(sys.stdout))
 	logging.captureWarnings(True)
 

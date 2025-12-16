@@ -1024,7 +1024,7 @@ class TranslationData(ProcessData):
 				logging.warning('Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
 			else:
 				precount.append(coralme.util.dogma.amino_acids[amino_acid] + compartment)
-		return collections.Counter(precount)
+		return coralme.core.extended_classes.MCounter(precount).sorted()
 
 	@property
 	def codon_count(self):

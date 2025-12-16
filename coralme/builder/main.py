@@ -21,41 +21,12 @@ import cobra
 import coralme
 
 # configuration
-log_format = '%(asctime)s %(message)s' #%(clientip)-15s %(user)-8s
+from coralme.core.extended_classes import log_format
 bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 try:
 	warnings.simplefilter(action = 'ignore', category = pandas.errors.SettingWithCopyWarning)
 except:
 	warnings.warn("This pandas version does not allow for correct warning handling. Pandas >=1.5.1 is suggested.")
-
-import logging
-#https://stackoverflow.com/questions/36408496/python-logging-handler-to-append-to-list
-#Here is a naive, non thread-safe implementation:
-
-class ListHandler(logging.Handler): # Inherit from logging.Handler
-	"""
-	ListHandler class to handle prints and logs.
-
-	"""
-	def __init__(self, log_list):
-		# run the regular Handler __init__
-		logging.Handler.__init__(self)
-		# Our custom argument
-		self.level = logging.WARNING
-		self.formatter = log_format
-		self.log_list = log_list
-	def emit(self, record):
-		# record.message is the log message
-		try:
-			self.log_list.append((record.asctime, record.message))
-		except:
-			pass
-	def print_and_log(msg):
-		print(msg)
-		logging.warning(msg)
-
-	def log(msg):
-		logging.warning(msg)
 
 class MEBuilder(object):
 	"""
@@ -183,10 +154,10 @@ class MEBuilder(object):
 			self.configuration['out_directory'] + '/curation_notes.json'
 		)
 		self.logger = {
-			'MEBuilder' : coralme.builder.main.ListHandler([]),
-			'MEReconstruction-step1' : coralme.builder.main.ListHandler([]),
-			'MEReconstruction-step2' : coralme.builder.main.ListHandler([]),
-			'METroubleshooter' : coralme.builder.main.ListHandler([])
+			'MEBuilder' : coralme.core.extended_classes.ListHandler([]),
+			'MEReconstruction-step1' : coralme.core.extended_classes.ListHandler([]),
+			'MEReconstruction-step2' : coralme.core.extended_classes.ListHandler([]),
+			'METroubleshooter' : coralme.core.extended_classes.ListHandler([])
 			}
 
 		data = \
@@ -268,7 +239,7 @@ class MEBuilder(object):
 		logging.captureWarnings(True)
 
 		sep = ''
-		ListHandler.print_and_log("{}Initiating file processing...".format(sep))
+		coralme.core.extended_classes.ListHandler.print_and_log("{}Initiating file processing...".format(sep))
 
 		# Read organism
 		self.org = coralme.builder.organism.Organism(config, is_reference = False)
@@ -294,7 +265,7 @@ class MEBuilder(object):
 			folder = self.org.blast_directory
 			if bool(config.get('run_bbh_blast', True)):
 				blast_threads = config.get('blast_threads', 1)
-				ListHandler.print_and_log("~ Running BLAST with {} threads...".format(blast_threads))
+				coralme.core.extended_classes.ListHandler.print_and_log("~ Running BLAST with {} threads...".format(blast_threads))
 				self.org.gb_to_faa('org', element_types = {'CDS'}, outdir = self.org.blast_directory)
 				self.ref.gb_to_faa('ref', element_types = {'CDS'}, outdir = self.org.blast_directory)
 
@@ -313,7 +284,7 @@ class MEBuilder(object):
 				execute('blastp -db {:s}/ref -query {:s}/org.faa -num_threads {} -out {:s}/ref_as_db.txt -outfmt 6'.format(folder, folder, blast_threads, folder))
 
 				#os.system('{}/auto_blast.sh {}'.format(self.directory,self.org.directory))
-				ListHandler.print_and_log('BLAST done.')
+				coralme.core.extended_classes.ListHandler.print_and_log('BLAST done.')
 
 			# #### Reciprocal hits
 			logging.warning("Getting homologs")
@@ -415,17 +386,14 @@ class MEBuilder(object):
 
 		logging.warning("Generating new configuration file")
 		self.input_data(self.org.m_model, overwrite)
-		ListHandler.print_and_log("{}File processing done.".format(sep))
+		coralme.core.extended_classes.ListHandler.print_and_log("{}File processing done.".format(sep))
 
 		logging.shutdown()
 
 		# We will remove duplicates entries in the log output
 		with open('{:s}/MEBuilder-{:s}.log'.format(config.get('log_directory', '.'), config.get('ME-Model-ID', 'coralME')), 'w') as outfile:
-			logger = self.logger['MEBuilder'].log_list
-
-			tmp = pandas.DataFrame(logger)
-			for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
-				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
+			logger = self.logger['MEBuilder']
+			coralme.core.extended_classes.ListHandler.log_to_file(logger.log_list, logger.debug, outfile)
 
 	def prepare_model(self):
 		"""Performs initial preparation of the M-model.
@@ -1808,12 +1776,12 @@ class MEReconstruction(MEBuilder):
 			# detect if the genbank file was modified using biocyc data
 			gb = '{:s}/building_data/genome_modified.gb'.format(config.get('out_directory', '.'))
 			gb = gb if pathlib.Path(gb).exists() else config['genbank-path']
-			ListHandler.print_and_log('Writting the Organism-Specific Matrix to {:s}...'.format(config['df_gene_cplxs_mods_rxns']))
+			coralme.core.extended_classes.ListHandler.print_and_log('Writting the Organism-Specific Matrix to {:s}...'.format(config['df_gene_cplxs_mods_rxns']))
 			# generate a minimal dataframe from the genbank and m-model files
 			df_data = coralme.builder.preprocess_inputs.generate_organism_specific_matrix(gb, config.get('locus_tag', 'locus_tag'), model = m_model)
 			# complete minimal dataframe with automated info from homology
 			df_data = coralme.builder.preprocess_inputs.complete_organism_specific_matrix(self, df_data, model = m_model, output = filename)
-			ListHandler.print_and_log('Organism-Specific Matrix saved to {:s} file.'.format(filename))
+			coralme.core.extended_classes.ListHandler.print_and_log('Organism-Specific Matrix saved to {:s} file.'.format(filename))
 
 		# All other inputs and remove unnecessary genes from df_data
 		return (df_tus, df_rmsc, df_subs, df_mets, df_keffs), coralme.builder.preprocess_inputs.get_df_input_from_excel(df_data, df_rxns)
@@ -1856,7 +1824,7 @@ class MEReconstruction(MEBuilder):
 		#log.addHandler(logging.StreamHandler(sys.stdout))
 		logging.captureWarnings(True)
 
-		ListHandler.print_and_log("Initiating ME-model reconstruction...")
+		coralme.core.extended_classes.ListHandler.print_and_log("Initiating ME-model reconstruction...")
 
 		# This will include the bare minimum representations of that still produce a working ME-model:
 		# - Metabolic Reactions
@@ -2224,7 +2192,7 @@ class MEReconstruction(MEBuilder):
 		with open('{:s}/MEModel-step1-{:s}.pkl'.format(out_directory, model), 'wb') as outfile:
 			pickle.dump(me, outfile)
 
-		ListHandler.print_and_log('ME-model was saved in the {:s} directory as MEModel-step1-{:s}.pkl'.format(out_directory, model))
+		coralme.core.extended_classes.ListHandler.print_and_log('ME-model was saved in the {:s} directory as MEModel-step1-{:s}.pkl'.format(out_directory, model))
 
 		# ## Part 2: Add metastructures to solving ME-model
 		# set logger
@@ -2919,7 +2887,7 @@ class MEReconstruction(MEBuilder):
 		with open('{:s}/MEModel-step2-{:s}.pkl'.format(out_directory, model), 'wb') as outfile:
 			pickle.dump(me, outfile)
 
-		ListHandler.print_and_log('ME-model was saved in the {:s} directory as MEModel-step2-{:s}.pkl'.format(out_directory, model))
+		coralme.core.extended_classes.ListHandler.print_and_log('ME-model was saved in the {:s} directory as MEModel-step2-{:s}.pkl'.format(out_directory, model))
 
 		n_mets = len(me.metabolites)
 		new_mets = n_mets * 100. / len(me.gem.metabolites) - 100
@@ -2928,14 +2896,14 @@ class MEReconstruction(MEBuilder):
 		n_genes = len(me.metabolites.query(re.compile('^RNA_(?!biomass|dummy|degradosome)')))
 		new_genes = n_genes * 100. / len(me.gem.genes) - 100
 
-		ListHandler.print_and_log('ME-model reconstruction is done.')
-		ListHandler.print_and_log('Number of metabolites in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_mets, new_mets, len(me.gem.metabolites)))
-		ListHandler.print_and_log('Number of reactions in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_rxns, new_rxns, len(me.gem.reactions)))
-		ListHandler.print_and_log('Number of genes in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_genes, new_genes, len(me.gem.genes)))
+		coralme.core.extended_classes.ListHandler.print_and_log('ME-model reconstruction is done.')
+		coralme.core.extended_classes.ListHandler.print_and_log('Number of metabolites in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_mets, new_mets, len(me.gem.metabolites)))
+		coralme.core.extended_classes.ListHandler.print_and_log('Number of reactions in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_rxns, new_rxns, len(me.gem.reactions)))
+		coralme.core.extended_classes.ListHandler.print_and_log('Number of genes in the ME-model is {:d} (+{:.2f}%, from {:d})'.format(n_genes, new_genes, len(me.gem.genes)))
 		if hasattr(self, 'ref'):
-			ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
+			coralme.core.extended_classes.ListHandler.print_and_log('Number of missing genes from reconstruction with homology, but no function is {:d}. Check the curation notes for more details.'.format(coralme.builder.helper_functions.check_me_coverage(self)))
 		else:
-			ListHandler.print_and_log('Number of missing genes from reconstruction cannot be determined.')
+			coralme.core.extended_classes.ListHandler.print_and_log('Number of missing genes from reconstruction cannot be determined.')
 
 		logging.shutdown()
 
@@ -2963,9 +2931,7 @@ class MEReconstruction(MEBuilder):
 			logger = self.logger['MEReconstruction-step1'].log_list
 			logger += self.logger['MEReconstruction-step2'].log_list
 
-			tmp = pandas.DataFrame(logger)
-			for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
-				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
+			coralme.core.extended_classes.ListHandler.log_to_file(logger, debug, outfile)
 
 class METroubleshooter(object):
 	"""
@@ -3184,10 +3150,7 @@ class METroubleshooter(object):
 
 		# We will remove duplicates entries in the log output
 		with open('{:s}/METroubleshooter-{:s}.log'.format(log_directory, model), 'w') as outfile:
-			logger = self.logger['METroubleshooter'].log_list
-
-			tmp = pandas.DataFrame(logger)
-			for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
-				outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
+			logger = self.logger['METroubleshooter']
+			coralme.core.extended_classes.ListHandler.log_to_file(logger.log_list, logger.debug, outfile)
 
 		self.me_model.troubleshooting = False
