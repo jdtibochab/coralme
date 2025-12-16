@@ -9,6 +9,7 @@ import pathlib
 import warnings
 import collections
 import subprocess
+import logging
 
 # third party imports
 import tqdm
