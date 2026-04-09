@@ -78,26 +78,36 @@ To perform a ME-model reconstruction, command-line and graphical-user interfaces
 Requirements
 ------------
 
-- Python3, version 3.8, 3.9, 3.10, 3.11, 3.12, 3.13 or 3.14
+- Python3, version 3.9, 3.10, 3.11, 3.12, 3.13 or 3.14
 - Ubuntu 22.04 is recommended (libgfortran.so.5 is required to execute MINOS and quad MINOS)
 - GUROBI and gurobipy are optional. Instead, the user should install GLPK or any solver compatible with COBRApy.
 - Windows and MacOS users need to install `Gurobi`_ or `IBM CPLEX Optimizer <cplex_>`_. Alternatively, Windows users can install `WSL <wsl_>`_ and Ubuntu. Windows and MacOS users can use as well Docker Desktop to install it. We recommend the installation of Jupyter in the guest and its access through a browser from the host.
 
-Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
+The MINOS and quad MINOS solvers
+--------------------------------
+
+Compiled MINOS and quad MINOS Debian-based OSes are provided here as ``*.so`` files under ``coralme/solver/debian``, and have been compiled using:
 
 - Python3, versions 3.7.17, 3.8.20, 3.9.21, and 3.10.16
-- wheel 0.38.4
-- cython 0.29.32
-- numpy 1.21.6
+   - wheel 0.38.4
+   - cython 0.29.32
+   - numpy 1.21.6
 
-Compiled MINOS and quad MINOS are provided here as ``*.so`` files under ``coralme/solver``, and have been compiled using:
+- Python3, versions 3.11.11, 3.12.9, 3.13.2, and 3.14.0
+   - wheel 0.43.0
+   - cython 3.0.10
+   - numpy 2.0.0
+   - meson 1.8.1
+   - ninja 1.11.1.4
 
-- Python3, versions 3.11.11, 3.12.9, and 3.13.2
-- wheel 0.43.0
-- cython 3.0.10
-- numpy 2.0.0
-- meson 1.8.1
-- ninja 1.11.1.4
+EXPERIMENTAL: Compiled MINOS and quad MINOS for RHEL-based OSes are provided here as ``*.so`` files under ``coralme/solver/rhel``, and have been compiled using:
+
+- Python3, versions 3.9.25, 3.10.20, 3.11.15, 3.12.13, 3.13.13, and 3.14.4
+   - wheel 0.43.0
+   - cython 3.0.10
+   - numpy 2.0.0
+   - meson 1.8.1
+   - ninja 1.11.1.4
 
 Documentation
 -------------
@@ -114,14 +124,14 @@ The coralME package has been tested using the following package versions:
 ========== ============ ============ ============= ============= ============= ============= =============
 Package     Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12   Python 3.13   Python 3.14
 ========== ============ ============ ============= ============= ============= ============= =============
-cobra       0.30.0       0.30.0       0.30.0        0.30.0        0.30.0        0.30.0        0.30.0       
-numpy       1.24.4       1.26.4       1.26.4        2.2.6         2.2.6         2.2.6         2.2.6        
-scipy       1.10.1       1.13.1       1.14.0        1.14.0        1.14.0        1.14.1        1.14.0       
-pandas      2.0.3        2.3.3        2.3.3         2.3.3         2.3.3         2.3.3         2.3.3        
-biopython   1.83         1.85         1.86          1.86          1.86          1.86          1.86         
-sympy       1.12.1       1.12.1       1.12.1        1.12.1        1.12.1        1.12.1        1.12.1       
-pint        0.21.1       0.24.4       0.24.4        0.25.2        0.25.2        0.25.2        0.25.2       
-anyconfig   0.14.0       0.14.0       0.14.0        0.14.0        0.14.0        0.14.0        0.14.0       
+cobra       0.30.0       0.30.0       0.30.0        0.30.0        0.30.0        0.30.0        0.30.0
+numpy       1.24.4       1.26.4       1.26.4        2.2.6         2.2.6         2.2.6         2.2.6
+scipy       1.10.1       1.13.1       1.14.0        1.14.0        1.14.0        1.14.1        1.14.0
+pandas      2.0.3        2.3.3        2.3.3         2.3.3         2.3.3         2.3.3         2.3.3
+biopython   1.83         1.85         1.86          1.86          1.86          1.86          1.86
+sympy       1.12.1       1.12.1       1.12.1        1.12.1        1.12.1        1.12.1        1.12.1
+pint        0.21.1       0.24.4       0.24.4        0.25.2        0.25.2        0.25.2        0.25.2
+anyconfig   0.14.0       0.14.0       0.14.0        0.14.0        0.14.0        0.14.0        0.14.0
 ========== ============ ============ ============= ============= ============= ============= =============
 
 .. refs

@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-        python-version: [3.8.18, 3.9.25, 3.10.19, 3.11.14, 3.12.12, 3.13.9, 3.14.0]
-        # python-version: [3.14.0]
+        python-version: [3.9.25, 3.10.19, 3.11.14, 3.12.12, 3.13.9, 3.14.0]
+        # python-version: [3.8.18]
       fail-fast: false
 
     steps:

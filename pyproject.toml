@@ -32,7 +32,7 @@ dependencies = [
     "XlsxWriter",
 ]
 
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.rst"
 
 keywords = ["metabolism", "biology", "constraint-based", "linear programming", "mixed-integer", "optimization", "flux-balance analysis", "reconstruction"]
