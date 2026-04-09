@@ -4,6 +4,45 @@ import scipy
 import sympy
 
 # from coralme.solver import qwarmLP, warmLP, qvaryME
+import sys
+import os
+import importlib.util
+
+base_pkg = "coralme.solver"
+
+# Detect OS
+subdir = "rhel" if os.path.exists("/etc/redhat-release") else "debian"
+
+# Locate installed package
+import coralme
+pkg_base = os.path.join(os.path.dirname(coralme.__file__), "solver", subdir)
+
+# Python version tag (e.g. cpython-39)
+pyver = f"cpython-{sys.version_info.major}{sys.version_info.minor}"
+
+modules_to_load = ["qwarmLP", "warmLP", "qvaryME"]
+
+for mod in modules_to_load:
+    # Find matching .so file
+    candidates = [
+        f for f in os.listdir(pkg_base)
+        if f.startswith(mod) and f.endswith(".so") and pyver in f
+    ]
+
+    if not candidates:
+        raise ImportError(f"No compatible .so found for {mod}")
+
+    so_path = os.path.join(pkg_base, candidates[0])
+
+    spec = importlib.util.spec_from_file_location(
+        f"{base_pkg}.{mod}", so_path
+    )
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    sys.modules[f"{base_pkg}.{mod}"] = module
+
+from coralme.solver import qwarmLP, warmLP, qvaryME
 
 def makeME_VA(S, b, c, xl, xu, csense, obj_inds, obj_coeffs):
     """
@@ -303,7 +342,6 @@ class ME_NLP:
         return m, n, ha, ka, ad, bld, bud, hs, obj_inds
 
     def solvelp(self, muf, basis = None, precision = 'quad', probname = 'me_lp', output_as_dict = False):
-        from coralme.solver import qwarmLP, warmLP, qvaryME
         """
         x, status, hs = solvelp(self, muf, basis = None, precision = 'quad')
 
@@ -458,7 +496,6 @@ class ME_NLP:
             return muf, x_new, y_new, z_new, basis, stat_new
 
     def varyme(self, mu_fixed, obj_inds0, obj_coeffs, basis = None, verbosity = False):
-        from coralme.solver import qvaryME
         """
         fva_result, fva_stats = varyme(self, mu_fixed, obj_inds0, obj_coeffs)
 
