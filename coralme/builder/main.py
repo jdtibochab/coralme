@@ -85,7 +85,7 @@ class MEBuilder(object):
 				}
 
 		run_bbh_blast = True
-		if blast_threads == 0:
+		if blast_threads < 0:
 			run_bbh_blast = False
 
 		if blast_threads is None:
@@ -2931,6 +2931,7 @@ class MEReconstruction(MEBuilder):
 
 			logger = self.logger['MEReconstruction-step1'].log_list
 			logger += self.logger['MEReconstruction-step2'].log_list
+			debug = self.logger['MEReconstruction-step1'].debug
 
 			coralme.core.extended_classes.ListHandler.log_to_file(logger, debug, outfile)
 
