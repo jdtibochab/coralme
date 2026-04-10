@@ -102,7 +102,6 @@ Compiled MINOS and quad MINOS Debian-based OSes are provided here as ``*.so`` fi
 
 EXPERIMENTAL: Compiled MINOS and quad MINOS for RHEL-based OSes are provided here as ``*.so`` files under ``coralme/solver/rhel``, and have been compiled using:
 
-- Python3, versions 3.9.25, 3.10.20, 3.11.15, 3.12.13, 3.13.13, and 3.14.4
    - wheel 0.43.0
    - cython 3.0.10
    - numpy 2.0.0
