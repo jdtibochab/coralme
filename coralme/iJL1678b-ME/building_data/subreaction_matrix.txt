@@ -90,6 +90,39 @@ mod_1st_pg180_p	g3p_c	+1.0
 mod_1st_pg181_p	pg181_p	-1.0
 mod_1st_pg181_p	g3p_c	+1.0
 
+mod_2nd_pg160_c	pg160_c	-1.0
+mod_2nd_pg160_c	2agpg160_c	+1.0
+mod_2nd_pe160_c	pe160_c	-1.0
+mod_2nd_pe160_c	2agpe160_c	+1.0
+mod_1st_pe120_c	pe120_c	-1.0
+mod_1st_pe120_c	g3p_c	+1.0
+mod_1st_pe140_c	pe140_c	-1.0
+mod_1st_pe140_c	g3p_c	+1.0
+mod_1st_pe141_c	pe141_c	-1.0
+mod_1st_pe141_c	g3p_c	+1.0
+mod_1st_pe160_c	pe160_c	-1.0
+mod_1st_pe160_c	g3p_c	+1.0
+mod_1st_pe161_c	pe161_c	-1.0
+mod_1st_pe161_c	g3p_c	+1.0
+mod_1st_pe180_c	pe180_c	-1.0
+mod_1st_pe180_c	g3p_c	+1.0
+mod_1st_pe181_c	pe181_c	-1.0
+mod_1st_pe181_c	g3p_c	+1.0
+mod_1st_pg120_c	pg120_c	-1.0
+mod_1st_pg120_c	g3p_c	+1.0
+mod_1st_pg140_c	pg140_c	-1.0
+mod_1st_pg140_c	g3p_c	+1.0
+mod_1st_pg141_c	pg141_c	-1.0
+mod_1st_pg141_c	g3p_c	+1.0
+mod_1st_pg160_c	pg160_c	-1.0
+mod_1st_pg160_c	g3p_c	+1.0
+mod_1st_pg161_c	pg161_c	-1.0
+mod_1st_pg161_c	g3p_c	+1.0
+mod_1st_pg180_c	pg180_c	-1.0
+mod_1st_pg180_c	g3p_c	+1.0
+mod_1st_pg181_c	pg181_c	-1.0
+mod_1st_pg181_c	g3p_c	+1.0
+
 # Subreactions associated to RNA modifications
 # Pseudouridine (isomerization using an aspartate as acceptor/donor in the enzyme)
 Y	asp__L_c	0.0
