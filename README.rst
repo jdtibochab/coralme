@@ -116,22 +116,22 @@ You can find the documentation as a combined PDF called coralME_Documentation.pd
 Development
 -----------
 
-Test environments using ``gh act --bind -j test --rm --rebuild | tee act.log``. Use the ``version.sh`` script to gather information about package versions.
+Test environments using ``gh act --bind -j test --rm --rebuild   tee act.log``. Use the ``version.sh`` script to gather information about package versions.
 
 The coralME package has been tested using the following package versions:
 
-========== ============ ============ ============= ============= ============= ============= =============
-Package     Python 3.8   Python 3.9   Python 3.10   Python 3.11   Python 3.12   Python 3.13   Python 3.14
-========== ============ ============ ============= ============= ============= ============= =============
-cobra       0.30.0       0.30.0       0.30.0        0.30.0        0.30.0        0.30.0        0.30.0
-numpy       1.24.4       1.26.4       1.26.4        2.2.6         2.2.6         2.2.6         2.2.6
-scipy       1.10.1       1.13.1       1.14.0        1.14.0        1.14.0        1.14.1        1.14.0
-pandas      2.0.3        2.3.3        2.3.3         2.3.3         2.3.3         2.3.3         2.3.3
-biopython   1.83         1.85         1.86          1.86          1.86          1.86          1.86
-sympy       1.12.1       1.12.1       1.12.1        1.12.1        1.12.1        1.12.1        1.12.1
-pint        0.21.1       0.24.4       0.24.4        0.25.2        0.25.2        0.25.2        0.25.2
-anyconfig   0.14.0       0.14.0       0.14.0        0.14.0        0.14.0        0.14.0        0.14.0
-========== ============ ============ ============= ============= ============= ============= =============
+========== ============= ============= ============= ============= ============= =============
+Package     Python 3.9    Python 3.10   Python 3.11   Python 3.12   Python 3.13   Python 3.14
+========== ============= ============= ============= ============= ============= =============
+cobra       0.30.0        0.30.0        0.30.0        0.30.0        0.30.0        0.30.0
+numpy       1.26.4        1.26.4        2.2.6         2.2.6         2.2.6         2.2.6
+scipy       1.13.1        1.14.0        1.14.0        1.14.0        1.14.1        1.14.0
+pandas      2.3.3         2.3.3         2.3.3         2.3.3         2.3.3         2.3.3
+biopython   1.85          1.86          1.86          1.86          1.86          1.86
+sympy       1.12.1        1.12.1        1.12.1        1.12.1        1.12.1        1.12.1
+pint        0.24.4        0.24.4        0.25.2        0.25.2        0.25.2        0.25.2
+anyconfig   0.14.0        0.14.0        0.14.0        0.14.0        0.14.0        0.14.0
+========== ============= ============= ============= ============= ============= =============
 
 .. refs
 .. _COBRAme: https://github.com/SBRG/cobrame
