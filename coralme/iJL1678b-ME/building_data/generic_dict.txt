@@ -9,3 +9,5 @@ generic_16s_rRNAs	RNA_b3851,RNA_b3968,RNA_b3756,RNA_b3278,RNA_b4007,RNA_b2591,RN
 generic_23s_rRNAs	RNA_b3854,RNA_b3970,RNA_b3758,RNA_b3275,RNA_b4009,RNA_b2589,RNA_b0204
 generic_5s_rRNAs	RNA_b3855,RNA_b3971,RNA_b3759,RNA_b3274,RNA_b4010,RNA_b2588,RNA_b0205,RNA_b3272
 generic_fes_transfers_complex	CPLX0-7617,CPLX0-7824,IscA_tetra
+generic_proteasome	ClpXP,ClpAP,ClpAXP,HslUV,CPLX0-2982
+generic_protease	Lon

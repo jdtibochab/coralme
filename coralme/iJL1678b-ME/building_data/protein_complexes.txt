@@ -1305,3 +1305,17 @@ EG11910-MONOMER_dimer_EG11911-MONOMER	default_name	b3951(2) AND b3952(1)	Manual
 YdaO_dim	predicted C32 tRNA thiolase	b1344(2)	2011_Updated_E_recon
 OX-FERREDOXIN	oxidized ferredoxin	b2525(1)	Manual
 FERREDOXIN-MONOMER	ferredoxin	b2525(1)	Manual
+MoaDE	molybdopterin synthase	b0784(2) AND b0785(2)	Manual
+ClpXP	ATP-dependent protease	b0438(12) AND b0437(14)	Manual
+ClpAP	ATP-dependent protease	b0882(12) AND b0437(14)	Manual
+ClpAXP	ATP-dependent protease	b0438(6) AND b0882(6) AND b0437(14)	Manual
+Lon	Lon protease	b0439(6)	Manual
+HslUV	HslVU protease	b3931(12) AND b3932(12)	Manual
+CPLX0-2982	FtsH/HflKC protease complex	b4175(6) AND b4174(6) AND b3178(6)	Manual
+G7497-MONOMER	putative oxidoreductase, Fe-S subunit	b2878(1)	Manual
+G7498-MONOMER	putative aminohydrolase SsnA	b2879(1)	Manual
+CPLX0-255	phenylhydantoinase	b2873(4)	Manual
+CPLX0-7933	putative carbamoyltransferase YgeW	b2870(3)	Manual
+G7491-MONOMER	putative peptidase YgeY	b2872(1)	Manual
+#G7493-MONOMER	putative amino acid kinase YqeA	b2874(1)	Manual
+#CPLX0-1401	2,3-diaminopropionate ammonia-lyase	b2871(2)	Manual

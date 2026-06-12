@@ -622,3 +622,5 @@ OX-FERREDOXIN_mod_4fe4s(1)_mod_Oxidized(2)	OX-FERREDOXIN	4fe4s(1) AND Oxidized(1
 FERREDOXIN-MONOMER_mod_4fe4s(1)	FERREDOXIN-MONOMER	4fe4s(1)	Manual
 OX-FERREDOXIN_mod_2fe2s(1)_mod_Oxidized(1)	OX-FERREDOXIN	2fe2s(1) AND Oxidized(1)	Manual
 FERREDOXIN-MONOMER_mod_2fe2s(1)	FERREDOXIN-MONOMER	2fe2s(1)	Manual
+MoaDE_mod_amp(1)	MoaDE	amp(1)	Manual
+MoaDE_mod_cosh(1)	MoaDE	cosh(1)	Manual
