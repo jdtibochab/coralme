@@ -1,0 +1,2 @@
+iJL1678b-ME	Escherichia coli	Gram negative
+iJT964-ME	Bacillus subtilis	Gram positive
