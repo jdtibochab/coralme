@@ -7,8 +7,8 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>2. Description of Inputs &mdash; coralME 1.1 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/jupyter-sphinx.css" />
       <link rel="stylesheet" type="text/css" href="_static/thebelab.css" />
 
@@ -16,14 +16,14 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=56dcb7b8"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="_static/thebelab-helper.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -115,7 +115,8 @@
 <li class="toctree-l1"><a class="reference internal" href="ReconstructionOSM.html">6. Reconstructing a ME-model from the OSM</a></li>
 <li class="toctree-l1"><a class="reference internal" href="LoadingMEmodels.html">7. Loading and inspecting ME-models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="InspectingFluxes.html">8. Inspecting predicted fluxes</a></li>
-<li class="toctree-l1"><a class="reference internal" href="FAQ.html">9. Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="EfficientSolving.html">9. Memory- and time-efficient solving of ME-models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">10. Frequently Asked Questions</a></li>
 </ul>
 
         </div>
@@ -144,7 +145,7 @@
              
   <section id="Description-of-Inputs">
 <h1><span class="section-number">2. </span>Description of Inputs<a class="headerlink" href="#Description-of-Inputs" title="Link to this heading"></a></h1>
-<p>coralME takes a total of 7 inputs, 2 required and 5 optional:</p>
+<p>coralME takes a total of 7 inputs, 2 required and 5 optional. Additionally, it takes 2 configuration files.</p>
 <section id="Types-of-inputs">
 <h2><span class="section-number">2.1. </span>Types of inputs<a class="headerlink" href="#Types-of-inputs" title="Link to this heading"></a></h2>
 <section id="Required">
@@ -269,7 +270,10 @@
 <section id="id6">
 <h4><span class="section-number">2.2.4.1. </span>Description<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
 <p><strong>proteins.txt</strong> is a protein complex information table that can be downloaded from the <strong>All proteins of organism SmartTable</strong> of the <a class="reference external" href="https://biocyc.org/">BioCyc</a> database. Click <strong>Export</strong>&gt;<strong>to Spreadsheet File</strong>&gt;<strong>frame IDs</strong>. This file is optional and is meant to complement the information from <strong>genome.gb</strong>.</p>
-<p><strong>proteins.txt</strong> provides coralME with: * Protein complex compositions</p>
+<p><strong>proteins.txt</strong> provides coralME with:</p>
+<ul class="simple">
+<li><p>Protein complex compositions</p></li>
+</ul>
 </section>
 <section id="id7">
 <h4><span class="section-number">2.2.4.2. </span>Requirements<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
