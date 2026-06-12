@@ -16,17 +16,17 @@ lipoyl_scavenging	amp_c	+1.0
 lipoyl_scavenging	ppi_c	+1.0
 
 # Lipoylation (de novo synthesis)
-lipoyl_denovo	EG50003-MONOMER_mod_pan4p(1)_mod_oc(1)	-1.0
-lipoyl_denovo	CPLX0-782_mod_4fe4s(2)	-1.0
-lipoyl_denovo	amet_c	-2.0
-lipoyl_denovo	nad_c	-1.0
-lipoyl_denovo	h_c	-1.0
-lipoyl_denovo	EG50003-MONOMER_mod_pan4p(1)	1.0
-lipoyl_denovo	CPLX0-782_mod_2fe2s(1)_mod_4fe4s(1)	1.0
-lipoyl_denovo	fe2_c	2.0
-lipoyl_denovo	met__L_c	2.0
-lipoyl_denovo	dad_5_c	2.0
-lipoyl_denovo	nadh_c	1.0
+lipoyl_denovo_from_ocACP	EG50003-MONOMER_mod_pan4p(1)_mod_oc(1)	-1.0
+lipoyl_denovo_from_ocACP	CPLX0-782_mod_4fe4s(2)	-1.0
+lipoyl_denovo_from_ocACP	amet_c	-2.0
+lipoyl_denovo_from_ocACP	nad_c	-1.0
+lipoyl_denovo_from_ocACP	h_c	-1.0
+lipoyl_denovo_from_ocACP	EG50003-MONOMER_mod_pan4p(1)	1.0
+lipoyl_denovo_from_ocACP	CPLX0-782_mod_2fe2s(1)_mod_4fe4s(1)	1.0
+lipoyl_denovo_from_ocACP	fe2_c	2.0
+lipoyl_denovo_from_ocACP	met__L_c	2.0
+lipoyl_denovo_from_ocACP	dad_5_c	2.0
+lipoyl_denovo_from_ocACP	nadh_c	1.0
 
 # Lipoylation (de novo synthesis using CoA)
 lipoyl_denovo_from_coa	occoa_c	-1.0
