@@ -12,7 +12,7 @@ def create_builder(temp_dir, troubleshoot = False, reference = True, builder_typ
     "m-model-path": "./tests/data/m_model.json", # Path to model file
     "genbank-path": "./tests/data/genome.gb", # Path to genome genbank file
     # Outputs
-    "df_gene_cplxs_mods_rxns": "building_data/OSM.xlsx", # Desired output path of OSM := out_directory + df_gene_cplxs_mods_rxns
+    "df_gene_cplxs_mods_rxns": "{:s}/building_data/OSM.xlsx".format(temp_dir),
     "out_directory": "{:s}/base_model_{:s}/".format(temp_dir, builder_type), # Output directory
     "log_directory": "{:s}/base_model_{:s}/".format(temp_dir, builder_type), # Log directory
     "locus_tag": "locus_tag", # What IDs were used in the M-model? e.g. locus_tag, old_locus_tag, protein_id
