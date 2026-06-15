@@ -100,8 +100,9 @@ Compiled MINOS and quad MINOS Debian-based OSes are provided here as ``*.so`` fi
    - meson 1.8.1
    - ninja 1.11.1.4
 
-EXPERIMENTAL: Compiled MINOS and quad MINOS for RHEL-based OSes are provided here as ``*.so`` files under ``coralme/solver/rhel``, and have been compiled using:
+(Experimental) Compiled MINOS and quad MINOS for RHEL-based OSes are provided here as ``*.so`` files under ``coralme/solver/rhel``, and have been compiled using:
 
+- Python3, versions 3.11.11, 3.12.9, 3.13.2, and 3.14.0 
    - wheel 0.43.0
    - cython 3.0.10
    - numpy 2.0.0
@@ -116,7 +117,7 @@ You can find the documentation as a combined PDF called coralME_Documentation.pd
 Development
 -----------
 
-Test environments using ``gh act --bind -j test --rm --rebuild   tee act.log``. Use the ``version.sh`` script to gather information about package versions.
+Test environments using ``gh act --bind -j test --rm --rebuild | tee act.log``. Use the ``version.sh`` script to gather information about package versions.
 
 The coralME package has been tested using the following package versions:
 
