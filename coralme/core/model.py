@@ -1549,7 +1549,30 @@ class MEModel(cobra.core.object.Object):
 
 		self.update()
 
-	def update(self):
+	def repair(self):
+		"""Re-associate reactions and subreactions to metabolites, and reactions and metabolites to model"""
+		res = dict()
+		for rxn in self.reactions:
+			rxn._model = self
+			for met in rxn.metabolites.keys():
+				res.setdefault(met, set()).add(rxn)
+
+		for met in self.metabolites:
+			met._reaction = res.get(met, set())
+
+		res = dict()
+		for rxn in self.subreaction_data:
+			for met in rxn.stoichiometry.keys():
+				res.setdefault(met, set()).add(rxn)
+
+		for met in self.metabolites:
+			met._subreaction = res.get(met.id, set())
+			met._model = self
+
+		if not hasattr(self, "_bound_opt_methods"):
+			self._bound_opt_methods = coralme.builder.helper_functions.bind_public_module_functions(self, coralme.core.optimization)
+
+	def update(self, allow_errors = False):
 		new = []
 		for r in self.reactions:
 			if hasattr(r, 'update'):
