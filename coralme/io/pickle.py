@@ -20,11 +20,18 @@ class FixDefaultParamsUnpickler(pickle.Unpickler):
         if module == "coralme.core.parameters" and name == "DefaultParameters":
             from coralme.core.extended_classes import DefaultParameters
             return DefaultParameters
+        # retrocompatibility with pandas <= 1.5.1
+        elif module == "pandas.core.indexes.numeric":
+            from pandas import Index
+            return Index
         return super().find_class(module, name)
 
-def load_pickle_me_model(path):
+def load_pickle_me_model(path, repair = False):
     with open(path, "rb") as infile:
-        return FixDefaultParamsUnpickler(infile).load()
+        me = FixDefaultParamsUnpickler(infile).load()
+    if repair:
+        me.repair()
+    return me
 
 def save_pickle_me_model(me, path):
     with open(path, "wb") as outfile:
