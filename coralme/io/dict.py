@@ -3,6 +3,7 @@ bar_format = '{desc:<75}: {percentage:.1f}%|{bar}| {n_fmt:>5}/{total_fmt:>5} [{e
 
 import pint
 import sympy
+import cobra
 import coralme
 
 import logging
@@ -30,6 +31,10 @@ _REACTION_TYPE_DEPENDENCIES = {
 		'keff'
 		],
 	'ComplexFormation': [
+		'_complex_id',
+		'complex_data_id'
+		],
+	'ComplexDegradation': [
 		'_complex_id',
 		'complex_data_id'
 		],
@@ -70,6 +75,7 @@ _PROCESS_DATA_TYPE_DEPENDENCIES = {
 		'subreactions',
 		'nucleotide_sequence',
 		'RNA_products',
+		'original_RNA_products',
 		'RNA_polymerase',
 		'organelle'
 		],
@@ -82,6 +88,10 @@ _PROCESS_DATA_TYPE_DEPENDENCIES = {
 		'translation',
 		'organelle',
 		'pseudo'
+		],
+	'rRNAData': [
+		'RNA',
+		'organelle'
 		],
 	'tRNAData': [
 		'subreactions',
@@ -125,14 +135,15 @@ _REQUIRED_METABOLITE_ATTRIBUTES = {
 	"id",
 	"name",
 	"formula",
+	"charge",
 	"compartment"
 	}
 
-_OPTIONAL_METABOLITE_ATTRIBUTES = {
-	"charge",
-	"_bound",
-	"_constraint_sense"
-	}
+# _OPTIONAL_METABOLITE_ATTRIBUTES = {
+# 	"charge",
+# 	"_bound",
+# 	"_constraint_sense"
+# 	}
 
 # Some metabolite types require additional attributes
 _METABOLITE_TYPE_DEPENDENCIES = {
@@ -230,11 +241,12 @@ def _reaction_to_dict(reaction):
 		reaction_attribute = getattr(reaction, attribute)
 		new_reaction['reaction_type'][reaction_type][attribute] = _fix_type(reaction_attribute)
 
-	# Add metabolites # not needed as metabolites are added from process_data
+	# Add metabolites
 	new_reaction['metabolites'] = {}
-	if reaction_type in ['SummaryVariable', 'MEReaction']:
-		for met, value in reaction.metabolites.items():
-			new_reaction['metabolites'][met.id] = _fix_type(value)
+	# WARNING: not needed as metabolites are added from process_data, except for
+	# if reaction_type in ['SummaryVariable', 'GenericFormationReaction', 'MEReaction']:
+	for met, value in reaction.metabolites.items():
+		new_reaction['metabolites'][met.id] = _fix_type(value)
 
 	return new_reaction
 
@@ -332,7 +344,9 @@ def me_model_to_dict(model):
 		reactions=_get_attribute_array(model.reactions, 'reaction'),
 		process_data=_get_attribute_array(model.process_data, 'process_data'),
 		metabolites=_get_attribute_array(model.metabolites, 'metabolite'),
-		global_info=_get_global_info_dict(model.global_info)
+		global_info=_get_global_info_dict(model.global_info),
+		aliases=model.aliases,
+		reconstruction_time=model.reconstruction_time.isoformat()
 	)
 
 	return obj
@@ -368,6 +382,8 @@ def _add_metabolite_from_dict(model, metabolite_info):
 		metabolite_obj = getattr(coralme.core.component, metabolite_type)(metabolite_info['id'])
 
 	for attribute in _REQUIRED_METABOLITE_ATTRIBUTES:
+		if 'charge' not in metabolite_info:
+			metabolite_info['charge'] = None
 		setattr(metabolite_obj, attribute, metabolite_info[attribute])
 
 	for attribute in _METABOLITE_TYPE_DEPENDENCIES.get(metabolite_type, []):
@@ -419,6 +435,11 @@ def _add_process_data_from_dict(model, process_data_dict):
 		rna = process_data_info['RNA']
 		codon = process_data_info['codon']
 		process_data = getattr(coralme.core.processdata, process_data_type)(id, model, amino_acid, rna, codon)
+	# WARNING: Added with ComplexData
+	elif process_data_type == 'rRNAData':
+		return
+	# 	rrna = process_data_info['RNA']
+	# 	process_data = getattr(coralme.core.processdata, process_data_type)(id, model, rrna)
 	elif process_data_type == 'PostTranslationData':
 		processed_protein_id = process_data_info['processed_protein_id']
 		unprocessed_protein_id = process_data_info['unprocessed_protein_id']
@@ -437,7 +458,7 @@ def _add_process_data_from_dict(model, process_data_dict):
 
 	# Some attributes depend on process data type. Set those here.
 	for attribute in _PROCESS_DATA_TYPE_DEPENDENCIES.get(process_data_type, []):
-		if attribute == 'pseudo':
+		if attribute in ['pseudo', 'original_RNA_products']:
 			value = process_data_info.get(attribute, None) # not stored in json with coralME v1.0
 		else:
 			value = process_data_info[attribute]
@@ -462,9 +483,7 @@ def _add_reaction_from_dict(model, reaction_info, assumptions):
 		reaction_obj = getattr(coralme.core.reaction, reaction_type)(reaction_info['id'])
 	else:
 		raise Exception('Only 1 reaction_type in valid json')
-
-	# WARNING: The unit here is a trick to convert the unit of growth_key back to 1 per hour when setting new bounds
-	trick = model.unit_registry.parse_units('gram hour per mmols')
+	
 	for attribute in _REQUIRED_REACTION_ATTRIBUTES:
 		# Metabolites are added to reactions using their update function,
 		# skip setting metabolite stoichiometries here
@@ -473,8 +492,8 @@ def _add_reaction_from_dict(model, reaction_info, assumptions):
 
 		# upper and lower bounds may contain mu values. Handle that here
 		value = reaction_info[attribute]
-		if attribute in ['upper_bound', 'lower_bound'] and isinstance(value, str):
-			value = get_sympy_expression(value, model, assumptions) * trick
+		if attribute in ['upper_bound', 'lower_bound']:
+			value = get_sympy_expression(value, model, assumptions)
 		setattr(reaction_obj, attribute, value)
 
 	# Some reactions are added to model when ME-models are initialized
@@ -486,10 +505,10 @@ def _add_reaction_from_dict(model, reaction_info, assumptions):
 			warn('Reaction ({:s}) already in model'.format(reaction_obj.id))
 
 	# These reaction types do not have update functions and need their stoichiometries set explicitly.
-	if reaction_type in ['SummaryVariable', 'MEReaction']:
+	if reaction_type in ['SummaryVariable', 'GenericFormationReaction', 'MEReaction', 'BoundaryReaction']:
 		for key, value in reaction_info['metabolites'].items():
-			reaction_obj.add_metabolites({model.metabolites.get_by_id(key): get_sympy_expression(value, model, assumptions)}, combine=False)
-
+			reaction_obj.add_metabolites({ model.metabolites.get_by_id(key): get_sympy_expression(value, model, assumptions) }, combine=False)
+	
 	for attribute in _REACTION_TYPE_DEPENDENCIES.get(reaction_type, []):
 		# Spontaneous reactions do no require complex_data
 		if attribute == 'complex_data' and 'SPONT' in reaction_obj.id:
@@ -498,12 +517,13 @@ def _add_reaction_from_dict(model, reaction_info, assumptions):
 		value = reaction_type_dict[reaction_type][attribute]
 		setattr(reaction_obj, attribute, value)
 
-	if hasattr(reaction_obj, 'update'):
+	# WARNING: DO NOT REMOVE
+	if hasattr(reaction_obj, 'update') and reaction_type not in ['rRNAFormationReaction']:
 		reaction_obj.update()
 
 	return reaction_obj
 
-def me_model_from_dict(obj):
+def me_model_from_dict(obj, update = True):
 	"""
 	Load ME-model from its dictionary representation. This will return
 	a full :class:`~coralme.core.model.MEModel` object identical to the
@@ -520,7 +540,10 @@ def me_model_from_dict(obj):
 		Full COBRAme ME-model
 	"""
 
-	model = coralme.core.model.MEModel(id_or_model = obj['global_info']['ME-Model-ID'], name = obj['global_info']['ME-Model-ID'], mu = obj['global_info']['growth_key'])
+	model = coralme.core.model.MEModel(
+		id_or_model = obj['global_info']['ME-Model-ID'], 
+		name = obj['global_info']['ME-Model-ID'], 
+		mu = obj['global_info']['growth_key'])
 	# MEModel is created with 1 metabolite and 1 reaction
 	model.reactions[0].remove_from_model()
 	model.metabolites[0].remove_from_model()
@@ -549,13 +572,31 @@ def me_model_from_dict(obj):
 			'k^default_cat' : 65.0, # not stored in json with coralME v1.0
 			'temperature' : obj['global_info']['temperature'],
 			'propensity_scaling' : obj['global_info']['propensity_scaling'],
-			'g_p_gdw_0' : 0.059314110730022594, # not stored in json with coralME v1.0
-			'g_per_gdw_inf' : 0.02087208296776481, # not stored in json with coralME v1.0
-			'b' : 0.1168587392731988, # not stored in json with coralME v1.0
-			'd' : 3.903641432780327, # not stored in json with coralME v1.0
+			# These are not original parameters, and are missing if coralME v1.0 was used to save the model as JSON
+			'g_p_gdw_0' : 0.059314110730022594,
+			'g_per_gdw_inf' : 0.02087208296776481,
+			'b' : 0.1168587392731988,
+			'd' : 3.903641432780327,
+			'k^P_deg' : 0.0, # feature is experimental as in coralME v1.3
+			'k^rRNA_deg' : 0.0, # feature is experimental as in coralME v1.3
+			'k^tRNA_deg' : 0.0, # feature is experimental as in coralME v1.3
+			'k^ribo_dissoc' : 0.0, # feature is experimental as in coralME v1.3
+			'k^rnap_dissoc' : 0.0, # feature is experimental as in coralME v1.3
 			})
 	else:
 		model.global_info['default_parameters'] = coralme.core.extended_classes.DefaultParameters(obj['global_info']['default_parameters'])
+
+	# coralME v1.0 also misses reconstruction_time and aliases properties
+	from datetime import datetime
+	if not 'reconstruction_time' in obj:
+		model.reconstruction_time = datetime.now().astimezone()
+	else:
+		model.reconstruction_time = datetime.fromisoformat(obj['reconstruction_time'])
+
+	if not 'aliases' in obj:
+		model.aliases = { 'reactions' : {}, 'metabolites' : {} }
+	else:
+		model.aliases = obj['aliases']
 
 	for metabolite in tqdm.tqdm(obj['metabolites'], 'Adding Metabolites into the ME-model...', bar_format = bar_format):
 		_add_metabolite_from_dict(model, metabolite)
@@ -569,6 +610,24 @@ def me_model_from_dict(obj):
 		_add_reaction_from_dict(model, reaction, assumptions)
 
 	coralme.builder.compartments.add_compartments_to_model(model)
-	model.update()
+
+	if update:
+		model.update()
+	model.repair()
+
+	# sort metabolites, process_data, and reactions
+	def _sorted(source, target):
+		order = { rxn['id']:idx for idx, rxn in enumerate(source) }
+		lst = sorted(target, key = lambda x: order[x.id])
+		return cobra.core.dictlist.DictList(lst)
+
+	# WARNING: Do not change this order
+	model.metabolites = _sorted(obj['metabolites'], model.metabolites)
+	# WARNING: coralME v1.3 will create rRNA_data and tRNA_data
+	try:
+		model.process_data = _sorted(obj['process_data'], model.process_data)
+	except KeyError:
+		logging.warning('The model.process_data failed to be sorted as in the original ME-model.')
+	model.reactions = _sorted(obj['reactions'], model.reactions)
 
 	return model
