@@ -159,6 +159,7 @@
         "metabolite_id",
         "name",
         "formula",
+        "charge",
         "notes"
     ],
     "TUs_from_biocyc.txt": [
