@@ -168,12 +168,15 @@ def process_m_model(
 
 	# remove unused genes
 	cobra.manipulation.delete.remove_genes(m_model, [ x for x in m_model.genes if len(x.reactions) == 0 ], remove_reactions = False)
-	cobra.manipulation.delete.prune_unused_reactions(m_model) # reactions without metabolites
+	# cobra.manipulation.delete.prune_unused_reactions(m_model) # reactions without metabolites
 	# cobra.manipulation.delete.prune_unused_metabolites(m_model) # orphan metabolites
 
 	# met_data DataFrame
 	mets_data = mets_data[mets_data['type'].isin(['ADD', 'REPLACE', 'CORRECTION'])]
-	mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type']
+	try:
+		mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type', 'charge']
+	except:
+		mets_data.columns = ['me_id', 'name', 'formula', 'compartment', 'type']
 	# WARNING: Do we need to rename the index?
 	#mets_data.rename(index = lambda x: x.replace('_DASH_', '__'), inplace = True)
 
