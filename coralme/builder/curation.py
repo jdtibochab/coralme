@@ -5,9 +5,8 @@ import logging
 log = logging.getLogger(__name__)
 
 import tqdm
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
-
 import coralme
+from coralme.core.extended_classes import log_format, bar_format
 import cobra
 import pandas
 import json

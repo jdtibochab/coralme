@@ -107,6 +107,7 @@ class Homology(object):
 			genes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in row['genes'].split(' AND ')]
 
 			if not genes or not set(genes).issubset(set(mutual_hits.keys())):
+				logging.warning('WARNING: One or more genes in target complex \'{:s}\' has no homology to reference genome.'.format(c))
 				continue  # All org genes must have a hit
 
 			for g in genes:
@@ -132,7 +133,7 @@ class Homology(object):
 						not_annotated_candidates.add(rc)
 
 		not_annotated_candidates = not_annotated_candidates.difference(set(ref_cplx_homolog.keys()))
-		logging.warning('{} complexes were mapped successfully'.format(len(org_cplx_homolog)))
+		logging.warning('INFO: {} complexes were mapped successfully'.format(len(org_cplx_homolog)))
 
 		if warn_candidates:
 			self.org.curation_notes['org.get_complex_homology'].append({

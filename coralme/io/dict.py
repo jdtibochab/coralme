@@ -1,10 +1,10 @@
 import tqdm
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 
 import pint
 import sympy
 import cobra
 import coralme
+from coralme.core.extended_classes import log_format, bar_format
 
 import logging
 log = logging.getLogger(__name__)

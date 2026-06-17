@@ -1,6 +1,6 @@
 import tqdm
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 import coralme
+from coralme.core.extended_classes import log_format, bar_format
 import logging
 
 #def add_trna_modification_procedures(me_model, trna_mods, modification_info):
@@ -22,7 +22,7 @@ def add_trna_modification_procedures(me_model, trna_mods):
 			if me_model.process_data.has_id(mod_data['modification']):
 				trna_mod.stoichiometry = me_model.process_data.get_by_id(mod_data['modification']).stoichiometry
 			else:
-				logging.warning('The tRNA modification \'{:s}\' was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
+				logging.warning('ERROR: The tRNA modification \'{:s}\' was not added into the ME-model. Please, add it in the subreaction.txt input file.'.format(mod_data['modification']))
 				trna_mod.stoichiometry = {}
 
 			# trna_mod.keff = 65. # iOL uses 65 for all tRNA mods
@@ -30,7 +30,7 @@ def add_trna_modification_procedures(me_model, trna_mods):
 
 			for met, stoich in trna_mod.stoichiometry.items():
 				if not me_model.metabolites.has_id(met):
-					logging.warning("Creating metabolite {} in {}".format(met,trna_mod.id))
+					logging.warning("INFO: Creating metabolite {} in {}".format(met,trna_mod.id))
 					met_obj = coralme.core.component.Metabolite(met)
 					me_model.add_metabolites([met_obj])
 				if isinstance(me_model.metabolites.get_by_id(met), coralme.core.component.Complex) and stoich < 0:

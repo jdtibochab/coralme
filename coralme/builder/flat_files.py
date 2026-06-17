@@ -23,7 +23,7 @@ def get_complex_subunit_stoichiometry(complex_stoichiometry, rna_components = se
 
 	for key, row in complex_stoichiometry.iterrows():
 		if key in complex_stoichiometry_dict.keys():
-			logging.warning('Complex \'{:s}\' is present twice or more times in the DataFrame and the repeated item was ignored.'.format(key))
+			logging.warning('WARNING: Complex \'{:s}\' is present twice or more times in the DataFrame and the repeated item was ignored.'.format(key))
 		else:
 			complex_stoichiometry_dict[key] = {}
 
@@ -187,7 +187,7 @@ def process_m_model(
 
 	for rxn_id in reaction_matrix_dict:
 		if rxn_id in m_model.reactions:
-			logging.warning('The MetabolicReaction \'{:s}\' (using \'reaction_matrix.txt\') is already present in the M-model and it will be replaced.'.format(rxn_id))
+			logging.warning('WARNING: The MetabolicReaction \'{:s}\' (using \'reaction_matrix.txt\') is already present in the M-model and it will be replaced.'.format(rxn_id))
 			m_model.remove_reactions([rxn_id], remove_orphans = False)
 
 		# Metabolites need to be added into the M-model first
@@ -218,14 +218,14 @@ def process_m_model(
 			subsystem = 'Not Determined' if rxns_data.loc[rxn_id, 'subsystems'] == 'False' else rxns_data.loc[rxn_id, 'subsystems']
 		else:
 			reversible = 'False'
-			logging.warning('Unable to determine MetabolicReaction \'{:s}\' reversibility. Default value is \'False\'.'.format(rxn_id))
+			logging.warning('WARNING: Unable to determine MetabolicReaction \'{:s}\' reversibility. Default value is \'False\'.'.format(rxn_id))
 			subsystem = 'Not Determined'
-			logging.warning('Unable to determine MetabolicReaction \'{:s}\' subsystem. Default value is \'Not Determined\'.'.format(rxn_id))
+			logging.warning('WARNING: Unable to determine MetabolicReaction \'{:s}\' subsystem. Default value is \'Not Determined\'.'.format(rxn_id))
 
 		rxn.lower_bound = -1000.0 if reversible.lower() == 'true' else 0.0
-		logging.warning('The MetabolicReaction \'{:s}\' was created into the M-model (using \'reaction_matrix.txt\').'.format(rxn_id))
-		logging.warning('MetabolicReaction \'{:s}\' reversibility is set to \'{:s}\' (using \'reaction_matrix.txt\').'.format(rxn_id, reversible))
-		logging.warning('MetabolicReaction \'{:s}\' subsystem is set to \'{:s}\' (using \'reaction_matrix.txt\').'.format(rxn_id, subsystem))
+		logging.warning('INFO: The MetabolicReaction \'{:s}\' was created into the M-model (using \'reaction_matrix.txt\').'.format(rxn_id))
+		logging.warning('INFO: MetabolicReaction \'{:s}\' reversibility is set to \'{:s}\'.'.format(rxn_id, reversible))
+		logging.warning('INFO: MetabolicReaction \'{:s}\' subsystem is set to \'{:s}\'.'.format(rxn_id, subsystem))
 		rxn.subsystem = subsystem
 
 	# m_to_me_map DataFrame
@@ -254,7 +254,7 @@ def process_m_model(
 				new_id = m_model.metabolites.get_by_id(m_to_me_map.loc[met.id, 'me_id'])
 				old_stoich = rxn.metabolites[m_model.metabolites.get_by_id(met.id)]
 				rxn.add_metabolites({ new_id : old_stoich })
-				logging.warning('Metabolite \'{:s}\' was replaced with \'{:s}\' in MetabolicReaction \'{:s}\'.'.format(met.id, m_to_me_map.loc[met.id, 'me_id'], rxn.id))
+				logging.warning('INFO: Metabolite \'{:s}\' was replaced with \'{:s}\' in MetabolicReaction \'{:s}\'.'.format(met.id, m_to_me_map.loc[met.id, 'me_id'], rxn.id))
 
 	m_model.remove_metabolites([ m_model.metabolites.get_by_id(x) for x in m_to_me_map[m_to_me_map['type'].str.fullmatch('REPLACE|REMOVE')].index if m_model.metabolites.has_id(x) ])
 

@@ -428,24 +428,24 @@ def check_and_correct_stoichiometries(m_model):
 				metabolites = Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
 				metabolites.update(Counter({ m_model.metabolites.get_by_id('h_{:s}'.format(compt[0])) : -1 * check['H'] }))
 				m_model.reactions.get_by_id(rxn.id)._metabolites = { k:v for k,v in metabolites.items() if v != 0. }
-				logging.warning('Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
+				logging.warning('INFO: Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
 			else:
-				logging.warning('Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction. Please check and correct if it is needed.'.format(rxn.id))
+				logging.warning('WARNING: Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction. Please check and correct if it is needed.'.format(rxn.id))
 				rxn_count += 1
 		else:
-			logging.warning('Reaction \'{:s}\' is not mass/charge balanced. Please check and correct if it is needed.'.format(rxn.id))
+			logging.warning('WARNING: Reaction \'{:s}\' is not mass and not charge balanced. Please check and correct if it is needed.'.format(rxn.id))
 			rxn_count += 1
 
 	# Report
 	if rxn_count == 0:
-		logging.warning('No mass/charge imbalance was detected in M-model (excluding prefixed EX, DM, and SK reactions).')
+		logging.warning('INFO: No mass/charge imbalance was detected in M-model (excluding prefixed EX, DM, and SK reactions).')
 	else:
-		logging.warning('Stoichiometry problems detected in {:d} reactions.'.format(rxn_count))
+		logging.warning('WARNING: Stoichiometry problems detected in {:d} reactions: {:s}.'.format(len(rxn_count), ', '.join(rxn_count)))
 
 	if met_count == 0:
-		logging.warning('No missing formulas were detected in M-model.')
+		logging.warning('INFO: No missing formulas were detected in M-model.')
 	else:
-		logging.warning('Missing formulas were detected in {:d} metabolites.'.format(met_count))
+		logging.warning('WARNING: Missing or problematic formulas were detected in {:d} metabolites.'.format(met_count_formula))
 
 
 	return m_model

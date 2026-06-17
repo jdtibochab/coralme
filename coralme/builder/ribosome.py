@@ -8,8 +8,8 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 	lst = ['generic_Era', 'generic_RbfA', 'generic_RimM']
 	for ComplexData in lst:
 		if len(me_model.process_data.query(ComplexData)) == 0:
-			logging.warning('ComplexData \'{:s}\' not in the ME-model. The ME-model would be unfeasible.'.format(ComplexData))
-			logging.warning('Check if the behavior is correct or if \'{:s}\' is present in the \'Generic Complex ID\' column of the organism-specific matrix.'.format(ComplexData.replace('generic_', '')))
+			logging.warning('WARNING: ComplexData \'{:s}\' not in the ME-model. The ME-model would be unfeasible.'.format(ComplexData))
+			logging.warning('WARNING: Check if the behavior is correct or if \'{:s}\' is present in the \'Generic Complex ID\' column of the organism-specific matrix.'.format(ComplexData.replace('generic_', '')))
 
 	ribosome_complex = coralme.core.processdata.ComplexData(me_model.global_info['ribosome_id'], me_model)
 

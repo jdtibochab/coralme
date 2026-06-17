@@ -1,12 +1,15 @@
+import coralme
 import collections
 import functools
 import logging
 import pint
 import pandas
 import sympy
+import re
 
 # configuration
 log_format = '%(asctime)s %(funcName)s %(filename)s:%(lineno)d %(message)s' #%(clientip)-15s %(user)-8s
+bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 
 #https://stackoverflow.com/questions/36408496/python-logging-handler-to-append-to-list
 #Here is a naive, non thread-safe implementation:

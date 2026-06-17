@@ -1,5 +1,4 @@
 import tqdm
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 import numpy
 import pandas
 
@@ -7,6 +6,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import coralme
+from coralme.core.extended_classes import log_format, bar_format
 
 # read genbank and extract sequences and data
 import Bio
@@ -54,7 +54,7 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, rnap = ''
 
 	# 3) and add TranscriptionReaction into ME-Model
 	me_model.add_reactions([transcription])
-	logging.warning('A TranscriptionReaction with ID \'transcription_{:s}\' was added to the ME-model.'.format(tu_name))
+	logging.warning('INFO: A TranscriptionReaction with ID \'transcription_{:s}\' was added to the ME-model.'.format(tu_name))
 
 	# 4) if rho termination is set
 	if add_subreactions:
@@ -63,7 +63,7 @@ def add_transcription_reaction(me_model, tu_name, locus_ids, sequence, rnap = ''
 		elif me_model.process_data.has_id('Transcription_normal_rho_independent'):
 			transcription.transcription_data.subreactions['Transcription_normal_rho_independent'] = 1.
 		else:
-			logging.warning('No rho (in)dependent subreaction is present in the model. Please check if it is the correct behaviour.')
+			logging.warning('WARNING: No rho (in)dependent subreaction is present in the ME-model. Please check if it is the correct behaviour.')
 
 	if update:
 		transcription.update()
@@ -114,10 +114,10 @@ def create_transcribed_gene(me_model, locus_id, rna_type, seq, left_pos = None, 
 
 	if len(me_model.metabolites.query('^RNA_{:s}$'.format(locus_id))) != 0:
 		me_model.metabolites._replace_on_id(gene)
-		logging.warning('A Metabolite component with ID \'RNA_{:s}\' was replaced with a TranscribedGene component \'{:s}\'.'.format(locus_id, gene.id))
+		logging.warning('WARNING: A Metabolite component with ID \'RNA_{:s}\' was replaced with a TranscribedGene component \'{:s}\'.'.format(locus_id, gene.id))
 	else:
 		me_model.add_metabolites([gene])
-		logging.warning('A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(locus_id))
+		logging.warning('INFO: A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(locus_id))
 
 def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '', organelle = None, transl_table = 1, pseudo = False, product = None, update = False, add_subreactions = False):
 	"""
@@ -149,7 +149,7 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 	# Add RNA to model if it doesn't exist
 	if 'RNA_' + locus_id not in me_model.metabolites:
 		rna = coralme.core.component.TranscribedGene('RNA_' + locus_id, 'mRNA', str(dna_sequence).upper())
-		logging.warning('The \'RNA_{:s}\' component was not present in ME-model and it was created.'.format(locus_id))
+		logging.warning('INFO: The \'RNA_{:s}\' component was not present in ME-model and it was created.'.format(locus_id))
 		me_model.add_metabolites(rna)
 
 	# 1) Create TranslationReaction
@@ -164,7 +164,7 @@ def add_translation_reaction(me_model, locus_id, dna_sequence, prot_sequence = '
 
 	# 3) and add TranslationReaction into ME-Model
 	me_model.add_reactions([translation_reaction])
-	logging.warning('A TranslationReaction with ID \'translation_{:s}\' was added to the ME-model.'.format(locus_id))
+	logging.warning('INFO: A TranslationReaction with ID \'translation_{:s}\' was added to the ME-model.'.format(locus_id))
 
 	# 4) add subreactions (if running after reconstruction)
 	if add_subreactions:
@@ -227,7 +227,7 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 			if me_model.metabolites.has_id(aa.lower() + '__L_' + organelle):
 				trna_to_aa[tRNA] = me_model.metabolites.get_by_id(aa.lower() + '__L_' + organelle)
 			else:
-				logging.warning('The amino acid \'{:s}\' does not exist in the ME-model.'.format(aa.lower() + '__L_' + organelle))
+				logging.warning('ERROR: The amino acid \'{:s}\' does not exist in the ME-model.'.format(aa.lower() + '__L_' + organelle))
 
 	# check trna_to_codon for START codon
 	#start = False
@@ -235,7 +235,7 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 		#if 'START' in codon:
 			#start = True
 	if not any([ True if 'START' in v else False for k,v in trna_to_codon.items() ]):
-		logging.warning('Associate at least one tRNA-Met/tRNA-fMet gene with the \'START\' keyword or add manually a \'tRNAChargingReaction\'.')
+		logging.warning('WARNING: Associate at least one tRNA-Met/tRNA-fMet gene with the \'START\' keyword or add manually a \'tRNAChargingReaction\'.')
 
 	# add in all the tRNA charging reactions
 	for tRNA, aa in trna_to_aa.items():
@@ -255,7 +255,7 @@ def convert_aa_codes_and_add_charging(me_model, trna_to_aa, trna_to_codon, organ
 
 			me_model.add_reactions([charging_reaction])
 			charging_reaction.update(verbose = verbose)
-			logging.warning('A tRNAChargingReaction with ID \'tRNA_{:s}_{:s}\' was added to the ME-model.'.format(tRNA, codon))
+			logging.warning('INFO: A tRNAChargingReaction with ID \'tRNA_{:s}_{:s}\' was added to the ME-model.'.format(tRNA, codon))
 
 def build_reactions_from_genbank(
 	me_model, gb_filename, tu_frame = pandas.DataFrame(columns = ['genes']), genes_to_add = list(),
@@ -345,9 +345,9 @@ def build_reactions_from_genbank(
 				elif len(x[0]) >= len(x[1]):
 					x[1] == x[1] + '-' * (len(x[0]) - len(x[1]))
 					new = new.replace(x[0], x[1]) # whole-genome recoding
-					logging.warning('Genome modification involved the deletion of nucleotides and we proceeded as instructed.')
+					logging.warning('WARNING: Genome modification involved the deletion of nucleotides and we proceeded as instructed.')
 				else:
-					logging.warning('Genome modification involves the insertion of nucleotides and we won\'t proceed as instructed.')
+					logging.warning('WARNING: Genome modification involves the insertion of nucleotides and we won\'t proceed as instructed.')
 					raise NotImplementedError
 
 		full_seqs[replicon] = Seq.Seq(new)
@@ -380,7 +380,7 @@ def build_reactions_from_genbank(
 	for tu_id in tqdm.tqdm(tu_frame.index, 'Adding Transcriptional Units into the ME-model from user input...', bar_format = bar_format):
 		# in rare cases, transcription units have no genes associated to them
 		if tu_frame.genes[tu_id] == '': # we read df_tus as strings
-			logging.warning('The transcription unit \'{:s}\' has no genes associated to it. Please check if it is the correct behavior.'.format(tu_id))
+			logging.warning('WARNING: The transcription unit \'{:s}\' has no genes associated to it. Please check if it is the correct behavior.'.format(tu_id))
 			continue
 
 		if any(x in tu_frame.genes[tu_id].split(',') for x in genes_to_add):
@@ -431,7 +431,7 @@ def build_reactions_from_genbank(
 					dna += seq.extract(full_seqs[replicon_id]).replace('-', '')
 
 			if len(dna) == 0:
-				logging.warning('The knockouts dictionary instructed to completely delete \'{:s}\' from the ME-model.'.format(tu_id))
+				logging.warning('WARNING: The knockouts dictionary instructed to completely delete \'{:s}\' from the ME-model.'.format(tu_id))
 			else:
 				add_transcription_reaction(me_model, tu_id, set(), str(dna), organelle = organelle, update = False)
 
@@ -476,7 +476,7 @@ def build_reactions_from_genbank(
 
 			# Optionally add pseudo genes into the ME-model
 			if not me_model.global_info['include_pseudo_genes'] and 'pseudo' in feature.qualifiers:
-				logging.warning('The feature \'{:s}\' is a pseudogene. Use \'"include_pseudo_genes" : True\' to add the feature into the model.'.format(bnum))
+				logging.warning('WARNING: The feature \'{:s}\' is a pseudogene. Use \'"include_pseudo_genes" : True\' to add the feature into the model.'.format(bnum))
 				continue
 
 			# Add only features based on their type
@@ -485,21 +485,21 @@ def build_reactions_from_genbank(
 
 			# Some features might lack a locus tag
 			if not feature.qualifiers.get(me_model.global_info.get('locus_tag', 'locus_tag'), False):
-				logging.warning('The feature \'{:s}\' of type \'{:s}\', located at \'{:s}\' misses a \'{:s}\' qualifier.'.format(feature.qualifiers.get('product', ['no product name'])[0], feature.type, str(feature.location), me_model.global_info.get('locus_tag', 'locus_tag')))
+				logging.warning('WARNING: The feature \'{:s}\' of type \'{:s}\', located at \'{:s}\' misses a \'{:s}\' qualifier.'.format(feature.qualifiers.get('product', ['no product name'])[0], feature.type, str(feature.location), me_model.global_info.get('locus_tag', 'locus_tag')))
 				filter1 = feature.qualifiers.get('gene', ['no product name'])[0].startswith('tRNA-')
 				filter2 = feature.qualifiers.get('product', ['no product name'])[0].startswith('tRNA-')
 				if filter1 or filter2:
 					feature.qualifiers[me_model.global_info.get('locus_tag', 'locus_tag')] = new_locus_tag = ['CORALME_{:03d}'.format(new_locus_tag_counter)]
-					logging.warning('The feature was identified as a tRNA and assigned the Gene Locus ID \'{:s}\'.'.format(new_locus_tag[0]))
+					logging.warning('WARNING: The feature was identified as a tRNA and assigned the Gene Locus ID \'{:s}\'.'.format(new_locus_tag[0]))
 					new_locus_tag_counter += 1
 				else:
-					logging.warning('The gene identified will be ignored from the reconstruction.')
+					logging.warning('WARNING: The gene identified will be ignored from the reconstruction.')
 					continue
 
 			bnum = feature.qualifiers[me_model.global_info.get('locus_tag', 'locus_tag')][0]
 
 			if me_model.process_data.has_id(bnum):
-				logging.warning('A gene with a Gene Locus ID \'{:s}\' was added previously. Please, check the GenBank file and correct it accordingly.'.format(bnum))
+				logging.warning('WARNING: A gene with a Gene Locus ID \'{:s}\' was added previously. Please, check the GenBank file and correct it accordingly.'.format(bnum))
 				continue
 
 			# Skip feature if it is not a gene used in the ME-model reconstruction
@@ -509,7 +509,7 @@ def build_reactions_from_genbank(
 			if filter1:
 				pass
 			elif filter2 or filter3:
-				logging.warning('The genomic feature \'{:s}\' is in the knockouts list.'.format(bnum))
+				logging.warning('INFO: The genomic feature \'{:s}\' is in the knockouts list.'.format(bnum))
 				continue
 
 			if feature.type in [ 'ncRNA', 'tmRNA', 'misc_RNA', 'RNA' ]:
@@ -531,7 +531,7 @@ def build_reactions_from_genbank(
 			#seq = feature.extract(contig).seq.ungap() # using Biopython is better
 			seq = feature.extract(contig).seq.replace('-', '')
 			if len(seq) == 0:
-				logging.warning('The genomic feature \'{:s}\' sequence is null. Please check GenBank file coordinates and sequence.'.format(bnum))
+				logging.warning('WARNING: The genomic feature \'{:s}\' sequence is null. Please check GenBank file coordinates and sequence.'.format(bnum))
 				continue
 
 			# old code uses a dictionary setting the frameshifts.
@@ -571,7 +571,7 @@ def build_reactions_from_genbank(
 				if organelle is None:
 					transl_tables['c'].add(int(transl_table))
 					if me_model.global_info['domain'].lower() not in ['prokaryote', 'bacteria']:
-						logging.warning('Contig \'{:s}\' does not report an organelle type.'.format(contig.id))
+						logging.warning('WARNING: Contig \'{:s}\' does not report an organelle type.'.format(contig.id))
 				elif organelle.lower() in ['mitochondria', 'mitochondrion']:
 					transl_tables['m'].add(int(transl_table))
 				elif organelle.lower() in ['chloroplast', 'plastid']:
@@ -584,7 +584,7 @@ def build_reactions_from_genbank(
 					codons = [ str(seq[pos:pos+3]) for pos in range(0, len(seq), 3) ]
 					codon_usage.update(Counter(codons))
 				else:
-					logging.warning('Gene \'{:s}\' was not used to determine the codon usage.'.format(bnum))
+					logging.warning('WARNING: Gene \'{:s}\' was not included to determine the genomic codon usage.'.format(bnum))
 
 			me_model.global_info['transl_tables'] = transl_tables
 			me_model.global_info['start_codons'] = start_codons
@@ -600,7 +600,7 @@ def build_reactions_from_genbank(
 				tu_id = 'TU_' + bnum
 				parent_tu = [tu_id]
 				add_transcription_reaction(me_model, tu_id, set(), str(seq), organelle = organelle, update = False)
-				logging.warning('No Trancriptional Unit found for {:s} {:s}. Created a dummy TU_{:s} component.'.format(rna_type, bnum, bnum))
+				logging.warning('INFO: No Trancriptional Unit found for {:s} {:s}. Created a dummy TU_{:s} component.'.format(rna_type, bnum, bnum))
 
 			for TU_id in parent_tu:
 				me_model.process_data.get_by_id(TU_id).RNA_products.add('RNA_' + bnum)
@@ -613,20 +613,20 @@ def build_reactions_from_genbank(
 			else:
 				# Create dict to use for adding tRNAChargingReactions later
 				# tRNA_aa = {'tRNA':'amino_acid'}
-				msg1 = 'From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). Make sure a MetabolicReaction to convert a {:s}-tRNA({:s}) into a {:s}-tRNA({:s}) is present in the ME-model.'
-				msg2 = 'From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). No further modification needs to take place.'
+				msg1 = 'WARNING: From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). Make sure a MetabolicReaction to convert a {:s}-tRNA({:s}) into a {:s}-tRNA({:s}) is present in the ME-model.'
+				msg2 = 'INFO: From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). No further modification needs to take place.'
 
 				if rna_type == 'tRNA':
 					aa = feature.qualifiers.get('product', ['tRNA-None'])[0].split('-')[1]
 					if aa in canonical_aas + ['Asx', 'Glx', 'fMet', 'Sec']:
 						pass
 					else:
-						logging.warning('The tRNA \'{:s}\' is not associated to a valid product name (tRNA-Amino acid 3 letters code)'.format(bnum))
+						logging.warning('WARNING: The tRNA \'{:s}\' is not associated to a valid product name (tRNA-Amino acid 3 letters code)'.format(bnum))
 						continue
 
 					#aa2trna[bnum] = aa # original tRNA<->Amino acid association to be used later in trna_to_codon
 
-					msg = 'The tRNA \'{:s}\' is associated to two amino acids. The \'trna_misacylation\' dictionary was modified to attempt load the correct amino acid.'
+					msg = 'WARNING: The tRNA \'{:s}\' is associated to two amino acids. The \'trna_misacylation\' dictionary was modified to attempt load the correct amino acid.'
 					# Special tRNA(Asx) that can be loaded with Asn (EC 6.1.1.22) or Asp (EC 6.1.1.12)
 					# If loaded with Asp, it is converted into Asn (EC 6.3.5.6)
 					if aa == 'Asx':
@@ -699,9 +699,9 @@ def build_reactions_from_genbank(
 
 			# final check
 			if len(me_model.global_info['START_tRNA']) == 0:
-				logging.warning('Unable to identify at least one \'tRNA-Met\' or \'tRNA-fMet\' annotation from the \'Definition\' column in the organism-specific matrix.')
+				logging.warning('WARNING: Unable to identify at least one \'tRNA-Met\' or \'tRNA-fMet\' annotation from the \'Definition\' column in the organism-specific matrix.')
 		else:
-			logging.warning('No tRNA genes were identified from their locus tags.')
+			logging.warning('WARNING: No tRNA genes were identified from their locus tags.')
 
 		# DataFrame mapping tRNAs (list) and the encoded amino acid (index), per organelle
 		# aa2trna derives from trna_to_aa, so it also accounts for misacylation: { 'organelle ID' : 'DataFrame of amino acid to load into the tRNA' }
@@ -736,7 +736,7 @@ def build_reactions_from_genbank(
 				if aa in aa2trna[organelle].index:
 					pass
 				else:
-					logging.warning('At least one tRNA-{:s} gene is missing in the GenBank file. A \'generic_tRNA_triplet_aa\' dummy metabolite will be created to account for the related aminoacyl-tRNA synthetase expression.'.format(aa))
+					logging.warning('WARNING: At least one tRNA-{:s} gene is missing in the GenBank file. A \'generic_tRNA_triplet_aa\' dummy metabolite will be created to account for the related aminoacyl-tRNA synthetase expression.'.format(aa))
 
 			trna_to_codon = { k:v + ['START'] if k in me_model.global_info['START_tRNA'] else v for k,v in zip(df[1].values, df[0].values) }
 
@@ -749,7 +749,7 @@ def build_reactions_from_genbank(
 			user_input = { k:v.split(',') for k,v in user_input.items() }
 
 			if not bool(user_input): # an empty dictionary is False
-				logging.warning('User input did not provide tRNA to codon associations and the derived from the GenBank file will be used.')
+				logging.warning('INFO: User input did not provide tRNA to codon associations and the derived from the GenBank file will be used.')
 			else:
 				# Here we replace inferred data with user input. User input should be a subset of the inferred data
 				for trna, codons in trna_to_codon.items():
@@ -800,7 +800,7 @@ def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 		if met.id in complex_metabolite_ids:
 			new_met = coralme.core.component.Complex(met.id)
 		elif met.id.startswith('RNA_'):
-			logging.warning('A metabolite with an invalid name (\'{:s}\') was added from the M-model or the \'reaction_matrix\' file. Please review it and correct it using the M-model or the \'me_metabolites\' file if necessary.'.format(met.id))
+			logging.warning('WARNING: A metabolite with an invalid name (\'{:s}\') was added from the M-model or the \'reaction_matrix\' file. Please review it and correct it using the M-model or the \'me_metabolites\' file if necessary.'.format(met.id))
 			new_met = coralme.core.component.Metabolite(met.id)
 			##raise ValueError('Processed M-model should not contain RNAs ({:s})'.format(met.id))
 			#new_met = me_model.metabolites.get_by_id(met.id)
@@ -821,6 +821,7 @@ def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 
 	for reaction in tqdm.tqdm(m_model.reactions, 'Adding Reactions from M-model into the ME-model...', bar_format = bar_format):
 		if reaction.id.startswith('BIOMASS_'):
+			logging.warning('INFO: Reaction \'{:s}\' was not added to the ME-model.'.format(reaction.id))
 			continue
 
 		if reaction.id.startswith(('EX_', 'DM_', 'SK_', 'sink_')):
@@ -892,7 +893,7 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 	try:
 		complex_data = coralme.core.processdata.ComplexData('CPLX_dummy', me_model)
 	except ValueError:
-		logging.warning('Complex \'CPLX_dummy\' already present in the ME-model.')
+		logging.warning('WARNING: Complex \'CPLX_dummy\' already present in the ME-model.')
 		complex_data = me_model.process_data.get_by_id('CPLX_dummy')
 	complex_data.stoichiometry = {'protein_dummy': 1}
 
@@ -947,7 +948,7 @@ def add_subreaction_data(me_model, modification_id, modification_stoichiometry, 
 
 	if modification_id in me_model.process_data:
 		#if verbose:
-		logging.warning('SubReaction \'{:s}\' is already in the ME-model and its stoichiometry was modified on your request.'.format(modification_id))
+		logging.warning('WARNING: SubReaction \'{:s}\' is already in the ME-model and its stoichiometry was modified on your request.'.format(modification_id))
 		me_model.process_data.get_by_id(modification_id).stoichiometry = modification_stoichiometry
 		#else:
 			#pass
@@ -959,7 +960,7 @@ def add_subreaction_data(me_model, modification_id, modification_stoichiometry, 
 			modification_data._element_contribution = modification_data.calculate_element_contribution()
 		except:
 			modification_data._element_contribution = {}
-		logging.warning('SubReaction \'{:s}\' was created in the ME-model.'.format(modification_id))
+		logging.warning('INFO: SubReaction \'{:s}\' was created in the ME-model.'.format(modification_id))
 
 def add_model_complexes(me_model, complex_stoichiometry_dict, complex_modification_dict, verbose = True):
 	"""
@@ -1135,12 +1136,12 @@ def add_reactions_from_stoichiometric_data(
 
 		if reaction_data.upper_bound == 0 and reaction_data.lower_bound == 0:
 			#directionality_list.append('forward')
-			logging.warning('Associated reactions to \'{:s}\' cannot carry flux. Please check if it is the correct behavior.'.format(reaction_data.id))
+			logging.warning('WARNING: Associated reactions to \'{:s}\' cannot carry flux. Please check if it is the correct behavior.'.format(reaction_data.id))
 
 		# Add metabolic reactions for each isozyme
 		for complex_id in complexes_list:
 			if complex_id in reaction_data.stoichiometry.keys():
-				logging.warning('Associated reverse reaction to \'{:s}\' cannot be added into the ME-model. Currently, only enzymes that are not part of the stoichiometry are allowed.'.format(reaction_data.id))
+				logging.warning('WARNING: Associated reverse reaction to \'{:s}\' cannot be added into the ME-model. Currently, only enzymes that are not part of the stoichiometry are allowed.'.format(reaction_data.id))
 				directionality_list = ['forward']
 			else:
 				directionality_list = ['reverse', 'forward']

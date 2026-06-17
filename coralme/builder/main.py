@@ -20,15 +20,7 @@ import anyconfig
 
 import cobra
 import coralme
-
-# configuration
-from coralme.core.extended_classes import log_format
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
-try:
-	warnings.simplefilter(action = 'ignore', category = pandas.errors.SettingWithCopyWarning)
-except:
-	warnings.warn("This pandas version does not allow for correct warning handling. Pandas >=1.5.1 is suggested.")
-
+from coralme.core.extended_classes import log_format, bar_format
 class MEBuilder(object):
 	"""
 	MEBuilder class to coordinate the reconstruction of ME-models.
@@ -2449,7 +2441,7 @@ class MEReconstruction(MEBuilder):
 				formation.update()
 			else:
 				data.create_complex_formation()
-				logging.warning('Added a ComplexFormation reaction for \'{:s}\'.'.format(data.id))
+				logging.warning('INFO: Added a ComplexFormation reaction for \'{:s}\'.'.format(data.id))
 
 		# ## Part 4: Add remaining subreactions
 		# ### 1. Add translation related subreactions
@@ -2510,7 +2502,7 @@ class MEReconstruction(MEBuilder):
 			# Check if the user wants to add dummies to the translocation pathways
 			elif bool(me.global_info.get('add_translocases', False)) and value.get('enzymes', None) is None:
 				me.global_info['translocation_pathway'][key]['enzymes'] = { 'CPLX_dummy':(v2 if value.get('FtsY', None) else v1 if (key.lower() not in ['tat', 'tat_alt', 'lol', 'bam']) else v3) }
-				logging.warning('The component \'CPLX_dummy\' was associated to translocation pathways without defined homologs.')
+				logging.warning('WARNING: The component \'CPLX_dummy\' was associated to translocation pathways without defined homologs.')
 
 		dct = { k:v['abbrev'] for k,v in me.global_info['translocation_pathway'].items() }
 		dct = dict([(v, [k + '_translocation' for k,v1 in dct.items() if v1 == v]) for v in set(dct.values())])
@@ -2610,7 +2602,7 @@ class MEReconstruction(MEBuilder):
 			for gene in tqdm.tqdm(lipoprotein_precursors.values(), 'Adding lipid precursors and lipoproteins...', bar_format = bar_format):
 				compartment = compartment_dict.get(gene)
 				if compartment is None:
-					pass
+					logging.warning('The protein ID \'{:s}\' has no \'compartment\' property. Check \'peptide_compartment_and_pathways.txt\' in the building_data directory.'.format(gene))
 				else:
 					for rxn in me.metabolites.get_by_id('protein_' + gene + '_' + compartment).reactions:
 						if isinstance(rxn, coralme.core.reaction.ComplexFormation):
@@ -2650,7 +2642,7 @@ class MEReconstruction(MEBuilder):
 				rxn.lower_bound = me.mu # coralme.util.mu
 				rxn.upper_bound = me.mu # coralme.util.mu
 		else:
-			logging.warning('No Braun\'s lipoprotein (lpp gene) homolog was set. Please check if it is the correct behavior.')
+			logging.warning('WARNING: No Braun\'s lipoprotein (lpp gene) homolog was set. Please check if it is the correct behavior.')
 
 		# WARNING: Part 7 was originally "set keffs", however, formulas of complexes are corrected later and sasa can be underestimated
 		# ## Part 7: Model updates and corrections

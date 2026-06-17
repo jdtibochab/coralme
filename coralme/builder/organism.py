@@ -11,14 +11,8 @@ import Bio
 import cobra
 import pandas
 import tqdm
-bar_format = '{desc:<75}: {percentage:.1f}%|{bar:10}| {n_fmt:>5}/{total_fmt:>5} [{elapsed}<{remaining}]'
 import coralme
-
-import warnings
-try:
-    warnings.simplefilter(action = 'ignore', category = Bio.BiopythonWarning)
-except:
-    warnings.warn("This biopython version does not allow for correct warning handling. Biopython >=1.80 is suggested.")
+from coralme.core.extended_classes import log_format, bar_format
 
 import logging
 log = logging.getLogger(__name__)
@@ -537,7 +531,7 @@ class Organism(object):
                          RNA_df,
                          source):
         """Append one entry to the RNA dataframe"""
-        logging.warning('Adding {} ({}) to RNAs from {}'.format(gene_id,product,source))
+        logging.warning('INFO: Adding {} ({}) to RNAs from {}'.format(gene_id,product,source))
         tmp = {product : {"Common-Name": name,
                           "Gene": gene_id}}
         return self._add_entry_to_df(RNA_df,tmp)
@@ -550,7 +544,7 @@ class Organism(object):
                                source):
         """Append one entry to the complexes dataframe"""
         if product in complexes_df.index:
-            logging.warning('Could not add {} ({}) to complexes from {}. Already in complexes_df'.format(gene_id,product,source))
+            logging.warning('WARNING: Could not add {} ({}) to complexes from {}. Already in complexes_df'.format(gene_id,product,source))
             return complexes_df
         if isinstance(gene_id,str):
             gene_id = '{}()'.format(gene_id)

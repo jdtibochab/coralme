@@ -293,7 +293,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 				new_met = coralme.core.component.create_component(key, default_type = default_type)
 				if verbose:
 					#logging.warning('Metabolite created \'{:s}\' in ME-model \'{:s}\'.'.format(repr(new_met), repr(self)))
-					logging.warning('Component \'{:s}\' created in Reaction \'{:s}\'. No further actions must be taken.'.format(new_met.id, self.id))
+					logging.warning('INFO: Component \'{:s}\' created in Reaction \'{:s}\'. No further actions must be taken.'.format(new_met.id, self.id))
 				object_stoichiometry[new_met] = value
 				self._model.add_metabolites([new_met])
 		return object_stoichiometry
@@ -1442,7 +1442,7 @@ class PostTranslationReaction(MEReaction):
 				try:
 					sa_constraint = metabolites.get_by_id(SA)
 				except KeyError:
-					logging.warning('Constraint \'{:s}\' added to ME-model.'.format(SA))
+					logging.warning('INFO: Constraint \'{:s}\' added to ME-model.'.format(SA))
 					sa_constraint = coralme.Constraint(SA)
 					self._model.add_metabolites([sa_constraint])
 
@@ -1575,7 +1575,7 @@ class TranscriptionReaction(MEReaction):
 		elif transcript.RNA_type == 'tmRNA':
 			demand_reaction.add_metabolites({metabolites.tmRNA_biomass: -mass_in_kda}, combine = False)
 		else:
-			logging.warning('Gene locus ID \'{:s}\' has an invalid RNA type (Valid types are mRNA, rRNA, tRNA, ncRNA, and tmRNA)'.format(transcript.id))
+			logging.warning('ERROR: Gene locus ID \'{:s}\' has an invalid RNA type (Valid types are mRNA, rRNA, tRNA, ncRNA, and tmRNA)'.format(transcript.id))
 
 	def update(self, verbose = True):
 		"""
@@ -1623,9 +1623,9 @@ class TranscriptionReaction(MEReaction):
 		if rna_polymerase is not None and rna_polymerase in metabolites:
 			stoichiometry[rna_polymerase] = -self.transcription_data.coupling_coefficient_rnapol
 		elif rna_polymerase is not None and rna_polymerase != '':
-			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(rna_polymerase, tu_id))
+			logging.warning('WARNING: The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(rna_polymerase, tu_id))
 		else:
-			logging.warning('The \'{:s}\' component has no RNA Polymerase associated to it. It might be added later during the reconstruction.'.format(tu_id))
+			logging.warning('WARNING: The \'{:s}\' component has no RNA Polymerase associated to it. It might be added later during the reconstruction.'.format(tu_id))
 
 		# 2) RNA products defined in data.RNA_products
 		# WARNING: All genes in TU must be added to the model prior to creating transcription reactions
@@ -1897,7 +1897,7 @@ class TranslationReaction(MEReaction):
 		if ribosome_id in metabolites:
 			stoichiometry[ribosome_id] = -self.translation_data._coupling_coefficient_ribosome
 		else:
-			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(ribosome_id, protein_id))
+			logging.warning('WARNING: The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(ribosome_id, protein_id))
 
 		# 3) mRNA defined in data.mRNA w/ translation coupling coefficient
 		if transcript in metabolites:
@@ -1908,7 +1908,7 @@ class TranslationReaction(MEReaction):
 			# If transcript not found add to the model as the mRNA_id
 			#transcript = coralme.core.component.TranscribedGene(mrna_id, mrna_id, nucleotide_sequence)
 			#model.add_metabolites(transcript)
-			logging.warning('Transcript \'{:s}\' was not found in ME-model. Please check name of the RNA.'.format(mrna_id))
+			logging.warning('WARNING: Transcript \'{:s}\' was not found in ME-model. Please check name of the RNA.'.format(transcript.id))
 
 		# 4) mRNA + nucleotides + hydrolysis ATP cost w/ degradation coupling coefficient (if kdeg (defined in model.global_info) > 0)
 		# Add degraded nucleotides to stoichiometry
@@ -1937,7 +1937,7 @@ class TranslationReaction(MEReaction):
 		if degradosome_id in metabolites:
 			stoichiometry[degradosome_id] = -self._model.symbols['deg_amount'] * self._model.process_data.get_by_id('RNA_degradation_machine').coupling_coefficient_subreaction
 		else:
-			logging.warning('The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(degradosome_id, protein_id))
+			logging.warning('WARNING: The \'{:s}\' component was not found in the ME-model. A coupling coefficient was not added to \'{:s}\'.'.format(degradosome_id, protein_id))
 
 		# 6) Protein product defined in data.protein
 		# Add protein to model if not already included. Replace protein if it is not of the correct type

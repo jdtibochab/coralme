@@ -7,11 +7,10 @@ import jsonschema
 from collections import OrderedDict
 
 import logging
-log_format = '%(asctime)s %(message)s' #%(clientip)-15s %(user)-8s
-
 import pandas
 import cobra
 import coralme
+from coralme.core.extended_classes import log_format, bar_format
 
 try:
 	# If cannot import SymbolicParameter, assume using cobrapy versions <= 0.5.11

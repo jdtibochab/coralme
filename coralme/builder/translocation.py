@@ -121,10 +121,10 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 				add_lipoprotein_data_and_reaction(mod, 'pg160_p')
 
 		if model.metabolites.has_id('protein_' + protein) and compartment is None:
-			logging.warning('A lipoprecursor protein \'{:s}\' has not compartment. Please check the list of IDs in \'lipoprotein_precursors\' and the compartment of the protein in the OSM.'.format(protein))
+			logging.warning('WARNING: A lipoprecursor protein \'{:s}\' has not compartment. Please check the list of IDs in \'lipoprotein_precursors\' and the compartment of the protein in the OSM.'.format(protein))
 
 		if not model.metabolites.has_id('protein_' + protein):
-			logging.warning('A lipoprecursor protein \'{:s}\' is not in the ME-model. Please check if the ID in \'lipoprotein_precursors\' are in the OSM or if the gene is a pseudogene.'.format(protein))
+			logging.warning('WARNING: A lipoprecursor protein \'{:s}\' is not in the ME-model. Please check if the ID in \'lipoprotein_precursors\' are in the OSM or if the gene is a pseudogene.'.format(protein))
 
 		else:
 			continue

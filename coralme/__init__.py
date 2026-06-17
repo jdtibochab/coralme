@@ -13,6 +13,18 @@ import coralme.util
 from . import _version
 __version__ = _version.get_versions()['version']
 
+# configuration
+import warnings, pandas
+try:
+	warnings.simplefilter(action = 'ignore', category = pandas.errors.SettingWithCopyWarning)
+except:
+	warnings.warn("This pandas version does not allow for correct warning handling. Pandas >=1.5.1 is suggested.")
+import warnings, Bio
+try:
+    warnings.simplefilter(action = 'ignore', category = Bio.BiopythonWarning)
+except:
+    warnings.warn("This biopython version does not allow for correct warning handling. Biopython >=1.80 is suggested.")
+
 def check_installed_packages():
 	import importlib.metadata
 	# installed with python:

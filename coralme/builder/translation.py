@@ -86,7 +86,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		for codon, tRNA_to_aa in me_model.global_info['genetic_recoding'].items():
 			for aa, tRNA in tRNA_to_aa.items():
 				dct.update({ codon : aa })
-				logging.warning('Genetic recoding dictionary added to internal codon table.')
+				logging.warning('WARNING: Genetic recoding dictionary added to internal codon table.')
 
 	if not me_model.process_data.has_id('atp_hydrolysis_trna_loading'):
 		stoichiometry = { 'atp_c': -1.0, 'h2o_c': -1.0, 'amp_c': +1.0, 'h_c': +1.0, 'ppi_c': +1.0 }
@@ -106,7 +106,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 			full_aa = aa.replace('_c', '') # do not add compartment (e.g., full_aa = ala__L; not ala__L_c)
 
 		if not me_model.metabolites.has_id(full_aa + '_' + organelle):
-			logging.warning('The amino acid \'{:s}\' in not in the ME-model.'.format(full_aa + '_' + organelle))
+			logging.warning('ERROR: The amino acid \'{:s}\' in not in the ME-model.'.format(full_aa + '_' + organelle))
 			continue
 
 		#full_aa = full_aa.split('_')[0]
@@ -124,7 +124,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('atp_hydrolysis_trna_loading').stoichiometry)
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('gtp_hydrolysis').stoichiometry)
 		subreaction_data._element_contribution = me_model.metabolites.get_by_id(full_aa + '_' + organelle).elements # subreaction_data.calculate_element_contribution()
-		logging.warning('A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format(subreaction_id))
+		logging.warning('INFO: A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format(subreaction_id))
 
 	# Add subreactions for selenocysteine
 	if me_model.metabolites.has_id('generic_tRNA_UGA_ser__L_c'):
@@ -134,4 +134,4 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('atp_hydrolysis_trna_loading').stoichiometry)
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('gtp_hydrolysis').stoichiometry)
 		subreaction_data._element_contribution = subreaction_data.calculate_element_contribution()
-		logging.warning('A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format('sec_addition_at_UGA'))
+		logging.warning('INFO: A SubreactionData with ID \'{:s}\' was added to the ME-model.'.format('sec_addition_at_UGA'))
