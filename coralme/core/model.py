@@ -1151,7 +1151,7 @@ class MEModel(cobra.core.object.Object):
 	@gam.setter
 	def gam(self, value):
 		if 'GAM' not in self.reactions:
-			logging.warning('Adding GAM (ATP requirement for growth) reaction into the ME-model.')
+			logging.warning('INFO: Adding GAM (ATP requirement for growth) reaction into the ME-model.')
 			self.add_reactions([coralme.core.reaction.SummaryVariable('GAM')])
 			self.reactions.GAM.lower_bound = self.mu
 			self.reactions.GAM.upper_bound = 1000.
@@ -1175,7 +1175,7 @@ class MEModel(cobra.core.object.Object):
 	@ngam.setter
 	def ngam(self, value):
 		if 'ATPM' not in self.reactions:
-			logging.warning('Adding ATPM (ATP requirement for maintenance) reaction into the ME-model.')
+			logging.warning('INFO: Adding ATPM (ATP requirement for maintenance) reaction into the ME-model.')
 			#atp_hydrolysis = {'atp_c': -1, 'h2o_c': -1, 'adp_c': 1, 'h_c': 1, 'pi_c': 1} # charges: -4, 0 => -3, +1, -2
 			atp_hydrolysis = self.process_data.get_by_id('atp_hydrolysis').stoichiometry
 			self.add_reactions([coralme.core.reaction.SummaryVariable('ATPM')])
@@ -1393,8 +1393,8 @@ class MEModel(cobra.core.object.Object):
 			c = self.process_data.get_by_id(c_d)
 			cplx = c.complex
 			if len(cplx.reactions) == 1:
-				list(cplx.reactions)[0].delete(remove_orphans = True)
-				logging.warning('Removing unnecessary ComplexData reactions for \'{:s}\''.format(c_d))
+				list(cplx.reactions)[0].delete(remove_orphans = True) replaced by for-loop 
+						logging.warning('INFO: Removing unnecessary Formation reaction for \'{:s}\' component and its ComplexData.'.format(data.id))
 				self.process_data.remove(self.process_data.get_by_id(c_d))
 
 		for p in tqdm.tqdm(list(self.metabolites.query('_folded')), 'Pruning unnecessary FoldedProtein reactions...', bar_format = bar_format):
@@ -1409,7 +1409,7 @@ class MEModel(cobra.core.object.Object):
 					while len(p.reactions) > 0:
 						list(p.reactions)[0].delete(remove_orphans = True)
 						for data in self.process_data.query(p.id):
-							logging.warning('Removing unnecessary FoldedProtein reactions for \'{:s}\''.format(p.id))
+							logging.warning('INFO: Removing unnecessary FoldedProtein reactions for \'{:s}\''.format(met.id))
 							self.process_data.remove(data.id)
 
 		for p in tqdm.tqdm(self.metabolites.query('^protein_'), 'Pruning unnecessary ProcessedProtein reactions...', bar_format = bar_format):
@@ -1421,7 +1421,7 @@ class MEModel(cobra.core.object.Object):
 						break
 				if delete:
 					for rxn in list(p.reactions):
-						logging.warning('Removing unnecessary ProcessedProtein reactions for \'{:s}\''.format(rxn.posttranslation_data.id))
+								logging.warning('INFO: Removing unnecessary ProcessedProtein reactions for \'{:s}\''.format(rxn.posttranslation_data.id))
 						self.process_data.remove(rxn.posttranslation_data.id)
 						rxn.delete(remove_orphans = True)
 
@@ -1437,7 +1437,7 @@ class MEModel(cobra.core.object.Object):
 						p_id = p.id.replace('protein_', '')
 						data = self.process_data.get_by_id(p_id)
 						self.process_data.remove(data.id)
-						logging.warning('Removing unnecessary TranslatedGene reactions for \'{:s}\''.format(p_id))
+								logging.warning('INFO: Removing unnecessary TranslatedGene reactions for \'{:s}\''.format(p_id))
 						rxn.delete(remove_orphans = True)
 
 		removed_rna = set()
@@ -1457,10 +1457,11 @@ class MEModel(cobra.core.object.Object):
 					#pass
 				self.reactions.get_by_id('DM_' + m.id).remove_from_model(remove_orphans = True)
 				try:
-					logging.warning('Removing unnecessary TranscribedGene reactions for \'{:s}\''.format(m.id))
+						met.remove_from_model(destructive = False)
+						logging.warning('INFO: Removing unnecessary TranscribedGene reactions for \'{:s}\''.format(met.id))
 					m.remove_from_model(destructive = False)
 				except AttributeError:
-					logging.warning('AttributeError for \'{:s}\''.format(m.id))
+						logging.warning('ERROR: AttributeError for \'{:s}\''.format(met.id))
 					pass
 				removed_rna.add(m.id)
 
@@ -1477,7 +1478,7 @@ class MEModel(cobra.core.object.Object):
 			t_process_id = t.id.replace('transcription_', '')
 			if delete:
 				t.remove_from_model(remove_orphans = True)
-				logging.warning('Removing the unnecessary \'{:s}\' transcriptional unit.'.format(t_process_id))
+					logging.warning('INFO: Removing the unnecessary \'{:s}\' transcriptional unit.'.format(t_process_id))
 				self.process_data.remove(t_process_id)
 			else:
 				# gets rid of the removed RNA from the products

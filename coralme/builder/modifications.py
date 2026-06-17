@@ -89,7 +89,7 @@ def _replace_modification(dct, me_model):
 		try:
 			new_mod_data._element_contribution = new_mod_data.calculate_element_contribution()
 		except:
-			logging.warning('All metabolites in SubreactionData \'{:s}\' must have a formula to determine their elemental contribution.'.format(new_mod_data))
+			logging.warning('WARNING: All metabolites in SubreactionData \'{:s}\' must have a formula to determine their elemental contribution.'.format(new_mod_data))
 
 	# This function does not replace information in process_data; it rather changes information in subreactions
 	for data in me_model.process_data.get_by_id(modification).get_complex_data():
@@ -152,9 +152,9 @@ def add_FeFe_and_NiFe_modifications(me_model):
 						# base_complex_mod_FeFe/NiFe + other cofactors => final modified complex
 						cplx_data.subreactions[mod] = 0
 				else:
-					logging.warning('The ID \'{:s}\' in the configuration file has no base complexes assigned to it.'.format(mod))
+					logging.warning('ERROR: The ID \'{:s}\' in the configuration file has no base complexes assigned to it.'.format(mod))
 			else:
-				logging.warning('The ID \'{:s}\' in the configuration file does not exist in the ME-model.'.format(mod))
+				logging.warning('ERROR: The ID \'{:s}\' in the configuration file does not exist in the ME-model.'.format(mod))
 
 #def add_lipoate_modifications(me_model, lipoate_modifications):
 def add_lipoyl_modifications(me_model):
@@ -176,7 +176,7 @@ def add_lipoyl_modifications(me_model):
 		try:
 			mod_data._element_contribution = mod_data.calculate_element_contribution()
 		except:
-			logging.warning('All metabolites in SubreactionData \'{:s}\' must have a formula to determine their elemental contribution.'.format(mod))
+			logging.warning('WARNING: All metabolites in SubreactionData \'{:s}\' must have a formula to determine their elemental contribution.'.format(mod))
 
 	lipoate = me_model.process_data.get_by_id(list(lipoate_modifications.keys())[0])
 	#alt_lipo = me_model.process_data.get_by_id('mod_lipo_c_alt')

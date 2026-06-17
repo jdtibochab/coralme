@@ -553,8 +553,8 @@ class Organism(object):
         elif isinstance(gene_id,dict):
             gene_id = ' AND '.join(['{}({})'.format(k,v) for k,v in gene_id.items()])
         else:
-            raise TypeError("Unsupported entry to add to complexes of type " + type(gene_id))
-        logging.warning('Adding {} ({}) to complexes from {}'.format(product,gene_id,source))
+            raise TypeError("WARNING: Unsupported entry to add to complexes of type " + type(gene_id))
+        logging.warning('INFO: Adding {} ({}) to complexes from {}'.format(product,gene_id,source))
         tmp = {product: {
                 "name": name,
                 "genes": gene_id,
@@ -569,7 +569,7 @@ class Organism(object):
                                   mods,
                                   source):
         """Append one entry to the protein modification dataframe"""
-        logging.warning('Adding {} to protein_mod from {}'.format(mod_complex, source))
+        logging.warning('INFO: Adding {} to protein_mod from {}'.format(mod_complex, source))
         tmp = {mod_complex: {
                 "Core_enzyme": core_enzyme,
                 "Modifications": mods,
@@ -700,7 +700,7 @@ class Organism(object):
         """Append one entry to the GenBank"""
         if self.duplicated_genes is not None and gene_id in self.duplicated_genes:
             gene_id = '{};{}'.format(gene_id,gene_name)
-        logging.warning('Adding {} to genbank file as {}'.format(gene_id,product_type))
+        logging.warning('INFO: Adding {} to genbank file as {}'.format(gene_id,product_type))
         from Bio.SeqFeature import SeqFeature, CompoundLocation, ExactPosition, FeatureLocation, SimpleLocation
         gene_seq = gene_sequences[gene_name]
         gene_left = int(row['Left-End-Position'])
@@ -1073,8 +1073,8 @@ class Organism(object):
         file_overlap = int((len(file_genes & m_model_genes) / len(m_model_genes))*100)
         gb_overlap = int((len(genbank_genes & m_model_genes) / len(m_model_genes))*100)
 
-        logging.warning('Gene overlap between M-model and Genbank : {}%'.format(gb_overlap))
-        logging.warning('Gene overlap between M-model and optional files : {}%'.format(file_overlap))
+        logging.warning('INFO: Gene overlap between M-model and Genbank : {}%'.format(gb_overlap))
+        logging.warning('INFO: Gene overlap between M-model and optional files : {}%'.format(file_overlap))
 
         if gb_overlap < 1:
             raise ValueError('Overlap of M-model genes with genbank is too low ({}%)'.format(gb_overlap))
@@ -1162,7 +1162,7 @@ class Organism(object):
                                 left_end,
                                 right_end):
         """Append one entry to the gene information dataframe"""
-        logging.warning("Adding {} to genes from genbank".format(gene_id))
+        logging.warning("INFO: Adding {} to genes from genbank".format(gene_id))
         feature_type = feature.type
         if feature_type == 'CDS':
             feature_type = 'MONOMER'
@@ -1945,7 +1945,7 @@ class Organism(object):
                            total=enz_rxn_assoc_df.shape[0]):
             if reaction not in m_model.reactions:
                 #TODO: Change this so that Keffs of new reactions in reaction_matrix can be estimated
-                logging.warning('Tried setting Keffs for {}, but the reaction is not in model.'.format(reaction))
+                logging.warning('WARNING: Tried setting Keffs for {}, but the reaction is not in M-model.'.format(reaction))
                 continue
             r = m_model.reactions.get_by_id(reaction)
             subsystem = r.subsystem
@@ -2005,7 +2005,7 @@ class Organism(object):
         else:
             cat = 0
         if cat:
-            logging.warning("Setting {} to {}".format(gene, cat))
+            logging.warning("INFO: Setting {} to {}".format(gene, cat))
             generic_dict[cat]['enzymes'].append(gene)
 
     def get_generics_from_genbank(self):
@@ -2143,7 +2143,7 @@ class Organism(object):
                            total=dup_df.shape[0]):
             if row['reactions']:
                 change_reaction_id(self.m_model,c,c+'_rxn')
-                logging.warning('Changed reaction ID from {} to {} to prevent the conflict between: {}'.format(c,c+'_rxn',' and '.join([j for j,k in row.items() if k])))
+                logging.warning('INFO: Changed reaction ID from {} to {} to prevent the conflict between: {}'.format(c,c+'_rxn',' and '.join([j for j,k in row.items() if k])))
             else:
                 raise ValueError('The identifier {} is duplicated in {}. Please fix!'.format(c,' and '.join([j for j,k in row.items() if k])))
 
@@ -2400,7 +2400,7 @@ class Organism(object):
                             gene = identified_genes[0]
                             cplx_id = "{}-MONOMER".format(gene_dictionary.loc[gene]['Gene Name'])
                         if cplx_id not in org_complexes_df.index:
-                            logging.warning("Adding {} to complexes from m_model".format(cplx_id))
+                            logging.warning("INFO: Adding {} to complexes from m_model".format(cplx_id))
                             tmp = pandas.DataFrame.from_dict({
                                 cplx_id: {
                                     "name": str(rxn.name),
@@ -2423,7 +2423,7 @@ class Organism(object):
                         reaction_cplx_list.append(cplx_id)
                 enz_rxn_assoc_dict[rxn.id] = " OR ".join(reaction_cplx_list)
             else:
-                logging.warning('{} contains a GPR rule that has more gene combinations than the specified cutoff ({}). Generifying it.'.format(rxn.id,gpr_combination_cutoff))
+                logging.warning('WARNING: {} contains a GPR rule that has more gene combinations than the specified cutoff ({}). Generifying it.'.format(rxn.id,gpr_combination_cutoff))
                 listified_gpr = coralme.builder.gpr.listify_gpr(rule)
                 n,rule_dict = coralme.builder.gpr.generify_gpr(listified_gpr,rxn.id,d={},generic_gene_dict=new_generics)
                 if not rule_dict: # n in gene_dictionary.index:
@@ -2438,14 +2438,14 @@ class Organism(object):
                     else:
                         cplx_id = cplx
                     if 'generic' in cplx_id and cplx_id not in generic_dict:
-                        logging.warning("Adding {} to generics from m_model".format(cplx_id))
+                        logging.warning("INFO: Adding {} to generics from m_model".format(cplx_id))
                         new_generics[cplx_id] = rule.split(' or ')
                         generic_dict[cplx_id] = {
                             'enzymes':[gene_dictionary.loc[i,'Product'] if i in gene_dictionary.index else i for i in rule.split(' or ')]
                         }
                     elif 'generic' not in cplx_id and cplx_id not in org_complexes_df.index:
                         # New cplx not found in BioCyc files
-                        logging.warning("Adding {} to complexes from m_model".format(cplx_id))
+                        logging.warning("INFO: Adding {} to complexes from m_model".format(cplx_id))
                         tmp = pandas.DataFrame.from_dict({
                             cplx_id: {
                                 "name": str(rxn.name),
@@ -2462,7 +2462,7 @@ class Organism(object):
         if not enz_rxn_assoc_df.empty: # Only if it inferred any new GPRs
             self.enz_rxn_assoc_df = pandas.concat([enz_rxn_assoc_df, self.enz_rxn_assoc_df], axis = 0, join = 'outer')
         else:
-            logging.warning('No new GPR was inferred. If you provided all GPRs in enzyme_reaction_association.txt, no further action is needed.')
+            logging.warning('WARNING: No new GPR was inferred. If you provided all GPRs in enzyme_reaction_association.txt, no further action is needed.')
         self.enz_rxn_assoc_df.index.name = "Reaction"
         self.complexes_df = org_complexes_df
         self.protein_mod = protein_mod

@@ -278,7 +278,7 @@ class SubreactionData(ProcessData):
 		if len(self.stoichiometry) == 1 and list(self.stoichiometry.values())[0] < 0:
 			return self.calculate_element_contribution()
 		elif contribution:
-			logging.warning('No element contribution input for SubReaction \'{:s}\'. Calculating based on stoichiometry instead.'.format(self.id))
+			logging.warning('WARNING: No element contribution input for SubReaction \'{:s}\'. Calculating based on stoichiometry instead.'.format(self.id))
 			return self.calculate_element_contribution()
 		else:
 			return {}
@@ -305,12 +305,15 @@ class SubreactionData(ProcessData):
 			if self._model.metabolites.has_id(met):
 				met_obj = self._model.metabolites.get_by_id(met)
 			else:
-				logging.warning('The metabolite \'{:s}\' must exist in the ME-model to calculate the element contribution.'.format(met))
+				logging.warning('WARNING: The metabolite \'{:s}\' in reaction or subreaction \'{:s}\' must exist in the ME-model to calculate the element contribution.'.format(met, self.id))
 				continue
 
 			# elements lost in conversion are added to complex, protein, etc.
 			if not met_obj.elements and not isinstance(met_obj, coralme.core.component.GenerictRNA):
-				logging.warning('Metabolite \'{:s}\' does not have a formula. If it is a \'Complex\', its formula will be determined from amino acid composition and prosthetic groups stoichiometry. Otherwise, please add it to the M-model.'.format(met_obj.id))
+				if isinstance(met_obj, coralme.core.component.Complex):
+					logging.warning('INFO: Formula of Complex \'{:s}\' will be determined from amino acid composition and prosthetic groups stoichiometry.'.format(met_obj.id))
+				else:
+					logging.warning('WARNING: Metabolite \'{:s}\' does not have formula. Please add it to the M-model.'.format(met_obj.id))
 
 			for e, n in met_obj.elements.items():
 				elements[e] -= n * coefficient
@@ -746,7 +749,7 @@ class GenericData(ProcessData):
 	"""
 	def __init__(self, id, model, component_list):
 		if not id.startswith('generic_'):
-			logging.warning('Best practice for generic id to start with the \'generic_\' prefix.')
+			logging.warning('INFO: Best practice for generic id to start with the \'generic_\' prefix.')
 		ProcessData.__init__(self, id, model)
 		self.component_list = component_list
 
@@ -940,7 +943,7 @@ class TranslationData(ProcessData):
 			self.transl_table = Bio.Data.CodonTable.generic_by_id[int(list(self.transl_table)[0])]
 
 		if codons[0] not in self.transl_table.start_codons:
-			logging.warning('First codon in \'{:s}\' does not encode a start methionine. A methionine replaces the first amino acid.'.format(self.id))
+			logging.warning('WARNING: First codon in \'{:s}\' (\'{:s}\') does not encode a start methionine. A methionine replaces the first amino acid in the \'amino_acid_sequence\' property.'.format(self.id, codons[0]))
 			self.notes.append('Codon at position 0 does not encode a start methionine.')
 
 		# translate rest of the sequence
@@ -949,15 +952,15 @@ class TranslationData(ProcessData):
 				# Ser-tRNA is the precursor of Sec-tRNA.
 				# Reaction Ser-tRNA(Sec) => Sec-tRNA(Sec) is added as a subreaction in translation reactions
 				aa = 'S'
-				logging.warning('Internal stop codon UGA identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
+				logging.warning('INFO: Internal stop codon UGA identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
 				self.notes.append('Codon at position {:d} encodes Selenocysteine.'.format(idx+1))
 			elif codon in self._model.global_info.get('genetic_recoding', {}).keys():
 				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
-				logging.warning('Internal stop codon \'{:s}\' identified in \'{:s}\' following user input.'.format(codon, self.id))
+				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\' following user input.'.format(codon, self.id))
 				self.notes.append('Codon at position {:d} encodes a recoded stop codon.'.format(idx+1))
 			elif codon in self.transl_table.stop_codons:
 				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
-				logging.warning('Internal stop codon \'{:s}\' identified in \'{:s}\'. Translation will not proceed. Please check if the gene is a pseudogene.'.format(codon, self.id))
+				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\'. Translation will not proceed. Please check if the gene is a pseudogene.'.format(codon, self.id))
 				self.notes.append('Codon at position {:d} encodes an internal stop codon (\'{:s}\') not recoded.'.format(idx+1, codon))
 				#break
 			else:
@@ -967,7 +970,7 @@ class TranslationData(ProcessData):
 
 		# last codon does not need translation unless is not a stop codon
 		if codons[-1] not in self.transl_table.stop_codons:
-			logging.warning('Last codon in \'{:s}\' does not encode a stop codon.'.format(self.id))
+			logging.warning('WARNING: Last codon in \'{:s}\' does not encode a stop codon.'.format(self.id))
 			self.notes.append('Codon at position {:d} does not encode a stop codon.'.format(idx+2))
 			amino_acid_sequence += Bio.Seq.Seq(codons[-1]).translate(self.transl_table)
 
@@ -977,7 +980,15 @@ class TranslationData(ProcessData):
 
 		if self.id != 'dummy':
 			if amino_acid_sequence != self.translation.rstrip('*'):
-				logging.warning('Protein sequence for \'{:s}\' from the GenBank file differs from the inferred from nucleotide sequence and translation table.'.format(self.id))
+			if seq1 != seq2:
+				# report
+				diffs = []
+				min_len = min(len(seq1), len(seq2))
+				for i in range(min_len):
+					if seq1[i] != seq2[i]:
+						diffs.append("{}{}>{}".format(i + 1, seq2[i], seq1[i]))
+
+				logging.warning('WARNING: Protein sequence for \'{:s}\' from the GenBank file differs from the inferred from nucleotide sequence and translation table: {:s}'.format(self.id, ', '.join(diffs)))
 
 		# WARNING: This was replaced by code above
 		#if '*' in amino_acid_sequence or 'U' in amino_acid_sequence: # translation of selenocysteine
@@ -1016,12 +1027,12 @@ class TranslationData(ProcessData):
 		# WARNING: sequence_as_codons includes the stop codon, therefor it is +1 longer that amino_acid_sequence
 		for idx, (codon, amino_acid) in enumerate(zip(self.sequence_as_codons, self.amino_acid_sequence)):
 			if amino_acid == '_' and codon == '' and self.transl_table.id == 11:
-				precount.append('ser__L_c') # Ser in the precursor for Selenocysteine
+				precount.append('ser__L_c') # Ser is the precursor for Selenocysteine
 			elif amino_acid == '_' and codon in self._model.global_info.get('genetic_recoding', {}):
 				# TODO: set compartment of the recoded stop codon?
 				precount.append(list(self._model.global_info['genetic_recoding'][codon].keys())[0])
 			elif amino_acid == '_' and codon not in self._model.global_info.get('genetic_recoding', {}):
-				logging.warning('Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
+				logging.warning('WARNING: Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
 			else:
 				precount.append(coralme.util.dogma.amino_acids[amino_acid] + compartment)
 		return coralme.core.extended_classes.MCounter(precount).sorted()
@@ -1087,12 +1098,12 @@ class TranslationData(ProcessData):
 				if str(abbreviated_aa) == '*' and codon in self._model.global_info.get('genetic_recoding', {}).keys():
 					# perform recoding of internal stop codons
 					aa = list(self._model.global_info['genetic_recoding'][codon].keys())[0].replace('__L_c', '')
-					logging.warning('Recoded stop codon \'{:s}\' to \'{:s}__L_c\' in \'{:s}\'.'.format(codon, aa, self.id))
+					logging.warning('INFO: Recoded stop codon \'{:s}\' to \'{:s}__L_c\' in \'{:s}\'.'.format(codon, aa, self.id))
 				elif str(abbreviated_aa) == '*' and codon == 'TGA' and self.transl_table.id == 11:
-					logging.warning('Adding selenocysteine for \'{:s}\', following translation table {:d} (See more https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG{:d}).'.format(self.id, self.transl_table.id, self.transl_table.id))
+					logging.warning('INFO: Adding selenocysteine for \'{:s}\', following translation table {:d} (See more https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi#SG{:d}).'.format(self.id, self.transl_table.id, self.transl_table.id))
 					aa = 'sec'
 				else:
-					logging.warning('Internal stop codon \'{:s}\' detected in \'{:s}\'. Please review if the gene is a pseudogene.'.format(codon, self.id))
+					logging.warning('WARNING: Internal stop codon \'{:s}\' detected in \'{:s}\'. Please review if the gene is a pseudogene.'.format(codon, self.id))
 
 			if aa == 'STOP':
 				break # do not remove break or STOP_addition_at_UAA or similar will be added
@@ -1106,7 +1117,7 @@ class TranslationData(ProcessData):
 			if self._model.process_data.has_id(subreaction_id):
 				subreactions[subreaction_id] = count
 			else:
-				logging.warning('The tRNA SubReaction \'{:s}\' is not in the ME-model.'.format(subreaction_id))
+				logging.warning('ERROR: The tRNA SubReaction \'{:s}\' is not in the ME-model.'.format(subreaction_id))
 
 		return subreactions
 
@@ -1138,7 +1149,7 @@ class TranslationData(ProcessData):
 			try:
 				self._model.process_data.get_by_id(subreaction_id)
 			except KeyError:
-				logging.warning('Elongation SubReaction \'{:s}\' is not in ME-model. However, it can be added later.'.format(subreaction_id))
+				logging.warning('WARNING: Elongation SubReaction \'{:s}\' is not in ME-model. However, it can be added later.'.format(subreaction_id))
 			else:
 				# No elongation subreactions needed for start codon
 				self.subreactions[subreaction_id] = len(self.amino_acid_sequence) - 1.
@@ -1162,13 +1173,13 @@ class TranslationData(ProcessData):
 		"""
 		#print(self.mRNA, type(self.mRNA), self.first_codon, type(self.first_codon))
 		if self.first_codon not in start_codons:
-			logging.warning('\'{:s}\' starts with \'{:s}\', which is not a start codon'.format(self.mRNA, str(self.first_codon)))
+			logging.warning('WARNING: \'{:s}\' sequence starts with \'{:s}\', which is not a start codon'.format(self.mRNA, str(self.first_codon)))
 
 		for subreaction_id in start_subreactions:
 			try:
 				self._model.process_data.get_by_id(subreaction_id)
 			except KeyError:
-				logging.warning('Initiation SubReaction \'{:s}\' is not in the ME-model. However, it can be added later.'.format(subreaction_id))
+				logging.warning('WARNING: Initiation SubReaction \'{:s}\' is not in the ME-model. However, it can be added later.'.format(subreaction_id))
 			else:
 				self.subreactions[subreaction_id] = 1.
 
@@ -1191,11 +1202,11 @@ class TranslationData(ProcessData):
 			try:
 				self._model.process_data.get_by_id(termination_subreaction_id)
 			except KeyError:
-				logging.warning('Termination SubReaction \'{:s}\' is not in ME-model. However, it can be added later.'.format(termination_subreaction_id))
+				logging.warning('WARNING: Termination SubReaction \'{:s}\' is not in ME-model. However, it can be added later.'.format(termination_subreaction_id))
 			else:
 				self.subreactions[termination_subreaction_id] = 1.
 		else:
-			logging.warning('No termination enzyme for \'{:s}\'. Please review if the gene is a pseudogene.'.format(self.mRNA))
+			logging.warning('WARNING: No termination enzyme for \'{:s}\'. Please review if the gene is a pseudogene.'.format(self.mRNA))
 
 class tRNAData(ProcessData):
 	"""

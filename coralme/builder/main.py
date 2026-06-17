@@ -302,41 +302,41 @@ class MEBuilder(object):
 		if overwrite:
 			with open(filename, 'w') as outfile:
 				self.org.TU_df.to_csv(outfile, sep = '\t')
-				logging.warning('The BioCyc transcriptional data file was processed and overwritten into the {:s} file.'.format(filename))
+				logging.warning('WARNING: The BioCyc transcriptional data file was processed and overwritten into the {:s} file.'.format(filename))
 		else:
 			if pathlib.Path(filename).exists():
-				logging.warning('Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
+				logging.warning('INFO: Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
 			else:
 				with open(filename, 'w') as outfile:
 					self.org.TU_df.to_csv(outfile, sep = '\t')
-					logging.warning('The BioCyc transcriptional data file was saved to the ./{:s} file.'.format(filename))
+					logging.warning('INFO: The BioCyc transcriptional data file was saved to the ./{:s} file.'.format(filename))
 		self.configuration['df_TranscriptionalUnits'] = filename
 
 		filename = self.org.directory + "subreaction_matrix.txt"
 		if overwrite:
 			with open(filename, 'w') as outfile:
 				self.org.subreaction_matrix.to_csv(outfile, sep = '\t')
-				logging.warning('The subreaction data file was processed and overwritten into the {:s} file.'.format(filename))
+				logging.warning('WARNING: The subreaction data file was processed and overwritten into the {:s} file.'.format(filename))
 		else:
 			if pathlib.Path(filename).exists():
-				logging.warning('Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
+				logging.warning('INFO: Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
 			else:
 				with open(filename, 'w') as outfile:
 					self.org.subreaction_matrix.to_csv(outfile, sep = '\t')
-					logging.warning('The subreaction data file was saved to the ./{:s} file.'.format(filename))
+					logging.warning('WARNING: The subreaction data file was saved to the ./{:s} file.'.format(filename))
 
 		filename = self.org.directory + "me_metabolites.txt"
 		if overwrite:
 			with open(filename, 'w') as outfile:
 				self.org.me_mets.to_csv(outfile, sep = '\t')
-				logging.warning('The M to ME metabolite mapping file was processed and overwritten into the {:s} file.'.format(filename))
+				logging.warning('WARNING: The M to ME metabolite mapping file was processed and overwritten into the {:s} file.'.format(filename))
 		else:
 			if pathlib.Path(filename).exists():
-				logging.warning('Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
+				logging.warning('INFO: Set \'overwrite = True\' to overwrite the {:s} file.'.format(filename))
 			else:
 				with open(filename, 'w') as outfile:
 					self.org.me_mets.to_csv(outfile, sep = '\t')
-					logging.warning('The M to ME metabolite mapping file was saved to the ./{:s} file.'.format(filename))
+					logging.warning('INFO: The M to ME metabolite mapping file was saved to the ./{:s} file.'.format(filename))
 
 		logging.warning("Updating enzyme-reaction association")
 		self.update_enzyme_reaction_association()
@@ -417,13 +417,13 @@ class MEBuilder(object):
 						'Fixing compartments in M-model metabolites...',
 						bar_format = bar_format):
 			if not m.compartment:
-				logging.warning("Fixing compartment for metabolite {}".format(m.id))
+				logging.warning("INFO: Fixing compartment for metabolite {}. New compartment {}.".format(m.id,m.id[-1]))
 				m.compartment = m.id[-1]
 		for r in tqdm.tqdm(m_model.reactions,
 						'Fixing missing names in M-model reactions...',
 						bar_format = bar_format):
 			if not r.name or isinstance(r.name, float):
-				logging.warning("Fixing name for reaction {}".format(r.id))
+				logging.warning("INFO: Fixing name for reaction {}. New name {}.".format(r.id,r.id))
 				r.name = r.id
 
 		# Solve m_model
@@ -437,7 +437,7 @@ class MEBuilder(object):
 		try:
 			self.org.biomass = str(m_model.objective.expression.as_two_terms()[0]).split('*')[1]
 			biomass_rxn = m_model.reactions.get_by_id(self.org.biomass)
-			logging.warning('{} was identified as the biomass reaction'.format(biomass_rxn.id))
+			logging.warning('INFO: {} was identified as the biomass reaction'.format(biomass_rxn.id))
 		except:
 			self.org.biomass = None
 			biomass_rxn = None
@@ -526,8 +526,8 @@ class MEBuilder(object):
 			transl_tables.update({'m' : set(), 'h' : set()}) # mitochondria and plastids
 
 		# Messages
-		msg1 = 'From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). Make sure a MetabolicReaction to convert a {:s}-tRNA({:s}) into a {:s}-tRNA({:s}) is present in the ME-model.'
-		msg2 = 'From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). No further modification needs to take place.'
+		msg1 = 'WARNING: From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). Make sure a MetabolicReaction to convert a {:s}-tRNA({:s}) into a {:s}-tRNA({:s}) is present in the ME-model.'
+		msg2 = 'INFO: From the tRNA misacylation dictionary, the {:s} gene [tRNA({:s})] is loaded and converted into {:s}-tRNA({:s}). No further modification needs to take place.'
 
 		canonical_aas = [
 			'Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Gln', 'Glu', 'Gly', 'His', 'Ile',
@@ -571,7 +571,8 @@ class MEBuilder(object):
 				else:
 					logging.warning('The tRNA \'{:s}\' is not associated to a valid product name (tRNA-Amino acid 3 letters code)'.format(bnum))
 					continue
-				msg = 'The tRNA \'{:s}\' is associated to two amino acids. The \'trna_misacylation\' dictionary was modified to attempt load the correct amino acid.'
+
+				msg = 'WARNING: The tRNA \'{:s}\' is associated to two amino acids. The \'trna_misacylation\' dictionary was modified to attempt load the correct amino acid.'
 				# Special tRNA(Asx) that can be loaded with Asn (EC 6.1.1.22) or Asp (EC 6.1.1.12)
 				if aa == 'Asx':
 					trna_misacylation['Asx'] = 'Asp'
@@ -631,9 +632,9 @@ class MEBuilder(object):
 
 				# final check
 				if len(me_model.global_info['START_tRNA']) == 0:
-					logging.warning('Unable to identify at least one \'tRNA-Met\' or \'tRNA-fMet\' annotation from the \'Definition\' column in the organism-specific matrix.')
+					logging.warning('WARNING: Unable to identify at least one \'tRNA-Met\' or \'tRNA-fMet\' annotation from the \'Definition\' column in the organism-specific matrix.')
 			else:
-				logging.warning('No tRNA genes were identified from their locus tags.')
+				logging.warning('WARNING: No tRNA genes were identified from their locus tags.')
 
 		# DataFrame mapping tRNAs (list) and the encoded amino acid (index), per organelle
 		# aa2trna derives from trna_to_aa, so it also accounts for misacylation: { 'organelle ID' : 'DataFrame of amino acid to load into the tRNA' }
@@ -920,7 +921,7 @@ class MEBuilder(object):
 				'to_do':'Confirm these metabolites are correctly defined in me_metabolites.txt'})
 		if warn_found:
 			self.org.curation_notes['update_me_mets'].append({
-				'msg':'Some metabolites in me_metabolites.txt were found in reference m_model after replacing __ with _',
+				'msg':'Some metabolites in me_metabolites.txt were found in reference m_model without replacement alternative.',
 				'triggered_by':warn_found,
 				'importance':'medium',
 				'to_do':'Confirm these metabolites are correctly defined in me_metabolites.txt'})
@@ -1605,7 +1606,7 @@ class MEReconstruction(MEBuilder):
 			logging.warning('The prolipoprotein diacylglyceryl transferase and the signal peptidase homologs were set from homology data.')
 
 			config['other_lipids'] = self.org.lipid_modifications.get('other_lipids', 'CPLX_dummy')
-			logging.warning('The apolipoprotein N-acyltransferase homolog was set from homology data.')
+			logging.warning('The apolipoprotein N-acyltransferase homolog was set from homology data. Set \'gram_negative\' if needed.')
 
 			lst = self.org.generic_dict.get('generic_fes_transfers_complex', {'enzymes' : ['CPLX_dummy']})['enzymes'] # ecolime = ['CPLX0-7617', 'CPLX0-7824', 'IscA_tetra']
 # 			if len(lst) != 3:
@@ -1840,7 +1841,7 @@ class MEReconstruction(MEBuilder):
 		me._compartments = me.global_info.get('compartments', {})
 		if 'mc' not in me._compartments.keys():
 			me._compartments['mc'] = 'ME-model Constraint'
-			logging.warning('Pseudo-compartment \'mc\' (\'ME-model Constraint\') was added into the ME-model.')
+			logging.warning('INFO: Pseudo-compartment \'mc\' (\'ME-model Constraint\') was added into the ME-model.')
 
 		# Define M-model
 		if hasattr(self, 'org'):
@@ -1968,7 +1969,7 @@ class MEReconstruction(MEBuilder):
 				formation.update()
 			elif data.id != 'CPLX_dummy':
 				data.create_complex_formation()
-				logging.warning('Added ComplexFormation for \'{:s}\'.'.format(data.id))
+				logging.warning('INFO: Added ComplexFormation for \'{:s}\'.'.format(data.id))
 			else:
 				pass
 
@@ -2005,6 +2006,7 @@ class MEReconstruction(MEBuilder):
 			# WARNING: do not change escape characters
 			me.complex_data.query(r'CPLX_dummy_mod_2fe2s\(1\)')[0].create_complex_formation()
 			me.complex_data.query(r'CPLX_dummy_mod_4fe4s\(1\)')[0].create_complex_formation()
+			logging.warning('WARNING: No homologs for iron-sulfur cluster loaders were identified. Modified CPLX_dummy were added to coralME model.')
 
 		# ### 7) Associate Complexes to Metabolic reactions and build the ME-model metabolic network
 
@@ -2023,8 +2025,8 @@ class MEReconstruction(MEBuilder):
 
 		# correct the enzyme list of a subreaction if it matches the component_list of a generic
 		# WARNING: This allows the use of generics in subreactions
-		# e.g.: acpP_activation is associated to EG12221-MONOMER OR HOLO-ACP-SYNTH-CPLX_mod_mg2(1) OR HOLO-ACP-SYNTH-CPLX_mod_mn2(1)
-		# e.g.: EG12221-MONOMER OR HOLO-ACP-SYNTH-CPLX_mod_mg2(1) OR HOLO-ACP-SYNTH-CPLX_mod_mn2(1) is associated to generic_acp_synthase
+		# e.g.: reaction acpP_activation is associated to EG12221-MONOMER OR HOLO-ACP-SYNTH-CPLX_mod_mg2(1) OR HOLO-ACP-SYNTH-CPLX_mod_mn2(1)
+		# e.g.: EG12221-MONOMER OR HOLO-ACP-SYNTH-CPLX_mod_mg2(1) OR HOLO-ACP-SYNTH-CPLX_mod_mn2(1) is associated to generic generic_acp_synthase
 		for data in list(me.subreaction_data):
 			for generic in list(me.generic_data):
 				if data.enzyme == set(generic.component_list):
@@ -2077,8 +2079,10 @@ class MEReconstruction(MEBuilder):
 
 			problems = list(set(me.global_info.get('flux_of_biomass_constituents', {})).difference(row))
 			if problems:
-				logging.warning('The following biomass constituents, biomass \'{:s}\', are not in the ME-model or have no formula: {:s}.'.format(idx, ', '.join(problems)))
-				logging.warning('A second attempt to add biomass constituents will be perform after update of formulas.')
+				logging.warning('ERROR: The following biomass constituents, biomass \'{:s}\', are not in the ME-model or have no formula: {:s}.'.format(idx, ', '.join(problems)))
+				# WARNING: This was originally added to complete biomass reaction with metabolites that require formula update.
+				# WARNING: However, these metabolites do not contribute to the constituent_biomass coefficient.
+				logging.warning('WARNING: A second attempt to add biomass constituents will be perform after update of formulas.')
 
 			name = 'biomass_constituent_demand' if idx == 'biomass_constituent_demand' else 'biomass_constituent_demand_' + idx
 			rxn = coralme.core.reaction.SummaryVariable(name)
@@ -2224,7 +2228,9 @@ class MEReconstruction(MEBuilder):
 
 		# ### 3) Add charged tRNA reactions
 
-		# The tRNA charging reactions were automatically added when loading the genome from the GenBank file. However, the charging reactions still need to be made aware of the tRNA synthetases which are responsible. Generic charged tRNAs are added to translation reactions via *SubreactionData* below.
+		# The tRNA charging reactions were automatically added when loading the genome from the GenBank file. 
+		# However, the charging reactions still need to be made aware of the tRNA synthetases which are responsible. 
+		# Generic charged tRNAs are added to translation reactions via *SubreactionData* below.
 
 		# tRNA synthetases per organelle
 		if hasattr(self, 'org') and len(me.global_info.get('amino_acid_trna_synthetase', {})) == 0:
@@ -2303,12 +2309,12 @@ class MEReconstruction(MEBuilder):
 			if me.metabolites.has_id(components['sigma_factor']) and me.metabolites.has_id(components['polymerase']):
 				rnap_obj = coralme.core.component.RNAP(rnap)
 				me.add_metabolites(rnap_obj)
-				logging.warning('The RNA Polymerase \'{:s}\' was created in the ME-model successfully.'.format(rnap))
+				logging.warning('INFO: The RNA Polymerase \'{:s}\' was created in the ME-model successfully.'.format(rnap))
 			else:
 				if not me.metabolites.has_id(components['sigma_factor']):
-					logging.warning('The complex ID \'{:s}\' from \'rna_polymerases\' in the configuration does not exist in the organism-specific matrix. Please check if it is the correct behaviour.'.format(components['sigma_factor']))
+					logging.warning('WARNING: The complex ID \'{:s}\' from \'rna_polymerases\' in the configuration does not exist in the organism-specific matrix. Please check if it is the correct behaviour.'.format(components['sigma_factor']))
 				if not me.metabolites.has_id(components['polymerase']):
-					logging.warning('The complex ID \'{:s}\' from \'rna_polymerases\' in the configuration does not exist in the organism-specific matrix. Please check if it is the correct behaviour.'.format(components['polymerase']))
+					logging.warning('WARNING: The complex ID \'{:s}\' from \'rna_polymerases\' in the configuration does not exist in the organism-specific matrix. Please check if it is the correct behaviour.'.format(components['polymerase']))
 
 		# Add polymerase complexes in the model
 		coralme.builder.transcription.add_rna_polymerase_complexes(me, rna_polymerases, verbose = False)
@@ -2320,7 +2326,7 @@ class MEReconstruction(MEBuilder):
 				transcription_data = me.process_data.get_by_id(tu_id)
 				transcription_data.RNA_polymerase = sigma_to_rnap.get(df_tus['rnapol'][tu_id], None)
 			else:
-				logging.warning('Transcription Unit \'{:s}\' is missing from ProcessData, likely the associated gene(s) (\'{:s}\') were filtered out before the reconstruction. Check if it is the correct behavior.'.format(tu_id, df_tus['genes'][tu_id]))
+				logging.warning('WARNING: Transcription Unit \'{:s}\' is missing from ProcessData, likely the associated gene(s) (\'{:s}\') were filtered out before the reconstruction. Check if it is the correct behavior.'.format(tu_id, df_tus['genes'][tu_id]))
 				pass
 
 		# WARNING: Without a TUs file, the 'most common' polymerase should be an empty string
@@ -2330,10 +2336,10 @@ class MEReconstruction(MEBuilder):
 		user_default_rnap = sigma_to_rnap.get(user_default_sigma, None)
 
 		if user_default_rnap is None:
-			msg = 'Assigning most common RNAP \'{:s}\' to missing polymerase in \'{:s}\''
+			msg = 'INFO: Assigning most common RNAP \'{:s}\' to missing polymerase in \'{:s}\''
 			most_common = max(rnap_counter, key = rnap_counter.get)
 		else:
-			msg = 'Assigning user default RNAP \'{:s}\' to missing polymerase in \'{:s}\''
+			msg = 'INFO: Assigning user default RNAP \'{:s}\' to missing polymerase in \'{:s}\''
 			most_common = user_default_rnap
 
 		for transcription_data in me.transcription_data:
@@ -2367,7 +2373,7 @@ class MEReconstruction(MEBuilder):
 				coralme.builder.transcription.add_rna_excision_machinery(me, excision_type, stoichiometry)
 			else:
 				coralme.builder.transcription.add_rna_excision_machinery(me, excision_type, {'CPLX_dummy' : +1}) # +1 is correct
-				logging.warning('All the components of the excision complex for \'{:s}\' were not identified from homology and it was assigned to the \'CPLX_dummy\' complex.'.format(excision_type))
+				logging.warning('WARNING: All the components of the excision complex for \'{:s}\' were not identified from homology and it was assigned to the \'CPLX_dummy\' complex.'.format(excision_type))
 
 		# add excision machineries into TranscriptionData
 		# WARNING: subreactions is now a property of the TranscriptionData recalculated when accessed
@@ -2794,8 +2800,8 @@ class MEReconstruction(MEBuilder):
 
 			for met in [ v[1] for k,v in sasa_dct.items() ]:
 				if met:
-					logging.warning('The complex \'{:s}\' has no valid formula to determine its molecular weight.'.format(met))
-					logging.warning('Please, set a value in the keff input file for reactions associated to the \'{:s}\' complex.'.format(met))
+					logging.warning('ERROR: The complex \'{:s}\' has no valid formula to determine its molecular weight.'.format(met))
+					logging.warning('WARNING: Please, set a value in the keff input file for reactions associated to the \'{:s}\' complex.'.format(met))
 
 			median_sasa = numpy.median([ v[0] for k,v in sasa_dct.items() if v[0] != 0 ])
 
@@ -2817,7 +2823,7 @@ class MEReconstruction(MEBuilder):
 
 			mapped_keffs = {}
 			for rxn in tqdm.tqdm(reaction_ids, 'Estimating effective turnover rates for reactions using the SASA method...', bar_format = bar_format):
-				logging.warning('Estimating effective turnover rates for reaction \'{:s}\''.format(rxn.id))
+				logging.warning('INFO: Estimating effective turnover rates for reaction \'{:s}\''.format(rxn.id))
 
 				base_id = rxn._stoichiometric_data.id
 				cplx_id = me.metabolites.get_by_id(rxn._complex_data.id).id
@@ -2861,7 +2867,7 @@ class MEReconstruction(MEBuilder):
 					# update() will convert the coupling coefficient into mu / value / 3600.
 					if hasattr(rxn, 'update'): # subreactions has no update attribute
 						rxn.update()
-					logging.warning('Setting the effective turnover rate for \'{:s}\' in {:f} successfully.'.format(rxn.id, float(keff)))
+					logging.warning('INFO: Setting the effective turnover rate for \'{:s}\' in {:f} successfully.'.format(rxn.id, float(keff)))
 
 		# ### 5. Add metabolite compartments
 		coralme.builder.compartments.add_compartments_to_model(me)
@@ -3034,19 +3040,23 @@ class METroubleshooter(object):
 
 		if gapfill_cofactors:
 			# Ensure cofactors can be produced
-			logging.warning('  '*1 + 'Ensuring the ME-model can produce all cofactors')
+			logging.warning('  '*1 + 'Ensuring the coralME model can produce all cofactors')
 			cofactors = coralme.builder.troubleshooting.get_cofactors_in_me_model(self.me_model)
 			ts_cofactors = coralme.builder.troubleshooting.add_exchange_reactions(self.me_model, cofactors, prefix = 'COFACTOR_TS_')
 			for ts in ts_cofactors:
 				ts.bounds = (1e-6,1000)
 
 		# Step 1. Test if current ME-model is feasible
-		logging.warning('  '*1 + 'Checking if the ME-model can simulate growth without gapfilling reactions...')
+		if check_feasibility:
+			logging.warning('  '*1 + 'Checking if the coralME model can simulate growth without gapfilling reactions...')
 		if self.me_model.check_feasibility(keys = growth_key_and_value):
-			logging.warning('  '*1 + 'Original ME-model is feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
+				logging.warning('  '*1 + 'Original coralME model is feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
 			works = True
 		else:
-			logging.warning('  '*1 + 'Original ME-model is not feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
+				logging.warning('  '*1 + 'Original coralME model is not feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
+				works = False
+		else:
+			logging.warning('  '*1 + 'Skipping the feasibility check of the original coralME model...')
 			works = False
 
 		# Step 2. Test different sets of MEComponents
@@ -3105,18 +3115,22 @@ class METroubleshooter(object):
 			# final optimization
 			if self.me_model.get_solution(max_mu = 3.0, precision = 1e-6, verbose = False):
 				if hasattr(self.me_model, 'gem'):
-					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+					if self.me_model.notes.get('from cobra', False):
+						self.me_model.optimize() # coralME returns True or False
+						logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
 				else:
-					logging.warning('  '*1 + 'Gapfilled ME-model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
+						logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
+				else:
+					logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
 			else:
-				logging.warning('  '*1 + 'Error: Gapfilled ME-model is not feasible ?')
+				logging.warning('  '*1 + 'Error: Gapfilled coralME model is not feasible ?')
 
 			# save model as a pickle file
 			if savefile is None:
 				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-				message = 'ME-model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
+				message = 'coralME model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
 			elif pathlib.Path(savefile).parent.exists():
-				message = 'ME-model was saved to {:s}.'.format(savefile)
+				message = 'coralME model was saved to {:s}.'.format(savefile)
 			else:
 				message = False
 				logging.warning('Model was not saved. Please do it manually.')

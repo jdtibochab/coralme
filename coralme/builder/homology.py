@@ -119,6 +119,7 @@ class Homology(object):
 				for rc, rrow in ref_complexes.iterrows():
 					rgenes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in rrow['genes'].split(' AND ')]
 					if not set(rgenes).issubset(set(mutual_hits.keys())):
+						logging.warning('WARNING: One or more genes in reference complex \'{:s}\' has no homology to target genome.'.format(rc))
 						continue  # All ref genes must have a hit
 					ogenes = [mutual_hits[og] for og in genes]
 					if set(rgenes) == set(ogenes):  # Complex identified
