@@ -181,6 +181,8 @@ class MEBuilder(object):
 			"biocyc.TUs",
 			"biocyc.RNAs",
 			"biocyc.seqs",
+
+			"tRNAscan_output"
 			]:
 
 			if config.get(filename, None) is None:
@@ -533,6 +535,7 @@ class MEBuilder(object):
 			'Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Gln', 'Glu', 'Gly', 'His', 'Ile',
 			'Leu', 'Lys', 'Met', 'Phe', 'Pro', 'Ser', 'Thr', 'Trp', 'Tyr', 'Val'
 			]
+		check_canonical_aas = set(canonical_aas.copy())
 
 		for contig in contigs:
 			iterator = tqdm.tqdm(contig.features, 'Getting tRNA to codon dictionary from {}'.format(contig.id), bar_format = bar_format) if len(contigs) < 10 else contig.features
@@ -565,9 +568,18 @@ class MEBuilder(object):
 				bnum = self.org._get_feature_locus_tag(feature)
 				if bnum is None:
 					continue
+				
+				# missing annotation from genbank can be repaired using tRNAscan output
+				trna_dict = {}
+				if self.configuration.get('tRNAscan_output', False):
+					trna_dict = coralme.builder.helper_functions.get_tRNAscan_as_dict(self.configuration['tRNAscan_output'])
+
 				aa = feature.qualifiers.get('product', ['tRNA-None'])[0].split('-')[1]
+				if aa == 'None' and bool(trna_dict):
+					aa = trna_dict.get(bnum, 'None')
+
 				if aa in canonical_aas + ['Asx', 'Glx', 'fMet', 'Sec']:
-					pass
+					check_canonical_aas = check_canonical_aas.difference([aa])
 				else:
 					logging.warning('The tRNA \'{:s}\' is not associated to a valid product name (tRNA-Amino acid 3 letters code)'.format(bnum))
 					continue
@@ -607,6 +619,16 @@ class MEBuilder(object):
 					aa2trna['m'][bnum] = aa
 				elif organelle.lower() in ['chloroplast', 'plastid']:
 					aa2trna['h'][bnum] = aa
+
+		# add missing tRNAs if user-flag input
+		if self.configuration.get('add_missing_tRNAs', False) and len(check_canonical_aas) != 0:
+			trna = str(numpy.random.choice(list(trna_to_aa.keys())))
+			trna_to_aa.update({ trna:v for v in check_canonical_aas })
+			logging.warning('INFO: The tRNA \'{:s}\' was associated to \'{:s}\' amino acids.'.format(trna, ', '.join(check_canonical_aas)))
+		elif len(check_canonical_aas) != 0:
+			raise ValueError('Missing tRNAs were identified for the {:s} amino acids. Use \'add_missing_tRNAs\' to associate a random tRNA to the amino acids.'.format(', '.join(check_canonical_aas)))
+		else:
+			logging.warning('INFO: All canonical amino acids were associated to at least one tRNA.')
 
 		# trna_to_codon does not account for misacylation: { 'tRNA ID' : 'Amino acid to load into the tRNA' }
 		trna_to_aa = { k:v.replace('fMet', 'Met') for k,v in trna_to_aa.items() }
@@ -676,6 +698,7 @@ class MEBuilder(object):
 		me_model.global_info['trna_to_codon'] = trna_to_codon
 
 		me_model.global_info['trna_misacylation'] = trna_misacylation
+		me_model.global_info['check_canonical_aas'] = check_canonical_aas
 
 		return None
 

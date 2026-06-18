@@ -536,3 +536,34 @@ def _copy_m_model(m_model):
 			new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
 
 	return new_model
+
+def get_tRNAscan_as_dict(infile):
+	import pandas
+
+	columns = [
+		'sequence',
+		'trna_number',
+		'begin',
+		'end',
+		'type',
+		'codon',
+		'anticodon',
+		'intron_begin',
+		'intron_end',
+		'score',
+	]
+
+	data = pandas.read_csv(
+		infile,
+		sep = r'\s+',
+		comment = '#',
+		names = columns,
+		skiprows = 3,
+	)
+
+	trna_dict = {
+		row['sequence'] : row['type'][:3] if row['type'] != 'fMet' else row['type']
+		for _, row in data.iterrows()
+	}
+
+	return trna_dict
