@@ -2613,13 +2613,14 @@ class MEReconstruction(MEBuilder):
 			compartment_dict[idx] = compartment
 
 		lipid_modifications = me.global_info.get('lipid_modifications')
-		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors', [])
+		lipoprotein_precursors = me.global_info.get('lipoprotein_precursors', {}) # lipoprotein_precursors is a dictionary ref:org
 
 		# Step1: assign enzymes to lipid modifications
 		for data in me.process_data.query('^mod_1st'):
 			data.enzyme = me.global_info.get('pg_pe_160', 'CPLX_dummy')
-		for data in me.process_data.query('^mod_2nd'):
-			data.enzyme = me.global_info.get('other_lipids', 'CPLX_dummy')
+		if me.global_info['gram_negative']:
+			for data in me.process_data.query('^mod_2nd'):
+				data.enzyme = me.global_info.get('other_lipids', 'CPLX_dummy')
 
 		# Step2: add reactions of lipoprotein formation
 		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:

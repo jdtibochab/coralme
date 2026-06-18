@@ -78,12 +78,16 @@ def add_translocation_pathways(model, pathways_df, abbreviation_to_pathway, mult
 
 def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, lipid_modifications, membrane_constraints = False, update = True):
 	# add_lipoprotein_formation helper function
-	def add_lipoprotein_data_and_reaction(first_lipid, second_lipid):
-
+	def add_lipoprotein_data_and_reaction(reaction_prefix, first_lipid, second_lipid):
 		# Add PostTranslation Data, modifications and surface area
-		data = coralme.core.processdata.PostTranslationData(reaction_prefix + '_' + second_lipid, model, processed_id, preprocessed_id)
-		data.subreactions['mod_1st_' + first_lipid] = 1
-		data.subreactions['mod_2nd_' + second_lipid] = 1
+		if not model.process_data.has_id(reaction_prefix + '_' + second_lipid):
+			data = coralme.core.processdata.PostTranslationData(reaction_prefix + '_' + second_lipid, model, processed_id, preprocessed_id)
+		else:
+			data = model.process_data.get_by_id(reaction_prefix + '_' + second_lipid)
+
+		data.subreactions['mod_1st_' + first_lipid] = 1.
+		if model.global_info['gram_negative']:
+			data.subreactions['mod_2nd_' + second_lipid] = 1.
 		data.biomass_type = 'lipid_biomass'
 
 		if membrane_constraints:
@@ -98,8 +102,14 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 				}
 
 		# Add Reaction to model and associated it with its data
-		rxn = coralme.core.reaction.PostTranslationReaction(reaction_prefix + '_' + second_lipid)
-		model.add_reactions([rxn])
+		if model.global_info['gram_negative']:
+			rxn = coralme.core.reaction.PostTranslationReaction(reaction_prefix + '_' + second_lipid)
+		else:
+			# gram positives has no lnt (b0657)
+			rxn = coralme.core.reaction.PostTranslationReaction(reaction_prefix)
+
+		if not model.reactions.has_id(rxn):
+			model.add_reactions([rxn])
 		rxn.posttranslation_data = data
 		
 		if update:
@@ -117,8 +127,19 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 
 			for mod in lipid_modifications:
 				reaction_prefix = protein + '_lipid_modification_' + mod
-				add_lipoprotein_data_and_reaction(mod, 'pe160_p')
-				add_lipoprotein_data_and_reaction(mod, 'pg160_p')
+				if model.metabolites.has_id('pe160_p'):
+					add_lipoprotein_data_and_reaction(reaction_prefix, mod, 'pe160_p')
+				elif model.metabolites.has_id('pe160_c'):
+					add_lipoprotein_data_and_reaction(reaction_prefix, mod, 'pe160_c')
+				else:
+					logging.warning('WARNING: M-model might lack \'pe160_c\' or \'pe160_p\' and lipoprotein formation reaction(s) will be blocked.')
+					
+				if model.metabolites.has_id('pg160_p'):
+					add_lipoprotein_data_and_reaction(reaction_prefix, mod, 'pg160_p')
+				elif model.metabolites.has_id('pg160_c'):
+					add_lipoprotein_data_and_reaction(reaction_prefix, mod, 'pg160_c')
+				else:
+					logging.warning('WARNING: M-model might lack \'pg160_c\' or \'pg160_p\' and lipoprotein formation reaction(s) will be blocked.')
 
 		if model.metabolites.has_id('protein_' + protein) and compartment is None:
 			logging.warning('WARNING: A lipoprecursor protein \'{:s}\' has not compartment. Please check the list of IDs in \'lipoprotein_precursors\' and the compartment of the protein in the OSM.'.format(protein))

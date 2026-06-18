@@ -43,6 +43,8 @@ class MEModel(cobra.core.object.Object):
 
 		self.global_info = {
 			'domain' : 'Prokaryote',
+			'gram_negative' : True,
+
 			'growth_key' : mu,
 			'ME-Model-ID' : id_or_model,
 

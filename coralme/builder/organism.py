@@ -1973,9 +1973,18 @@ class Organism(object):
     def get_lipids(self):
         """ Gets lipids from M-model."""
         m_model = self.m_model
-        return [
-            str(m.id) for m in m_model.metabolites.query(re.compile("^[a-z]*[0-9]{2,3}_.$"))
-        ]
+        lipids = set(str(m.id) for m in m_model.metabolites.query(re.compile("^[a-z]*[0-9]{2,3}_.$")))
+        for met in lipids.copy():
+            with m_model as test:
+                test.add_boundary(test.metabolites.get_by_id(met), type = 'demand')
+                test.objective = 'DM_{:s}'.format(met)
+                sol = test.optimize()
+                if sol.objective_value > 0:
+                    logging.warning('INFO: The metabolite ID \'{:s}\' was added to the lipid_modifications.'.format(met))
+                else:
+                    lipids.remove(met)
+                    logging.warning('WARNING: The metabolite ID \'{:s}\' cannot be produced. Check if lipid_modifications is empty or use the \'add_lipoproteins\' = False option.'.format(met))
+        return list(lipids)
 
     def _get_feature_locus_tag(self,
                                feature):
