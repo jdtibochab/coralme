@@ -94,6 +94,8 @@ class ExtendedQuantity(pint.Quantity):
 		resulting_units = self.units
 
 		for key, value in substitutions.items():
+			if value is None:
+				continue
 			if isinstance(key, sympy.Symbol):
 				symbol = key
 				symbol_units = 1
@@ -244,8 +246,8 @@ class ScalableKeyDict(dict):
 		{2: 10, 3: 20}
 	"""
 	def __mul__(self, scalar):
-		if not isinstance(scalar, (int, float)):
-			raise TypeError("Can only multiply by int or float")
+		if not isinstance(scalar, (int, float, sympy.core.symbol.Symbol, sympy.core.mul.Mul)):
+			raise TypeError("Can only multiply by int, float or sympy.Symbol")
 		return ScalableKeyDict({key: value * scalar for key, value in self.items()})
 
 	def __rmul__(self, scalar):
@@ -282,69 +284,320 @@ class MappableList(list):
 	- Preserves MappableList type for operations
 	- Optional internal mapping preservation
 
-	Example:
-		>>> lst = MappableList([1, 2, 3])
-		>>> lst.map(lambda x: x*2)
-		MappableList([2, 4, 6])
+	Examples
+	--------
+	>>> lst = MappableList([1, 2, 3])
+	>>> lst.map(lambda x: x * 2)
+	MappableList([2, 4, 6])
+
+	>>> objs = MappableList([...])
+	>>> objs.artifact.filter(lambda x: x is not None)
+	{obj1 : value1, obj2 : value2}
 	"""
+
+	def __init__(self, iterable = (), mapping = None):
+		"""
+		Initialize the MappableList.
+
+		Parameters
+		----------
+		iterable : iterable, optional
+			Elements to populate the list.
+		mapping : dict, optional
+			Optional mapping between original objects and extracted values.
+		"""
+		super().__init__(iterable)
+		self._mapping = mapping
+
 	def map(self, func):
-		"""Apply a function to each element."""
-		return MappableList([func(x) for x in self])
+		"""
+		Apply a function to every element.
+
+		Parameters
+		----------
+		func : callable
+			Function applied to each element.
+
+		Returns
+		-------
+		MappableList
+			New mapped list preserving mapping metadata.
+		"""
+		return MappableList(
+			map(func, self),
+			mapping = self._mapping
+		)
 
 	def filter(self, func):
-		"""Keep elements where func(element) is True."""
-		return MappableList([x for x in self if func(x)])
+		"""
+		Filter elements using a predicate.
 
-	def reduce(self, func, initial=None):
-		"""Reduce the list to a single value."""
-		return functools.reduce(func, self, initial) if initial is not None else reduce(func, self)
+		If the object contains an internal mapping, the filtered
+		result is returned as a dictionary preserving original keys.
+
+		Parameters
+		----------
+		func : callable
+			Function returning True for elements to keep.
+
+		Returns
+		-------
+		dict or MappableList
+			Filtered dictionary if mapping exists,
+			otherwise a filtered MappableList.
+		"""
+		if self._mapping is None:
+			return MappableList(filter(func, self))
+
+		return {
+			k : v for k, v in self._mapping.items()
+			if func(v)
+		}
+
+	def reduce(self, func, initial = None):
+		"""
+		Reduce elements using a binary function.
+
+		Parameters
+		----------
+		func : callable
+			Reduction function.
+		initial : any, optional
+			Initial accumulator value.
+
+		Returns
+		-------
+		any
+			Reduced result.
+		"""
+		if initial is not None:
+			return functools.reduce(func, self, initial)
+
+		return functools.reduce(func, self)
 
 	def __getattr__(self, attr):
-		"""Access attributes or dict keys across elements."""
+		"""
+		Extract an attribute or dictionary key from all elements.
+
+		Parameters
+		----------
+		attr : str
+			Attribute or dictionary key name.
+
+		Returns
+		-------
+		MappableList
+			List of extracted values with preserved mapping.
+
+		Raises
+		------
+		AttributeError
+			If an element does not contain the requested attribute/key.
+		"""
+		
+	def __getattr__(self, attr):
 		values = []
+		mapping = {}
+
 		for x in self:
 			if isinstance(x, dict) and attr in x:
-				values.append(x[attr])
+				value = x[attr]
+
 			elif hasattr(x, attr):
-				values.append(getattr(x, attr))
+				value = getattr(x, attr)
+
 			else:
-				raise AttributeError(f"Element {x!r} has no attribute or key '{attr}'")
-		return MappableList(values)
+				raise AttributeError(
+					f"Element {x!r} has no attribute or key '{attr}'"
+				)
+
+			values.append(value)
+			mapping[x] = value
+
+		if all(callable(v) for v in values):
+			def wrapper(*args, **kwargs):
+				results = []
+
+				for x, method in zip(self, values):
+					results.append(method(*args, **kwargs))
+
+				return MappableList(results)
+
+			return wrapper
+
+		return MappableList(values, mapping = mapping)
 
 	def get(self, *attrs):
-		"""Get one or more attributes/keys (supports dot notation)."""
-		values = []
-		for x in self:
-			row = []
-			for attr in attrs:
-				val = self._get_nested(x, attr)
-				row.append(val)
-			values.append(tuple(row) if len(row) > 1 else row[0])
-		return MappableList(values)
+		"""
+		Extract one or more nested attributes/keys.
+
+		Supports dot notation for nested access.
+
+		Parameters
+		----------
+		*attrs : str
+			Attribute/key paths.
+
+		Returns
+		-------
+		MappableList
+			Extracted values or tuples of values.
+		"""
+		def extract(x):
+			values = [self._get_nested(x, attr) for attr in attrs]
+
+			if len(values) == 1:
+				return values[0]
+
+			return tuple(values)
+
+		return MappableList(map(extract, self))
 
 	def _get_nested(self, obj, attr):
-		"""Recursively get nested attributes or keys using dot notation."""
+		"""
+		Retrieve nested attributes/keys using dot notation.
+
+		Parameters
+		----------
+		obj : any
+			Object or dictionary.
+		attr : str
+			Dot-separated path.
+
+		Returns
+		-------
+		any
+			Extracted nested value.
+
+		Raises
+		------
+		AttributeError
+			If the path does not exist.
+		"""
 		for part in attr.split('.'):
 			if isinstance(obj, dict) and part in obj:
 				obj = obj[part]
+
 			elif hasattr(obj, part):
 				obj = getattr(obj, part)
+
 			else:
-				raise AttributeError(f"Object {obj!r} has no attribute or key '{part}'")
+				raise AttributeError(
+					f"Object {obj!r} has no attribute or key '{part}'"
+				)
+
 		return obj
 
+	def as_dict(self):
+		"""
+		Return the preserved mapping dictionary.
+
+		Returns
+		-------
+		dict or None
+			Internal mapping between original objects and values.
+		"""
+		return self._mapping
+
+	def items(self):
+		"""
+		Return mapping items.
+
+		Returns
+		-------
+		dict_items
+			Mapping items.
+
+		Raises
+		------
+		ValueError
+			If no mapping is available.
+		"""
+		if self._mapping is None:
+			raise ValueError("No mapping available")
+
+		return self._mapping.items()
+
+	def keys(self):
+		"""
+		Return mapping keys.
+
+		Returns
+		-------
+		dict_keys
+			Mapping keys.
+
+		Raises
+		------
+		ValueError
+			If no mapping is available.
+		"""
+		if self._mapping is None:
+			raise ValueError("No mapping available")
+
+		return self._mapping.keys()
+
+	def values(self):
+		"""
+		Return mapping values.
+
+		Returns
+		-------
+		dict_values
+			Mapping values.
+
+		Raises
+		------
+		ValueError
+			If no mapping is available.
+		"""
+		if self._mapping is None:
+			raise ValueError("No mapping available")
+
+		return self._mapping.values()
+
 	def to_list(self):
-		"""Convert to a plain Python list."""
+		"""
+		Convert to a plain Python list.
+
+		Returns
+		-------
+		list
+			Standard Python list.
+		"""
 		return list(self)
 
 	def __getitem__(self, key):
-		"""Preserve MappableList type for slices."""
+		"""
+		Get element or slice.
+
+		Parameters
+		----------
+		key : int or slice
+			Index or slice.
+
+		Returns
+		-------
+		any or MappableList
+			Element or sliced MappableList.
+		"""
 		result = super().__getitem__(key)
-		return MappableList(result) if isinstance(key, slice) else result
+
+		if isinstance(key, slice):
+			return MappableList(result)
+
+		return result
 
 	def __repr__(self):
-		"""String representation."""
-		return f"MappableList({list(self)})"
+		"""
+		Return string representation.
+
+		Returns
+		-------
+		str
+			Formatted representation.
+		"""
+		return "MappableList({})".format(list(self))
 
 class MCounter(collections.Counter):
 	"""
@@ -446,3 +699,86 @@ class MEModelWrapper:
 		except Exception:
 			reaction_ids = set()
 		return sorted(base_dir | metabolite_ids | reaction_ids)
+
+class Formula:
+    """
+    Chemical formula class with element-wise arithmetic.
+    """
+
+    _pattern = re.compile(r'([A-Z][a-z]?)(\d*)')
+
+    def __init__(self, formula=None, composition=None):
+        if composition is not None:
+            self.comp = collections.defaultdict(int, composition)
+        else:
+            self.comp = collections.defaultdict(int)
+            if formula:
+                self._parse(formula)
+
+    def _parse(self, formula):
+        for elem, count in self._pattern.findall(formula):
+            count = int(count) if count else 1
+            self.comp[elem] += count
+
+    @staticmethod
+    def from_model(id, model):
+        met = model.metabolites.get_by_id(id) if model.metabolites.has_id(id) else None
+        return Formula(met.formula) if met.formula is not None else None
+
+    def copy(self):
+        return Formula(composition=dict(self.comp))
+
+    def __add__(self, other):
+        result = self.copy()
+        for elem, count in other.comp.items():
+            result.comp[elem] += count
+        return result
+
+    def __sub__(self, other):
+        result = self.copy()
+        for elem, count in other.comp.items():
+            result.comp[elem] -= count
+        return result
+
+    def __mul__(self, scalar):
+        result = Formula()
+        for elem, count in self.comp.items():
+            result.comp[elem] = count * scalar
+        return result
+
+    __rmul__ = __mul__
+
+    def clean(self):
+        self.comp = collections.defaultdict(
+            int,
+            {k: v for k, v in self.comp.items() if v != 0}
+        )
+        return self
+
+    def validate(self):
+        if any(v < 0 for v in self.comp.values()):
+            raise ValueError("Negative stoichiometry detected")
+        return True
+
+    def to_dict(self):
+        return dict(self.comp)
+
+    def to_formula(self):
+        def sort_key(x):
+            elem = x[0]
+            if elem == 'C':
+                return (0, elem)
+            elif elem == 'H':
+                return (1, elem)
+            return (2, elem)
+
+        sorted_items = sorted(self.comp.items(), key=sort_key)
+
+        return ''.join(
+            "{}{}".format(elem, count if count != 1 else "")
+            for elem, count in sorted_items
+            if count > 0
+        )
+
+    def __repr__(self):
+        return self.to_formula()
