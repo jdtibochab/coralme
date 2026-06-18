@@ -199,7 +199,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 	sk_rxns = coralme.builder.troubleshooting.add_exchange_reactions(me_model, metabolites_to_add, prefix='TS_')
 
 	if me_model.get_feasibility(keys = growth_key_and_value):
-		pass
+		basis = me_model.basis # reuse a feasible basis for the next iterations
 	else:
 		logging.warning('  '*5 + 'Provided metabolites through sink reactions cannot recover growth. Proceeding to next set of metabolites.')
 		return metabolites_to_add, [], False
@@ -245,7 +245,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 	for idx, (rxn, pos) in enumerate(ridx):
 		lb[pos] = 0
 		ub[pos] = 0
-		if me_model.get_feasibility(keys = growth_key_and_value, **{'lp' : [Sf, dict(), lb, ub, b, c, cs, set(), lambdas, Lr, Lm]}):
+		if me_model.get_feasibility(keys = growth_key_and_value, basis = basis, **{'lp' : [Sf, dict(), lb, ub, b, c, cs, set(), lambdas, Lr, Lm]}):
 			res.append(False)
 			logging.warning('{:s} {:s}'.format('  '*6, msg.format(str(idx+1).rjust(len(str(len(ridx)))), len(ridx), len([ x for x in res if x ]), '', rxn)))
 		else:
@@ -253,6 +253,9 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 			ub[pos] = +1000
 			res.append(True)
 			logging.warning('{:s} {:s}'.format('  '*6, msg.format(str(idx+1).rjust(len(str(len(ridx)))), len(ridx), len([ x for x in res if x ]), 'not ', rxn)))
+	
+	if hasattr(me_model, 'basis'):
+		del me_model.basis # clean up the basis to avoid confusion in the next iterations
 
 	bf_gaps = [ y for x,y in zip(res, rxns) if x ] # True
 	no_gaps = [ y for x,y in zip(res, rxns) if not x ] + rxns_to_drop
@@ -288,12 +291,12 @@ def _append_metabolites(mets,new_mets):
 	"""Merge metabolite lists"""
 	return mets + [m for m in new_mets if m not in mets]
 
-def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict(), solver = "qminos"):
+def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict(), solver = "qminos", assumptions = True):
 	"""Remove metabolites from our heuristics and call the brute force search algorithm"""
 	mets = get_mets_from_type(me_model,met_type)
-	if met_type == 'Metabolite':
+	if met_type in ['ME-Deadends', 'Biomass', 'Cofactors', 'Amino-acids', 'All-Deadends', 'Metabolite'] and assumptions:
 		#remove from the metabolites to test that are fed into the model through transport reactions
-		medium = set([ '{:s}_c'.format(x[3:-2]) for x in me_model.gem.medium.keys() ])
+		medium = set([ '{:s}_c'.format(x[3:-2]) for x in me_model.medium.keys() ])
 		mets = set(mets).difference(medium)
 		# filter out manually
 		mets = set(mets).difference(set(['ppi_c', 'ACP_c', 'h_c']))

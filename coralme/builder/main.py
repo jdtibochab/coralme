@@ -1538,7 +1538,7 @@ class MEBuilder(object):
 	def build_me_model(self, update = True, prune = True, overwrite = False, skip = None):
 		coralme.builder.main.MEReconstruction(self).build_me_model(update = update, prune = prune, overwrite = overwrite, skip = skip)
 
-	def troubleshoot(self, growth_key_and_value = None, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'qminos', savefile = None, gapfill_cofactors = False):
+	def troubleshoot(self, growth_key_and_value = None, check_feasibility = True, skip = set(), guesses = set(), met_types = set(), platform = None, solver = 'qminos', savefile = None, gapfill_cofactors = False, optimize = True, skip_met_types = set()):
 		"""
 		growth_key_and_value:
 			dictionary of Sympy.Symbol and value to replace
@@ -1556,7 +1556,7 @@ class MEBuilder(object):
 			file path (absolute or relative) to save the ME-model as a pickle file
 		"""
 
-		coralme.builder.main.METroubleshooter(self).troubleshoot(growth_key_and_value, skip = skip, guesses = guesses, platform = platform, solver = solver, savefile = savefile,gapfill_cofactors=gapfill_cofactors)
+		coralme.builder.main.METroubleshooter(self).troubleshoot(growth_key_and_value, check_feasibility = check_feasibility, skip = skip, guesses = guesses, met_types = met_types, platform = platform, solver = solver, savefile = savefile,gapfill_cofactors=gapfill_cofactors,optimize=optimize,skip_met_types=skip_met_types)
 		coralme.builder.notes.save_curation_notes(
 				self.curation_notes,
 				self.configuration['out_directory'] + '/curation_notes.json'
@@ -2892,9 +2892,10 @@ class METroubleshooter(object):
 		self.configuration = builder.configuration
 		self.curation_notes = builder.curation_notes
 
-	def troubleshoot(self, growth_key_and_value = None, skip = set(),
-		guesses = [], met_types = [], platform = None, solver = 'qminos', savefile = None,
-		gapfill_cofactors = False):
+	def troubleshoot(self, growth_key_and_value = None, check_feasibility = True,
+		check = [ 'M-matrix', 'E-matrix' ], met_types = [], skip_met_types = set(),
+		guesses = set(), skip = set(), platform = None, solver = 'qminos', savefile = None,
+		gapfill_cofactors = False, assumptions = True, optimize = True):
 		"""Performs the Gap-finding step of the reconstruction.
 
 		This function will iterate through different parts of the M-
@@ -2914,27 +2915,30 @@ class METroubleshooter(object):
 			'TranslatedGene', 'ProcessedProtein', and/or 'GenericComponent'.
 		solver: str
 			Solver to use. Values: 'qminos', 'gurobi' or 'cplex'
+		assumptions: bool
+			Avoid metabolites that are suppose to be produced by the model.
 		"""
 		types = {
-			'M-matrix' : [ 'ME-Deadends', 'Cofactors', 'All-Deadends', 'Metabolite' ],
-			'E-matrix' : [ 'GenerictRNA', 'Complex', 'TranscribedGene', 'TranslatedGene', 'ProcessedProtein', 'GenericComponent' ]
+			'M-matrix' : [ 'ME-Deadends', 'Biomass', 'Cofactors', 'Amino-acids', 'All-Deadends', 'Metabolite' ],
+			'E-matrix' : [ 'GenericComponent', 'ProcessedProtein', 'TranslatedGene', 'TranscribedGene', 'Complex' ]
 			}
-
+		
 		if hasattr(self, 'notes') and self.notes.get('from cobra', False):
 			met_types = [ ('M-matrix', 'Metabolite') ]
 		elif len(met_types) > 0:
-			met_types = [ ('M-matrix', x) if x in types['M-matrix'] else ('E-matrix', x) if x in types['E-matrix'] else None for x in set(met_types) ]
+			met_types = [ ('M-matrix', x) if x in types['M-matrix'] else ('E-matrix', x) if x in types['E-matrix'] else None for x in set(met_types).difference(skip_met_types) ]
 			met_types = [ x for x in met_types if x is not None ]
 		else:
 			logging.warning('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
 			met_types = []
 			for x, y in types.items():
-				for met in y:
-					met_types.append((x, met))
+				for met_type in y:
+					if met_type not in skip_met_types:
+						met_types.append((x, met_type))
 
 		if not hasattr(self, 'me_model'):
 			me = self
-			self = coralme.builder.main.MEBuilder(**{'out_directory' : '.'})
+			self = coralme.builder.main.MEBuilder(**{'m-model-path' : '.', 'genbank-path' : '.', 'out_directory' : '.'})
 			self.me_model = me
 			self.configuration['out_directory'] = './'
 			self.configuration['log_directory'] = './'
@@ -2991,10 +2995,10 @@ class METroubleshooter(object):
 		# Step 1. Test if current ME-model is feasible
 		if check_feasibility:
 			logging.warning('  '*1 + 'Checking if the coralME model can simulate growth without gapfilling reactions...')
-		if self.me_model.check_feasibility(keys = growth_key_and_value):
+			if self.me_model.check_feasibility(keys = growth_key_and_value):
 				logging.warning('  '*1 + 'Original coralME model is feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
-			works = True
-		else:
+				works = True
+			else:
 				logging.warning('  '*1 + 'Original coralME model is not feasible with a tested growth rate of {:f} 1/h'.format(list(growth_value)[0]))
 				works = False
 		else:
@@ -3002,10 +3006,11 @@ class METroubleshooter(object):
 			works = False
 
 		# Step 2. Test different sets of MEComponents
+		guesses = set(guesses) if isinstance(guesses, (set, list)) else set([guesses])
+		guesses = guesses.union(self.me_model.troubleshooting_guesses)
+		guesses = [ x for x in list(guesses) if self.me_model.metabolites.has_id(x) ]
 		if len(guesses) > 0:
-			guesses = [ x for x in guesses if self.me_model.metabolites.has_id(x) ]
-			if len(guesses) > 0:
-				met_types.insert(0, (guesses, 'User guesses'))
+			met_types.insert(0, (guesses, 'User guesses'))
 
 		e_gaps = []
 		history = dict()
@@ -3014,13 +3019,14 @@ class METroubleshooter(object):
 			for idx, met_type in enumerate(met_types):
 				logging.warning('  '*1 + 'Step {}. Gapfill reactions to provide components of type \'{:s}\' using brute force.'.format(idx + 1, met_type[1]))
 				if met_type[0] == 'E-matrix':
-					logging.warning('  '*5 + 'Relaxing bounds for E-matrix gap-fill')
-					self.me_model.relax_bounds()
+					# logging.warning('  '*5 + 'Relaxing bounds for E-matrix gap-fill')
+					rxns_to_skip = [ x.id for x in self.me_model.reactions.query('^EX_|^DM_|^SK_') ]
+					# self.me_model.relax_bounds(skip = set(rxns_to_skip))
 					self.me_model.reactions.protein_biomass_to_biomass.lower_bound = growth_value[0]/100 # Needed to enforce protein production
 				if met_type[1] == 'User guesses':
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history,solver=solver)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type, skip = skip, history = history,solver=solver,assumptions=assumptions)
 				else:
-					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history,solver=solver)
+					history, output = coralme.builder.troubleshooting.brute_check(self.me_model, growth_key_and_value, met_type[1], skip = skip, history = history,solver=solver,assumptions=assumptions)
 				bf_gaps, no_gaps, works = output
 				# close sink reactions that are not gaps
 				if no_gaps:
@@ -3053,13 +3059,17 @@ class METroubleshooter(object):
 				rxns = self.me_model.reactions.query('^COFACTOR_TS_')
 				self.me_model.remove_reactions(rxns)
 
+			if optimize:
+				logging.warning('~ '*1 + 'Final step. Fully optimizing with precision 1e-6 and save solution into the coralME model...')
+				self.me_model.get_solution(max_mu = 3.0, precision = 1e-6, verbose = False)
+			
 			# final optimization
-			if self.me_model.get_solution(max_mu = 3.0, precision = 1e-6, verbose = False):
+			if hasattr(self.me_model, 'solution'):
 				if hasattr(self.me_model, 'gem'):
 					if self.me_model.notes.get('from cobra', False):
 						self.me_model.optimize() # coralME returns True or False
 						logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
-				else:
+					else:
 						logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f} (M-model: {:f}).'.format(self.me_model.solution.objective_value, self.me_model.gem.optimize().objective_value))
 				else:
 					logging.warning('  '*1 + 'Gapfilled coralME model is feasible with growth rate {:f}.'.format(self.me_model.solution.objective_value))
@@ -3067,11 +3077,11 @@ class METroubleshooter(object):
 				logging.warning('  '*1 + 'Error: Gapfilled coralME model is not feasible ?')
 
 			# save model as a pickle file
-			if savefile is None:
+			if 'from cobra' not in self.me_model.notes and savefile is None:
 				self.me_model.reconstruction_time = datetime.datetime.now().astimezone()
 				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
 				message = 'coralME model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
-			elif pathlib.Path(savefile).parent.exists():
+			elif isinstance(savefile, str) and pathlib.Path(savefile).parent.exists():
 				message = 'coralME model was saved to {:s}.'.format(savefile)
 			else:
 				message = False
