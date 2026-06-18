@@ -2120,10 +2120,10 @@ class MEReconstruction(MEBuilder):
 		biomass_constituents = biomass_constituents.fillna('')
 		me.global_info['biomass_constituents'] = biomass_constituents
 
-		for idx, row in biomass_constituents.iterrows():
 		# replace IDs. New metabolites x types are created during the processing of the m_model
 		# old ID (M-model) : new ID (ME-model)
-			dct = df_mets[df_mets['type'].str.contains('REPLACE')].to_dict()['me_id']
+		dct = df_mets[df_mets['type'].str.contains('REPLACE')].to_dict()['me_id']
+		for idx, row in biomass_constituents.iterrows():
 			for key in list(row.keys()):
 				if key in dct:
 					row[dct[key]] = row.pop(key)
@@ -2147,7 +2147,7 @@ class MEReconstruction(MEBuilder):
 			rxn.add_metabolites({ k:-(abs(float(v))) for k,v in row.items() if isinstance(me.metabolites.get_by_id(k), coralme.core.component.Metabolite) and isinstance(v, (float, int)) })
 			rxn.lower_bound = 0. # me.mu # coralme.util.mu
 			rxn.upper_bound = 0. # me.mu # coralme.util.mu
-			constituent_mass = sum([me.metabolites.get_by_id(c).formula_weight / 1000. * abs(float(v)) for c,v in row.items() if isinstance(v, (float, int)) ])
+			constituent_mass = sum([me.metabolites.get_by_id(k).formula_weight / 1000. * abs(float(v)) for k,v in row.items() if isinstance(me.metabolites.get_by_id(k), coralme.core.component.Metabolite) and isinstance(v, (float, int)) ])
 			rxn.add_metabolites({me.metabolites.get_by_id('constituent_biomass'): constituent_mass})
 
 		# ### 2. Lipid Demand Requirements
@@ -2763,7 +2763,8 @@ class MEReconstruction(MEBuilder):
 
 		# Update biomass_constituent_demand reaction(s) with components that previously have no formula
 		for idx, row in biomass_constituents.iterrows():
-			constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(v) for c,v in row.items() if isinstance(v, (float, int)))
+			# WARNING: New components in the biomass reaction should not contribute to constituent_biomass
+			constituent_mass = sum([me.metabolites.get_by_id(k).formula_weight / 1000. * abs(float(v)) for k,v in row.items() if isinstance(me.metabolites.get_by_id(k), coralme.core.component.Metabolite) and isinstance(v, (float, int)) ])
 			name = 'biomass_constituent_demand' if idx == 'biomass_constituent_demand' else 'biomass_constituent_demand_' + idx
 			rxn = me.reactions.get_by_id(name)
 			rxn.add_metabolites({ k:-(abs(v)) for k,v in row.items() if isinstance(v, (float, int)) }, combine = False)
