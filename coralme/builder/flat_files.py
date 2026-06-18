@@ -2,12 +2,12 @@ import tqdm
 import json
 import cobra
 import pandas
+import collections
 
 import logging
 log = logging.getLogger(__name__)
 
 import coralme
-from collections import defaultdict, Counter
 
 def fix_id(id_str):
 	return id_str.replace('_DASH_', '__')
@@ -47,10 +47,10 @@ def get_reaction_matrix_dict(matrix_df, compartments = {}, complex_set = set()) 
 
 	# old code; replaced to get compartments from the me-model object
 	#compartments = {'Cytosol': 'c', 'Periplasm': 'p', 'Extra-organism': 'e'}
-	metabolic_reaction_dict = defaultdict(dict)
+	metabolic_reaction_dict = collections.defaultdict(dict)
 	for idx, row in matrix_df.iterrows():
 		reaction = fix_id(row['Reaction'])
-		metabolic_reaction_dict[reaction] = Counter() # allows doing math with repeated entries in a reaction/subreaction_matrix file
+		metabolic_reaction_dict[reaction] = collections.Counter() # allows doing math with repeated entries in a reaction/subreaction_matrix file
 
 	for idx, row in matrix_df.iterrows():
 		reaction = fix_id(row['Reaction'])
@@ -110,7 +110,7 @@ def get_reaction_to_complex(m_model, enz2rxn, modifications = True):
 	enz2rxn.columns = ['Complexes']
 	enz2rxn = enz2rxn.apply(lambda x: x.replace('DASH', ''))
 
-	rxn_to_complex_dict = defaultdict(set)
+	rxn_to_complex_dict = collections.defaultdict(set)
 	for reaction, complexes in enz2rxn.itertuples():
 		for cplx in complexes.split(' OR '):
 			if modifications:
@@ -356,7 +356,7 @@ def get_m_model(
 def get_trna_modification_targets(trna_mod) -> dict:
 	trna_mod.columns = ['bnum', 'modification', 'positions', 'enzymes']
 
-	trna_mod_dict = defaultdict(dict)
+	trna_mod_dict = collections.defaultdict(dict)
 	for idx, mod in trna_mod.iterrows():
 		mod_loc = '{:s}_at_{:s}'.format(mod['modification'], mod['positions'])
 		trna_mod_dict[mod['bnum']][mod_loc] = 1.

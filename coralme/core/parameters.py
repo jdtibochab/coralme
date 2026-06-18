@@ -232,7 +232,7 @@ class MEParameters():
 	@staticmethod
 	def coupling_coefficient_enzyme(obj, value):
 		if isinstance(obj, coralme.core.reaction.MetabolicReaction):
-			self._coupling_coefficient_enzyme = obj._model.mu * value.to('1 per hour')**-1 # mu/k_eff
+			obj._coupling_coefficient_enzyme = obj._model.mu * value.to('1 per hour')**-1 # mu/k_eff
 
 	# SubreactionData
 	@staticmethod
@@ -262,12 +262,12 @@ class MEParameters():
 			obj._coupling_coefficient_trna_amount = value
 
 	@property
-	def _recalculate_all_synthetase_keff(self):
+	def _recalculate_all_coupling_coefficient_synthetase_keff(self):
 		for obj in tqdm.tqdm(self._model.tRNA_data):
 			obj._synthetase_keff = self._model.symbols['k^default_cat']
 
 	@staticmethod
-	def synthetase_keff(obj, value):
+	def coupling_coefficient_synthetase_keff(obj, value):
 		if isinstance(obj, coralme.core.processdata.tRNAData):
 			obj._synthetase_keff = value
 

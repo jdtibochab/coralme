@@ -100,6 +100,8 @@ class Homology(object):
 		not_annotated_candidates = set()
 		warn_candidates = []
 
+		# This first half will remove duplicated, useless complexes
+		# Complexes created using GPRs have preference
 		for c, row in org_complexes_df.iterrows():
 			if isinstance(row['genes'], float) or not row['genes']:
 				continue
@@ -116,6 +118,7 @@ class Homology(object):
 
 				ref_gene = mutual_hits[g]
 				ref_complexes = ref_complexes_df[ref_complexes_df['genes'].str.contains(ref_gene)]
+
 				for rc, rrow in ref_complexes.iterrows():
 					rgenes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in rrow['genes'].split(' AND ')]
 					if not set(rgenes).issubset(set(mutual_hits.keys())):

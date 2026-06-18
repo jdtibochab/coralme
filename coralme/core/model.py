@@ -21,14 +21,13 @@ import sys
 
 # due to a circular import
 from coralme.core.component import Metabolite as Metabolite
-from coralme.core.reaction import MEReaction as MEReaction
+from coralme.core.reaction import MEReaction as MEReaction, BoundaryReaction as BoundaryReaction
 
 def _update(MEReaction):
 	"""updates all component reactions"""
 	MEReaction.update()
 	return None
 
-import types
 class MEModel(cobra.core.object.Object):
 	def __init__(self, id_or_model = 'coralME', name = 'coralME', mu = 'mu'):
 		#cobra.Model.__init__(self, name)
@@ -36,15 +35,10 @@ class MEModel(cobra.core.object.Object):
 		cobra.core.object.Object.__init__(self, id_or_model, name = name)
 
 		# simulation methods in optimization.py
-		self.optimize = types.MethodType(coralme.core.optimization.optimize, self)
-		self.optimize_windows = types.MethodType(coralme.core.optimization.optimize_windows, self)
-		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self) # qminos
-		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
-		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
-		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
-		self.fva = types.MethodType(coralme.core.optimization.fva, self)
+		self._bound_opt_methods = coralme.builder.helper_functions.bind_public_module_functions(self, coralme.core.optimization)
 
-		self.model_version = coralme.__version__
+		self.model_version = coralme.__version__.replace('.dirty', '')
+		self.reconstruction_time = datetime.datetime.now()
 
 		self.global_info = {
 			'domain' : 'Prokaryote',
@@ -55,7 +49,7 @@ class MEModel(cobra.core.object.Object):
 			'ribosome_id' : 'ribosome',
 			'dummy_rxn_id' : 'dummy_reaction',
 			'degradosome_id' : 'RNA_degradosome',
-			'mg2_per_ribosome' : 171,
+			'mg2_per_ribosome' : 171.0,
 			'amino_acid_loader' : 'generic_Tuf',
 			'feature_types' : [ 'CDS', 'rRNA', 'tRNA', 'ncRNA', 'tmRNA', 'misc_RNA' ],
 
@@ -68,8 +62,9 @@ class MEModel(cobra.core.object.Object):
 				'peroxiredoxins': [],
 				},
 
-			# analysis
+			# analysis and reconstruction flags
 			'add_lipoproteins' : False, #
+			'add_translocases' : True, # actually, True will assign CPLX_dummy to missing translocase components
 			'add_translocases' : True, # actually, assign CPLX_dummy to missing enzymes
 			'include_pseudo_genes' : False,
 			'run_bbh_blast' : True,
@@ -278,19 +273,30 @@ class MEModel(cobra.core.object.Object):
 		# aliases
 		self._aliases = { 'reactions' : {}, 'metabolites' : {} }
 
+	# Needed to read troubleshooted ME-models that didn't strip get_solution alias when pickling
+	def optimize(self, *args, **kwargs):
+		raise RuntimeError(
+			"Legacy placeholder optimize called during unpickling."
+		)
+
+	# Needed to read troubleshooted ME-models that didn't strip get_feasibility alias when pickling
+	def feasibility(self, *args, **kwargs):
+		raise RuntimeError(
+			"Legacy placeholder feasibility called during unpickling."
+		)
+
 	def __getstate__(self):
 		state = self.__dict__.copy()
 
 		# Don't pickle unit_registry
 		del state["unit_registry"]
+
 		# Don't pickle optimization methods
-		del state["optimize"]
-		del state["optimize_windows"]
-		del state["feasibility"]
-		del state["feas_gurobi"]
-		del state["feas_cplex"]
-		del state["construct_lp_problem"]
-		del state["fva"]
+		# remove all bound optimization methods before pickling
+		for name in getattr(self, "_bound_opt_methods", []):
+			if name in state:
+				del state[name]
+
 		# Don't pickle troubleshooting methods
 		if hasattr(self, 'get_solution'):
 			del state['get_solution']
@@ -305,13 +311,7 @@ class MEModel(cobra.core.object.Object):
 		self.unit_registry = self.mu._REGISTRY
 
 		# simulation methods in optimization.py
-		self.optimize = types.MethodType(coralme.core.optimization.optimize, self)
-		self.optimize_windows = types.MethodType(coralme.core.optimization.optimize_windows, self)
-		self.feasibility = types.MethodType(coralme.core.optimization.feasibility, self) # qminos
-		self.feas_gurobi = types.MethodType(coralme.core.optimization.feas_gurobi, self) # gurobi
-		self.feas_cplex = types.MethodType(coralme.core.optimization.feas_cplex, self) # cplex
-		self.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, self)
-		self.fva = types.MethodType(coralme.core.optimization.fva, self)
+		coralme.builder.helper_functions.bind_public_module_functions(self, coralme.core.optimization)
 
 	@property
 	def active_biomass_reaction(self):
@@ -396,7 +396,7 @@ class MEModel(cobra.core.object.Object):
 		if model.notes.get('from cobra', False):
 			return model
 
-		def reaction_from_cobra_model(model, reaction):
+		def _reaction_from_cobra_model(model, reaction):
 			new_reaction = MEReaction(reaction.id)
 			new_reaction.name = reaction.name
 			new_reaction.subsystem = reaction.subsystem
@@ -408,7 +408,7 @@ class MEModel(cobra.core.object.Object):
 			new_reaction.cofactors = reaction.cofactors if hasattr(reaction, 'cofactors') else cobra.core.GPR.from_string('')
 			return new_reaction
 
-		def metabolite_from_cobra_model(model, metabolite):
+		def _metabolite_from_cobra_model(model, metabolite):
 			new_metabolite = Metabolite(metabolite.id)
 			new_metabolite.name = metabolite.name
 			new_metabolite.formula = metabolite.formula
@@ -421,10 +421,10 @@ class MEModel(cobra.core.object.Object):
 
 		new_model = MEModel()
 		new_model.metabolites[0].remove_from_model()
-		new_model.add_metabolites([ metabolite_from_cobra_model(model, x) for x in model.metabolites ])
+		new_model.add_metabolites([ _metabolite_from_cobra_model(model, x) for x in model.metabolites ])
 		new_model.reactions[0].remove_from_model()
-		new_model.add_reactions([ reaction_from_cobra_model(model, x) for x in model.reactions ])
-		new_model.all_genes = model.genes
+		new_model.add_reactions([ _reaction_from_cobra_model(model, x) for x in model.reactions ])
+		# new_model.all_genes = model.genes
 
 		if objective is not None:
 			new_model.reactions.get_by_id(objective).objective_coefficient = +1
@@ -444,10 +444,9 @@ class MEModel(cobra.core.object.Object):
 			}
 
 		# simulation methods in optimization.py
-		new_model.optimize = types.MethodType(coralme.core.optimization.optimize, new_model)
-		new_model.feasibility = types.MethodType(coralme.core.optimization.feasibility, new_model)
-		new_model.construct_lp_problem = types.MethodType(coralme.core.optimization.construct_lp_problem, new_model)
-		new_model.fva = types.MethodType(coralme.core.optimization.fva, new_model)
+		coralme.builder.helper_functions.bind_public_module_functions(new_model, coralme.core.optimization)
+
+		# others
 
 		return new_model
 
@@ -707,11 +706,11 @@ class MEModel(cobra.core.object.Object):
 		merge.reactions[0].remove_from_model()
 		merge.metabolites[0].remove_from_model()
 
+		# add tags to merging models to make them unique in the new model
 		for org, me in list(models_to_merge.items()):
 			merge.merged_models[org] = me.copy()
 			merge.merged_models[org].merging_key = org
 
-			# add tags to merging models to make them unique in the new model
 			for data in merge.merged_models[org].process_data:
 				data.id = '{:s}_{:s}'.format(org, data.id)
 				if hasattr(data, '_stoichiometry'):
@@ -1609,12 +1608,23 @@ class MEModel(cobra.core.object.Object):
 
 	def query(self, queries, filter_out_blocked_reactions = False):
 		"""
-		Return the elements with a matching substring or substrings (AND logic) from
+		Return the elements with a matching substring from
 		model.reactions, model.metabolites, and model.process_data attributes.
 
-		For OR logic, use pipe symbol ('|'), e.g. 'ACP|ac'
+		For AND logic, use a list of queries, e.g., ['ACP', 'ac']
+
+		For OR logic, use pipe symbol ('|'), e.g., 'ACP|ac'
 
 		Parenthesis and square brackets are allowed without escape symbol.
+
+		types: either coralme.core.reaction.MEReaction, coralme.core.component.MEComponent, and/or coralme.core.processdata.ProcessData
+
+		subtypes:
+			for MEReaction: ComplexDegradation, ComplexFormation, GenericFormationReaction, MEReaction, MetabolicReaction, PostTranslationReaction, SummaryVariable, TranscriptionReaction, TranslationReaction, rRNAFormationReaction, tRNAChargingReaction,
+
+			for MEComponent: Complex, Constraint, GenericComponent, GenerictRNA, MEComponent, Metabolite, ProcessedProtein, Proxy, RNAP, Ribosome, TranscribedGene, TranslatedGene,
+
+			for ProcessData: ComplexData, GenericData, PostTranslationData, ProcessData, StoichiometricData, SubreactionData, TranscriptionData, TranslationData, TranslocationData, rRNAData, tRNAData
 		"""
 		res = []
 		if isinstance(queries, list):
@@ -1631,6 +1641,7 @@ class MEModel(cobra.core.object.Object):
 				res.append([ x for x in self.reactions.query(query) if x.bounds != (0, 0) ])
 			else:
 				res.append(self.reactions.query(query))
+
 			res.append(self.process_data.query(query))
 
 		# compress

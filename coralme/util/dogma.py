@@ -182,15 +182,3 @@ def extract_sequence(full_seq, left_pos, right_pos, strand):
 		return reverse_transcribe(seq)
 	else:
 		raise ValueError('strand must be either \'+\' or \'-\'.')
-
-def get_amino_acid_sequence_from_dna(dna_seq):
-	if len(dna_seq) % 3 != 0:
-		raise ValueError('Gene nucleotide sequence is not a valid length.')
-
-	codons = (dna_seq[i: i + 3] for i in range(0, (len(dna_seq)), 3))
-	amino_acid_sequence = ''.join(codon_table[i] for i in codons)
-	amino_acid_sequence = amino_acid_sequence.rstrip('*')
-	if '*' in amino_acid_sequence:
-		# one letter code for selenocysteine, not C(ysteine) (and wrong because precursor is serine)
-		amino_acid_sequence = amino_acid_sequence.replace('*', 'U')
-	return amino_acid_sequence

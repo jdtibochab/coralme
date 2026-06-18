@@ -360,7 +360,7 @@ class MEBuilder(object):
 		self.org.manual_curation.save()
 		self.org.complexes_df.to_csv(self.org.directory + "reference_files/complexes.txt")
 		self.org.protein_mod.to_csv(self.org.directory + "reference_files/protein_modification.txt")
-
+		
 		# Update notes
 		logging.warning("Generating curation notes")
 		coralme.builder.notes.save_curation_notes(
@@ -706,6 +706,7 @@ class MEBuilder(object):
 			complexes_df.at[c, "genes"] = " AND ".join(
 				[g + "({})".format(coeff) for g, coeff in stoich.items()]
 			)
+			
 		self.org.complexes_df = complexes_df
 
 	def update_protein_modification(self):
@@ -1770,7 +1771,7 @@ class MEReconstruction(MEBuilder):
 			# detect if the genbank file was modified using biocyc data
 			gb = '{:s}/building_data/genome_modified.gb'.format(config.get('out_directory', '.'))
 			gb = gb if pathlib.Path(gb).exists() else config['genbank-path']
-			coralme.core.extended_classes.ListHandler.print_and_log('Writting the Organism-Specific Matrix to {:s}...'.format(config['df_gene_cplxs_mods_rxns']))
+			coralme.core.extended_classes.ListHandler.print_and_log('Writing the Organism-Specific Matrix to {:s}...'.format(config['df_gene_cplxs_mods_rxns']))
 			# generate a minimal dataframe from the genbank and m-model files
 			df_data = coralme.builder.preprocess_inputs.generate_organism_specific_matrix(gb, config.get('locus_tag', 'locus_tag'), model = m_model)
 			# complete minimal dataframe with automated info from homology
@@ -1899,7 +1900,7 @@ class MEReconstruction(MEBuilder):
 			defer_to_rxn_matrix = me.global_info['defer_to_rxn_matrix'])
 
 		me.processed_m_model = m_model
-
+		
 		# Some of the 'metabolites' in the M-model are actually complexes.
 		# We pass those in so they get created as complexes, not metabolites.
 		cplx_dct = coralme.builder.flat_files.get_complex_subunit_stoichiometry(df_cplxs)
@@ -1941,7 +1942,7 @@ class MEReconstruction(MEBuilder):
 
 		# ### 4) Add in ComplexFormation reactions without modifications (for now)
 
-		# RNA components different from tRNAs and from 5S, 16S and 23S rRNAs
+		# RNA components different from tRNAs and from 5S, 16S, and 23S rRNAs
 		rna_components = set(me.global_info['rna_components']) # in order: RNase_P_RNA, SRP_RNA, 6S RNA
 
 		# cplx_dct is a dictionary {complex_name: {locus_tag/generic_name/subcomplex_name: count}}
@@ -2356,7 +2357,7 @@ class MEReconstruction(MEBuilder):
 		if stoich is not None:
 			data.stoichiometry.update(stoich)
 		else:
-			data.stoichiometry.update({'CPLX_dummy' : -1})
+			data.stoichiometry.update({'CPLX_dummy' : -1.})
 		data.create_complex_formation(verbose = False)
 
 		# Used for RNA splicing
@@ -2365,14 +2366,14 @@ class MEReconstruction(MEBuilder):
 
 		# .25 water equivalent for ATP hydrolysis per nucleotide
 		data = coralme.core.processdata.SubreactionData('RNA_degradation_atp_requirement', me)
-		data.stoichiometry = { 'atp_c': -0.25, 'h2o_c': -0.25, 'adp_c': +0.25, 'h_c': +0.25, 'pi_c': +0.25 }
+		data.stoichiometry = { 'atp_c': -0.25, 'h2o_c': -0.25, 'adp_c': +0.25, 'h_c': +0.25, 'pi_c': +0.25 } # not used
 
 		for excision_type in me.global_info['excision_machinery']:
 			stoichiometry = coralme.builder.preprocess_inputs.excision_machinery_stoichiometry(df_data, excision_type)
 			if stoichiometry is not None:
 				coralme.builder.transcription.add_rna_excision_machinery(me, excision_type, stoichiometry)
 			else:
-				coralme.builder.transcription.add_rna_excision_machinery(me, excision_type, {'CPLX_dummy' : +1}) # +1 is correct
+				coralme.builder.transcription.add_rna_excision_machinery(me, excision_type, {'CPLX_dummy' : +1.}) # +1 is correct
 				logging.warning('WARNING: All the components of the excision complex for \'{:s}\' were not identified from homology and it was assigned to the \'CPLX_dummy\' complex.'.format(excision_type))
 
 		# add excision machineries into TranscriptionData
@@ -2610,11 +2611,12 @@ class MEReconstruction(MEBuilder):
 				if compartment is None:
 					logging.warning('The protein ID \'{:s}\' has no \'compartment\' property. Check \'peptide_compartment_and_pathways.txt\' in the building_data directory.'.format(gene))
 				else:
+					# WARNING: The update method does not associate the protein_ID_compartment to the reaction
 					for rxn in me.metabolites.get_by_id('protein_' + gene + '_' + compartment).reactions:
 						if isinstance(rxn, coralme.core.reaction.ComplexFormation):
 							data = me.process_data.get_by_id(rxn.complex_data_id)
 							value = data.stoichiometry.pop('protein_' + gene + '_' + compartment)
-							data.stoichiometry['protein_' + gene + '_lipoprotein' + '_' + compartment] = value
+							data.stoichiometry['protein_{:s}_lipoprotein_{:s}'.format(gene, compartment)] = value
 							rxn.update()
 
 		# ### 3. Braun's lipoprotein demand
@@ -2693,96 +2695,11 @@ class MEReconstruction(MEBuilder):
 		for r in tqdm.tqdm(me.reactions.query('^formation_'), 'Updating all FormationReactions...', bar_format = bar_format):
 			r.update()
 
-		modification_formulas = df_mets[df_mets['type'].str.match('COFACTOR|MOD|MODIFICATION')]
-		modification_formulas = dict(zip(modification_formulas['me_id'], modification_formulas['formula']))
-		me.global_info['modification_formulas'] = modification_formulas
-
 		# Correct formula of complexes based on their base complex
 		# This will add the formula to complexes not formed from a complex formation reaction (e.g. CPLX + na2_c -> CPLX_mod_na2(1))
-		#coralme.builder.formulas.add_remaining_complex_formulas(me, modification_formulas)
-		for met in [ x for x in me.metabolites if '_mod_' in x.id and isinstance(x, coralme.core.component.Complex)]:
-			met.formula = None
-			met.elements = {}
+		coralme.builder.formulas.add_remaining_complex_formulas(me, df_mets)
 
-			base_complex = met.id.split('_mod_')[0]
-			base_complex_elements = collections.Counter(me.metabolites.get_by_id(base_complex).elements)
-
-			for mod in met.id.split('_mod_')[1:]:
-				#for num in range(int(mod.rstrip(')').split('(')[1])):
-				mod_elements = None
-				mod_name = mod.split('(')[0]
-
-				if mod_name in modification_formulas:
-					mod_elements = coralme.builder.helper_functions.parse_composition(modification_formulas[mod_name])
-					# 2fe2s_c and 4fe4s_c appear as free metabolites in reactions and need to have formula for correct mass balance determination
-					if me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is None:
-						me.metabolites.get_by_id(mod_name + '_c').formula = modification_formulas[mod_name]
-						logging.warning('Formula for \'{:s}\' updated from me_mets.txt file.'.format(mod_name + '_c'))
-					logging.warning('Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
-
-				elif me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is not None:
-					mod_elements = me.metabolites.get_by_id(mod_name + '_c').elements
-					logging.warning('Elemental contribution for \'{:s}\' calculated from metabolite formula.'.format(mod_name))
-
-				# WARNING: electron carriers can, assuming they are neutral, transfer also protons
-				# WARNING: Ferredoxins only transfer electrons; thioredoxins and others transfer protons and electrons.
-				elif mod.startswith('Oxidized'):
-					if base_complex in me.global_info['electron_transfers'].get('ferredoxins', []):
-						mod_elements = {'H': 0}
-						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
-					elif base_complex in me.global_info['electron_transfers'].get('cytochromes', []):
-						mod_elements = {'H': 0}
-						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
-					elif 'Oxidized(1)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
-						mod_elements = {'H': -2}
-						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
-					elif 'Oxidized(2)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
-						mod_elements = {'H': -4}
-						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
-					# TODO: is the fmn cofactor in flavodoxin neutral?
-					# WARNING: flavodoxin homologs might have a different base_complex ID compared to the ecolime model
-					elif 'Oxidized(1)' == mod and base_complex in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
-						mod_elements = {'H': 0}
-						logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(base_complex))
-					else:
-						logging.warning('Elemental contribution in \'{:s}\' could not be determined. Please check configuration file and add the base complex into the \'electron_transfers\' key.'.format(base_complex))
-
-				# WARNING: Negative elemental contributions cannot be set in the metabolites.txt input file
-				elif 'glycyl(1)' == mod:
-					mod_elements = {'H': -1}
-					logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
-				elif 'cosh(1)' == mod:
-					mod_elements = {'H': +1, 'O': -1, 'S': +1}
-					logging.warning('Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
-				else:
-					logging.warning('Elemental contribution for \'{:s}\' could not be determined. Please check me_mets.txt file.'.format(mod_name))
-
-				if mod_elements:
-					mod_elements = collections.Counter(mod_elements)
-					mod_elements = { k:v * int(re.findall(r'\((\d+)\)', mod)[0]) for k,v in mod_elements.items() }
-					base_complex_elements.update(mod_elements)
-				else:
-					logging.warning('Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
-			complex_elements = { k:base_complex_elements[k] for k in sorted(base_complex_elements) if base_complex_elements[k] != 0 }
-			met.formula = ''.join([ '{:s}{:d}'.format(k, v) for k,v in complex_elements.items() ])
-			met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
-			logging.warning('Setting new formula for \'{:s}\' to \'{:s}\' successfully.'.format(met.id, met.formula))
-
-		# Update a second time to incorporate all of the metabolite formulas correctly
-		for data in tqdm.tqdm(me.subreaction_data.query(r'(?!^\w\w\w_addition_at_\w\w\w$)'), 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
-			data._element_contribution = data.calculate_element_contribution()
-
-		# Update reactions affected by formula update
-		for r in tqdm.tqdm(me.reactions.query('^formation_'), 'Updating all FormationReactions...', bar_format = bar_format):
-			r.update()
-
-		for r in tqdm.tqdm(me.reactions.query('_mod_lipoyl'), 'Updating FormationReactions involving a lipoyl prosthetic group...', bar_format = bar_format):
-			r.update()
-
-		for r in tqdm.tqdm(me.reactions.query('_mod_glycyl'), 'Updating FormationReactions involving a glycyl radical...', bar_format = bar_format):
-			r.update()
-
-		# Update biomass_constituent_demand reaction(s) with components that previously has no formula
+		# Update biomass_constituent_demand reaction(s) with components that previously have no formula
 		for idx, row in biomass_constituents.iterrows():
 			constituent_mass = sum(me.metabolites.get_by_id(c).formula_weight / 1000. * abs(v) for c,v in row.items() if isinstance(v, (float, int)))
 			name = 'biomass_constituent_demand' if idx == 'biomass_constituent_demand' else 'biomass_constituent_demand_' + idx
@@ -3104,8 +3021,7 @@ class METroubleshooter(object):
 				if rxn.lower_bound == 0 and rxn.upper_bound == 0:# or f == 0:
 					self.me_model.remove_reactions([rxn])
 			if sinks:
-				logging.warning('~ '*1 + 'Troubleshooter added the following sinks: {:s}.'.format(', '.join(sinks)))
-			logging.warning('~ '*1 + 'Final step. Fully optimizing with precision 1e-6 and save solution into the ME-model...')
+				logging.warning('~ '*1 + 'Troubleshooter added the following sinks: {:s}.'.format(', '.join(sorted(sinks, key = str.casefold))))
 
 			# Delete demand reactions for cofactor gapfilling
 			if gapfill_cofactors:

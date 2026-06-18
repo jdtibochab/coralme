@@ -3,8 +3,6 @@ import numpy
 import scipy
 import sympy
 
-# from coralme.solver import qwarmLP, warmLP, qvaryME
-import sys
 import os
 import importlib.util
 
@@ -16,6 +14,7 @@ subdir = "rhel" if os.path.exists("/etc/redhat-release") else "debian"
 # Locate installed package
 import coralme
 pkg_base = os.path.join(os.path.dirname(coralme.__file__), "solver", subdir)
+# print(pkg_base)
 
 # Python version tag (e.g. cpython-39)
 pyver = f"cpython-{sys.version_info.major}{sys.version_info.minor}"

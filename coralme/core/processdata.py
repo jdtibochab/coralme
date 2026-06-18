@@ -517,8 +517,8 @@ class TranscriptionData(ProcessData):
 	def __init__(self, id, model, nucleotide_sequence, rnap, rna_products, organelle):
 		ProcessData.__init__(self, id, model)
 		self.nucleotide_sequence = nucleotide_sequence
-		self.RNA_products = rna_products
-		self.original_RNA_products = rna_products
+		self.RNA_products = set(rna_products)
+		self.original_RNA_products = set(rna_products)
 		self.RNA_polymerase = rnap
 		self.organelle = organelle
 
@@ -627,17 +627,26 @@ class TranscriptionData(ProcessData):
 		#return { coralme.util.dogma.transcription_table[k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
 		if self.organelle is None:
 			if self._model.global_info['domain'].lower() in ['prokaryote', 'bacteria']:
-				return { coralme.util.dogma.transcription_table['c'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
+				transcription_table = coralme.util.dogma.transcription_table['c']
 			if self._model.global_info['domain'].lower() in ['eukarya', 'eukaryote']:
-				return { coralme.util.dogma.transcription_table['n'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
-			#return { coralme.util.dogma.transcription_table['n'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
+				transcription_table = coralme.util.dogma.transcription_table['n']
+
 		elif self.organelle.lower() in ['mitochondria', 'mitochondrion']:
-			return { coralme.util.dogma.transcription_table['m'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
+			transcription_table = coralme.util.dogma.transcription_table['m']
 		elif self.organelle.lower() in ['chloroplast', 'plastid']:
-			return { coralme.util.dogma.transcription_table['h'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
+			transcription_table = coralme.util.dogma.transcription_table['h']
 		else:
-			logging.warning('The \'organelle\' property of the feature \'{:s}\' is not \'mitochondria\' or \'chloroplast\'.'.format(self.id))
-			return { coralme.util.dogma.transcription_table['n'][k]:v for k,v in collections.Counter(self.nucleotide_sequence).items() }
+			logging.warning('WARNING: The \'organelle\' property of the feature \'{:s}\' is not \'mitochondria\' or \'chloroplast\'.'.format(self.id))
+			transcription_table = coralme.util.dogma.transcription_table['n']
+
+		# if the nucleotide sequence contains other than ATGC, add randomly based on the IUPAC code
+		dct = collections.Counter()
+		for k,v in collections.Counter(self.nucleotide_sequence).items():
+			if k not in ['A', 'T', 'G', 'C']:
+				logging.warning('WARNING: The nucleotide sequence of the transcription unit \'{:s}\' contains other than ATGC nucleotides.'.format(self.id))
+				logging.warning('WARNING: The ambiguous nucleotide was added as \'{:s}\'.'.format(transcription_table[k]))
+			dct.update({ transcription_table[k] : v })
+		return dct
 
 	@property
 	def RNA_types(self):
@@ -814,8 +823,8 @@ class GenericData(ProcessData):
 				reaction = coralme.core.reaction.GenericFormationReaction(reaction_id)
 				model.add_reactions([reaction])
 			stoic = {
-				generic_metabolite: 1,
-				model.metabolites.get_by_id(c_id): -1
+				generic_metabolite: 1.,
+				model.metabolites.get_by_id(c_id): -1.
 				}
 			reaction.add_metabolites(stoic, combine=False)
 
@@ -979,7 +988,7 @@ class TranslationData(ProcessData):
 		#amino_acid_sequence = amino_acid_sequence.rstrip('*')
 
 		if self.id != 'dummy':
-			if amino_acid_sequence != self.translation.rstrip('*'):
+			seq1, seq2 = amino_acid_sequence[1:], self.translation.rstrip('*')[1:]
 			if seq1 != seq2:
 				# report
 				diffs = []

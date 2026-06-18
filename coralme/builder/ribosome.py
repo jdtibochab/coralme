@@ -59,7 +59,10 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 
 	# Ribosomes in iOL1650 contain 171 mg2 ions
 	ribosome_complex.subreactions['mod_mg2_c'] = me_model.global_info['mg2_per_ribosome']
-	ribosome_components = ribosome_complex.stoichiometry
+
+	# assemble_ribosome_subunits in ecolime ribosome.py
+	ribosome_complex.subreactions['mod_gtp_c'] = 1.
+
 	for process in ribosome_stoich:
 		for protein, amount in ribosome_stoich[process]['stoich'].items():
 			ribosome_components[protein] += amount

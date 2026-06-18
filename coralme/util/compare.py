@@ -22,7 +22,7 @@ def main(path1, path2):
 		file1_lines = sort(file1_lines)
 		file2_lines = sort(file2_lines)
 
-		diff = difflib.unified_diff(file1_lines, file2_lines, fromfile=file1_path, tofile=file2_path, n=0)
+		diff = difflib.unified_diff(file1_lines, file2_lines, fromfile = file1_path, tofile = file2_path, n = 0)
 
 		for line in diff:
 			print(line, end='')  # Print the diff output

@@ -1,15 +1,22 @@
 import numpy
 import pathlib
 import pandas
-import xlsxwriter
-import warnings
+import re
 
 import logging
 log = logging.getLogger(__name__)
 
 from Bio import SeqIO
 
-def _save_to_excel(data, output):
+"""
+WARNING: The following problem is reference dependent (seen using Bsub as ref)
+Problem: FutureWarning: Setting an item of incompatible dtype is deprecated and
+will raise in a future error of pandas.
+Solution: The destination column is only NaN's (float64) while the origin column
+is dtype 'object' (combination of strings and numeric). Add '.astype('object')'.
+"""
+
+def _save_to_excel(data, output, reconstruction_time):
 	#if overwrite:
 	try:
 		pathlib.Path(output).unlink(missing_ok = True) # python>=3.8
@@ -634,7 +641,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 	# final sorting
 	data = data.sort_values(['M-model Reaction ID', 'Gene Locus ID'])
 	data = data.drop_duplicates()
-
+	
 	if output:
 		try:
 			# Save file as excel or tsv depending on the size
@@ -729,7 +736,7 @@ def _get_metacomplex_stoichiometry(df, key):
 def ribosome_stoichiometry(df):
 	tmp = _get_metacomplex_stoichiometry(df, 'ribosome')
 	ribosome_stoich = { 'ribosome' : { 'stoich' : { k.split(':')[0]:int(v) for k,v in zip(tmp['Gene Locus ID'], tmp['stoich'])}}}
-	ribosome_stoich['ribosome']['stoich']['gtp_c'] = 1
+	# ribosome_stoich['ribosome']['stoich']['gtp_c'] = 1 # WARNING: moved to ribosome.py
 	return ribosome_stoich
 
 def degradosome_stoichiometry(df):
@@ -799,7 +806,7 @@ def get_subreactions(df, key: str):
 
 	fn = lambda x: x['Complex ID'].split(':')[0] + ''.join([ '_mod_{:s}'.format(x) for x in x['Cofactors in Modified Complex'].split(' AND ')]) \
 		if isinstance(x['Cofactors in Modified Complex'], str) else numpy.nan
-	tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1)
+	tmp['Modified Complex'] = tmp[['Complex ID', 'Cofactors in Modified Complex']].apply(fn, axis = 1).astype('object')
 
 	# collapse
 	# Copy-on-Write pandas 3.0 behavior is default to be True

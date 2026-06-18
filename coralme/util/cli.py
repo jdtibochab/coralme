@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 import argparse
-from coralme.builder.main import MEBuilder
 import sys
-from pathlib import Path
 import coralme
 
 def parse_arguments():
@@ -82,7 +80,7 @@ def main():
             builder_args = []
             config["ME-Model-ID"] = "coralME"
 
-        builder = MEBuilder(*builder_args, **config)
+        builder = coralme.builder.main.MEBuilder(*builder_args, **config)
         print(builder.configuration)
 
         # Run coralME modules based on command line arguments

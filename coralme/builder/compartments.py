@@ -1,6 +1,6 @@
 import coralme
 import coralme
-from collections import defaultdict
+import collections
 
 def _return_compartments_of_complexes(model, cplx):
 	try:
@@ -8,7 +8,7 @@ def _return_compartments_of_complexes(model, cplx):
 	except KeyError:
 		data = coralme.builder.helper_functions.get_base_complex_data(model, cplx.id)
 
-	mem_dict = defaultdict(int)
+	mem_dict = collections.defaultdict(int)
 	for s in data.stoichiometry:
 		if '_Inner_Membrane' in s:
 			mem_dict['im'] += 1

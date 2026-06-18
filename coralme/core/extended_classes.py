@@ -275,10 +275,12 @@ class MappableList(list):
 	"""
 	A list subclass with functional and mapping utilities.
 
-	Features:
+	Features
+	--------
 	- map(), filter(), reduce()
 	- Attribute/key access with dot notation
 	- Preserves MappableList type for operations
+	- Optional internal mapping preservation
 
 	Example:
 		>>> lst = MappableList([1, 2, 3])

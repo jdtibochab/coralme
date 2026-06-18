@@ -459,8 +459,8 @@ def build_reactions_from_genbank(
 	stop_codons = set()
 
 	# Codon usage
-	from collections import Counter
-	codon_usage = Counter()
+	import collections
+	codon_usage = collections.Counter()
 
 	# New Gene Locus ID
 	new_locus_tag_counter = 1
@@ -582,7 +582,7 @@ def build_reactions_from_genbank(
 				# Add the codon usage
 				if len(seq) % 3 == 0:
 					codons = [ str(seq[pos:pos+3]) for pos in range(0, len(seq), 3) ]
-					codon_usage.update(Counter(codons))
+					codon_usage.update(collections.Counter(codons))
 				else:
 					logging.warning('WARNING: Gene \'{:s}\' was not included to determine the genomic codon usage.'.format(bnum))
 

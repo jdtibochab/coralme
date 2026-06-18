@@ -81,7 +81,8 @@ def compute_solution_error(model, keys = dict()):
 def construct_lp_problem(model, lambdify = False, per_position = False, as_dict = False, statistics = False) -> tuple:
 	"""
 	lambdify
-		Returns lambda functions for each symbolic stoichiometric coefficient
+		Returns lambda functions for each symbolic stoichiometric coefficient.
+		Valid only for coralme ME-models.
 
 	per_position
 		Returns a list of lambda functions instead of a single 'vectorized' lambda function.
@@ -168,7 +169,7 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 		print('Total sparsity is {:.2%}'.format((len(Sf) + len(Se)) / (len(Lm)*len(Lr)) ))
 
 	#TODO: can't pickle attribute lookup _lambdifygenerated on __main__ failed
-	#model.lp_full_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
+	#model.lp_fully_symbolic = Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
 	lb = list(lb) if isinstance(lb, tuple) else lb
 	ub = list(ub) if isinstance(ub, tuple) else ub
@@ -477,7 +478,7 @@ def optimize(model,
 	assert min_mu < max_mu
 
 	keys, tolerance, precision = _check_options(model, keys = dict(), tolerance = tolerance, precision = precision)
-
+	
 	assert get_reduced_costs == False or get_reduced_costs == lambdify == True, "get_reduced_costs requires lambdify=True"
 	per_position = bool(get_reduced_costs)
 
@@ -491,7 +492,7 @@ def optimize(model,
 		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, per_position = per_position)
 		me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
 		xopt, yopt, zopt, stat, basis = me_nlp.solvelp(.1, None, precision, probname = 'lp')
-
+		
 		if stat == 'optimal':
 			muopt = float(sum([ x*c for x,c in zip(xopt, c) if c != 0 ]))
 			model.solution = _solver_solution_to_cobrapy_solution(model, muopt, xopt, yopt, zopt, stat)

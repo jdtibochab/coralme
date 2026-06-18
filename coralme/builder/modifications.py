@@ -146,8 +146,9 @@ def add_FeFe_and_NiFe_modifications(me_model):
 					for data in complex_data:
 						cplx_data = me_model.process_data.get_by_id(data.id)
 						cplx_data.complex_id = data.complex_id
-						cplx_data.stoichiometry = { base_complex + '_' + mod[:-2] + '(1)' : 1 }
+						cplx_data.stoichiometry = { '{:s}_{:s}(1)'.format(base_complex, mod[:-2]) : 1 }
 						# The modifications occurs now as follow:
+						# WARNING: The first reaction should be added as a metabolic reaction, similarly to FeS synthesis
 						# base_complex + FeFe/NiFe => base_complex_mod_FeFe/NiFe
 						# base_complex_mod_FeFe/NiFe + other cofactors => final modified complex
 						cplx_data.subreactions[mod] = 0
@@ -190,7 +191,7 @@ def add_lipoyl_modifications(me_model):
 
 		# We need to replace the `mod_lipoyl_c` (the key in lipoate_modifications) by the values in lipoate_modifications
 		for mod in list(lipoate_modifications.values())[0]:
-			new_cplx_data = coralme.core.processdata.ComplexData(data.id + '_' + mod, me_model)
+			new_cplx_data = coralme.core.processdata.ComplexData('{:s}_{:s}'.format(data.id, mod), me_model)
 			# copy the original data
 			new_cplx_data.complex_id = data.complex_id
 			new_cplx_data.stoichiometry = data.stoichiometry
@@ -217,16 +218,3 @@ def add_bmocogdp_chaperones(me_model):
 		cplx_id = cplx_data.id.split('_mod')[0]
 		if cplx_id in bmocogdp_chaperones:
 			cplx_data.subreactions['mod_bmocogdp_c_' + bmocogdp_chaperones[cplx_id]] = cplx_data.subreactions.pop('mod_bmocogdp_c')
-
-# OLD CODE not used anymore
-def add_modification_procedures(me_model):
-	# add SubreactionData for iron sulfur clusters
-	add_iron_sulfur_modifications(me_model)
-
-	# lipoate modifications can be accomplished using two different mechanisms
-	add_lipoate_modifications(me_model)
-
-	# bmocogdp modifications have multiple selective chaperones that transfer
-	# the metabolite to the target complexes
-	add_bmocogdp_modifications(me_model)
-

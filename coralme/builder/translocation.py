@@ -8,7 +8,7 @@ nm2_per_m2 = 1e18  # used to convert nm^2 to m^2
 def add_translocation_data_and_reaction(model, pathways, preprocessed_id, processed_id, compartment, peptide_data, multipliers, membrane_constraints, alt = False):
 	suffix = '_alt' if alt else ''
 
-	data_id = 'translocation_' + preprocessed_id + '_' + compartment + suffix
+	data_id = 'translocation_{:s}_{:s}{:s}'.format(preprocessed_id, compartment, suffix) # To avoid confusion with the reaction
 	if not model.process_data.has_id(data_id):
 		data = coralme.core.processdata.PostTranslationData(data_id, model, processed_id, preprocessed_id)
 		data.translocation = pathways
@@ -101,7 +101,7 @@ def add_lipoprotein_formation(model, compartment_dict, lipoprotein_precursors, l
 		rxn = coralme.core.reaction.PostTranslationReaction(reaction_prefix + '_' + second_lipid)
 		model.add_reactions([rxn])
 		rxn.posttranslation_data = data
-
+		
 		if update:
 			rxn.update()
 

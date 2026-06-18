@@ -10,7 +10,7 @@ import coralme
 		#accumulator[key] = accumulator.get(key, 0) + value
 	#return accumulator
 
-from collections import Counter
+import collections
 
 def add_subreactions_to_model(me_model, subreactions):
 	if not me_model.process_data.has_id('DEF'):
@@ -24,11 +24,11 @@ def add_subreactions_to_model(me_model, subreactions):
 			me_model, modification_id = 'MAP', modification_stoichiometry = stoichiometry, modification_enzyme = 'CPLX_dummy')
 
 	if not me_model.process_data.has_id('FMETTRS'):
-		stoichiometry = {
+		stoichiometry = collections.Counter({
 			'generic_tRNA_START_met__L_c': -1.0,
 			me_model.metabolites.query('^10fthf')[0].id: -1.0,
 			me_model.metabolites.query('^thf')[0].id: +1.0
-			}
+			})
 		stoichiometry.update(me_model.process_data.get_by_id('atp_hydrolysis_trna_loading').stoichiometry)
 		stoichiometry.update(me_model.process_data.get_by_id('gtp_hydrolysis').stoichiometry)
 		coralme.util.building.add_subreaction_data(
@@ -120,7 +120,7 @@ def add_charged_trna_subreactions(me_model, organelle = 'c', transl_table = set(
 		# Accounts for GTP hydrolyzed by EF-TU and the ATP hydrolysis to AMP required to add the amino acid to the tRNA
 		#subreaction_data.stoichiometry = reduce(
 			#reducer, [{trna : -1}, me_model.global_info['atp_trna_loading'], me_model.global_info['gtp_hydrolysis']], {})
-		subreaction_data.stoichiometry = Counter({trna : -1})
+		subreaction_data.stoichiometry = collections.Counter({trna : -1})
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('atp_hydrolysis_trna_loading').stoichiometry)
 		subreaction_data.stoichiometry.update(me_model.process_data.get_by_id('gtp_hydrolysis').stoichiometry)
 		subreaction_data._element_contribution = me_model.metabolites.get_by_id(full_aa + '_' + organelle).elements # subreaction_data.calculate_element_contribution()

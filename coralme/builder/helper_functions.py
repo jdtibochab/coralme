@@ -5,7 +5,8 @@ import tqdm
 import cobra
 import coralme
 from warnings import warn
-from collections import Counter
+import collections
+import sympy
 
 # from cobrame without changes
 def get_base_complex_data(model, complex_id):
@@ -43,10 +44,10 @@ def parse_composition(tmp_formula) -> dict:
 	#tmp_formula = self.formula
 	# commonly occuring characters in incorrectly constructed formulas
 	if "*" in tmp_formula:
-		warn(f"invalid character '*' found in formula '{self.formula}'")
+		print(f"invalid character '*' found in formula '{tmp_formula}'")
 		tmp_formula = self.formula.replace("*", "")
 	if "(" in tmp_formula or ")" in tmp_formula:
-		warn(f"parenthesis found in formula '{self.formula}'")
+		print(f"parenthesis found in formula '{tmp_formula}'")
 		return
 	composition = {}
 	parsed = element_re.findall(tmp_formula)
@@ -222,7 +223,7 @@ def is_producible(me,met,growth_key_and_value):
 	"""Check if a metabolite is producible by the network"""
 	if met not in me.metabolites:
 		return False
-	r = add_exchange_reactions(me, [met], prefix = 'DM_')[0]
+	r = coralme.builder.helper_functions.add_exchange_reactions(me, [met], prefix = 'DM_')[0]
 	r.bounds = (1e-16,1e-16)
 	if me.check_feasibility(keys = growth_key_and_value):
 		r.remove_from_model()
@@ -449,6 +450,17 @@ def check_and_correct_stoichiometries(m_model):
 
 
 	return m_model
+
+def bind_public_module_functions(target, module):
+	"""Bind all public functions from a module to an instance and return the list of names."""
+	import types
+	bound_names = []
+	for name in dir(module):
+		attr = getattr(module, name)
+		if callable(attr) and not name.startswith(("_", "SymbolicLP")) and getattr(attr, "__module__", None) == module.__name__:
+			setattr(target, name, types.MethodType(attr, target))
+			bound_names.append(name)
+	return bound_names
 
 def _copy_m_model(m_model):
 	import sys

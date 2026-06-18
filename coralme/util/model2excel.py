@@ -24,7 +24,7 @@ def _mets2df(model):
 				mets[key].append(metabolite.__dict__[key])
 
 	mets = pandas.DataFrame.from_dict(mets)
-	# formating annotations
+	# formatting annotations
 	tmp = pandas.json_normalize(mets['_annotation'])
 	tmp = tmp.astype(str)
 	tmp = tmp.apply(lambda col: col.str.replace('[\'', '', regex = False))
@@ -91,7 +91,7 @@ def _rxns2df(model):
 				rxns[key].append(reaction.__dict__[key])
 
 	rxns = pandas.DataFrame.from_dict(rxns)
-	# formating annotations
+	# formatting annotations
 	tmp = pandas.json_normalize(rxns['_annotation'])
 	tmp = tmp.astype(str)
 	tmp = tmp.apply(lambda col: col.str.replace('[\'', '', regex = False))
@@ -115,7 +115,7 @@ def _genes2df(model):
 			genes[key].append(gene.__dict__[key])
 
 	genes = pandas.DataFrame.from_dict(genes)
-	# formating annotations
+	# formatting annotations
 	tmp = pandas.json_normalize(genes['_annotation'])
 	tmp = tmp.astype(str)
 	tmp = tmp.apply(lambda col: col.str.replace('[\'', '', regex = False))

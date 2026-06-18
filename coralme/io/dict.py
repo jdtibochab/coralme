@@ -9,8 +9,6 @@ from coralme.core.extended_classes import log_format, bar_format
 import logging
 log = logging.getLogger(__name__)
 
-from warnings import warn
-
 _REQUIRED_REACTION_ATTRIBUTES = {
 	"id",
 	"name",
@@ -70,7 +68,8 @@ _PROCESS_DATA_TYPE_DEPENDENCIES = {
 	'ComplexData': [
 		'stoichiometry',
 		'complex_id',
-		'subreactions'],
+		'subreactions'
+		],
 	'TranscriptionData': [
 		'subreactions',
 		'nucleotide_sequence',
@@ -296,8 +295,7 @@ def _metabolite_to_dict(metabolite):
 		for key in _REQUIRED_METABOLITE_ATTRIBUTES
 		}
 
-	# Some metabolites require additional information to construct working
-	# ME-model
+	# Some metabolites require additional information to reconstruct a working ME-model
 	new_metabolite['metabolite_type'] = {}
 	new_metabolite['metabolite_type'][metabolite_type] = {}
 	for attribute in _METABOLITE_TYPE_DEPENDENCIES.get(metabolite_type, []):
@@ -502,7 +500,7 @@ def _add_reaction_from_dict(model, reaction_info, assumptions):
 	except Exception:
 		reaction_obj = model.reactions.get_by_id(reaction_obj.id)
 		if reaction_type not in ['SummaryVariable', 'GenericFormationReaction'] and not reaction_obj.id.startswith('DM_'):
-			warn('Reaction ({:s}) already in model'.format(reaction_obj.id))
+			logging.warning('WARNING: Reaction ({:s}) already in model'.format(reaction_obj.id))
 
 	# These reaction types do not have update functions and need their stoichiometries set explicitly.
 	if reaction_type in ['SummaryVariable', 'GenericFormationReaction', 'MEReaction', 'BoundaryReaction']:

@@ -63,6 +63,7 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	@property
 	def complexes(self):
 		return coralme.builder.helper_functions.find_complexes(self,seen= set())
+
 	@property
 	def functions(self):
 		cplxs = self.complexes
@@ -71,9 +72,12 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 			functions = functions | coralme.builder.helper_functions.get_functions(c)
 		return functions
 
-	def molecular_weight(self, numeric = True):
-		res = self.formula_weight
-		if numeric:
+	def molecular_weight(self, numeric_only = True):
+		"""
+		Return the molecular weight in gram per mmol
+		"""
+		res = self.formula_weight / 1000.
+		if numeric_only:
 			return res
 		else:
 			return '{:f} g/mol'.format(res)
@@ -145,7 +149,7 @@ class TranscribedGene(MEComponent):
 		if self.RNA_type == 'mRNA':
 			seq = self.nucleotide_sequence
 			codons = [ str(seq[pos:pos+3]) for pos in range(0, len(seq), 3) ]
-			return Counter(codons)
+			return collections.Counter(codons)
 		else:
 			return None
 
@@ -390,27 +394,17 @@ class Constraint(MEComponent):
 	#def __repr__(self):
 		#return 'Constraint'
 
-def create_component(component_id, default_type = MEComponent, rnap_set = set()):
-	"""creates a component and attempts to set the correct type"""
-	if not isinstance(component_id, str):
-		raise TypeError("Component ID \'{:s}\' must be a str, not \'{:s}\'.".format(repr(component_id), str(type(component_id))))
-	if component_id.startswith("protein_"):
-		return TranslatedGene(component_id)
-	elif component_id.startswith("RNA_"):
-		raise ValueError(
-			'TranscribedGene \'{:s}\' should not be added using '
-			'create_component. It requires additional information '
-			'when creating instance.'.format(component_id)
-			)
-	elif component_id.startswith("ribosome"):
-		return Ribosome(component_id)
-	elif component_id.startswith("RNA_Polymerase") or component_id in rnap_set:
-		return RNAP(component_id)
-	elif component_id.startswith("generic_tRNA"):
-		return GenerictRNA(component_id)
-	elif component_id.endswith('_c'):
-		return Metabolite(component_id)
-	elif component_id.startswith('generic_'):
-		return GenericComponent(component_id)
-	else:
-		return default_type(component_id)
+class Proxy(MEComponent):
+	"""
+	Metabolite class for proxy metabolites
+
+	Parameters
+	----------
+	id : str
+		Identifier of the constraint
+	"""
+	def __init__(self, id):
+		MEComponent.__init__(self, id)
+
+	#def __repr__(self):
+		#return 'Proxy'

@@ -175,39 +175,6 @@ def gap_find(me_model,de_type = None):
 		logging.warning('  '*6 + '{:s}: {:s}'.format(met, 'Missing metabolite in the M-model.' if name == '' else name))
 	return deadends
 
-def gap_fill(me_model, deadends = [], growth_key_and_value = { sympy.Symbol('mu', positive = True) : 0.1 }, met_types = 'Metabolite',solver="qminos"):
-	"""Add sink reactions of gap metabolites to the model"""
-	if solver in ['gurobi', 'cplex']:
-		me_model.get_solution = me_model.optimize_windows
-		me_model.get_feasibility = me_model.feas_windows(solver = solver)
-	elif solver == "qminos":
-		me_model.get_solution = me_model.optimize
-		me_model.get_feasibility = me_model.feasibility
-	# if sys.platform == 'win32':
-	# 	me_model.get_solution = me_model.opt_gurobi
-	# 	me_model.get_feasibility = me_model.feas_gurobi
-	# else:
-	# 	me_model.get_solution = me_model.optimize
-	# 	me_model.get_feasibility = me_model.feasibility
-
-	if len(deadends) != 0:
-		logging.warning('  '*5 + 'Adding a sink reaction for each identified deadend metabolite...')
-		coralme.builder.troubleshooting.add_exchange_reactions(me_model, deadends, prefix='TS_')
-	else:
-		logging.warning('  '*5 + 'Empty set of deadends metabolites to test.')
-		return None
-
-	logging.warning('  '*5 + 'Optimizing gapfilled ME-model...')
-
-	if me_model.get_feasibility(keys = growth_key_and_value):
-		#logging.warning('  '*5 + 'The ME-model is feasible.')
-		logging.warning('  '*5 + 'Gapfilled ME-model is feasible with growth rate {:g} 1/h.'.format(list(growth_key_and_value.values())[0]))
-		return True
-	else:
-		#logging.warning('  '*5 + 'The ME-model is not feasible.')
-		logging.warning('  '*5 + 'Provided set of sink reactions for deadend metabolites does not allow growth.')
-		return False
-
 def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver="qminos"):
 	"""
 	Iteratively search for minimal set of metabolites that are needed as
@@ -272,7 +239,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 		Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, growth_key_and_value, atoms)
 	else:
 		Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, lambdas, lb, ub, growth_key_and_value, atoms)
-
+	
 	res = []
 	msg = 'Processed: {:s}/{:d}, Gaps: {:d}. The ME-model is {:s}feasible if {:s} is closed.'
 	for idx, (rxn, pos) in enumerate(ridx):
@@ -321,7 +288,7 @@ def _append_metabolites(mets,new_mets):
 	"""Merge metabolite lists"""
 	return mets + [m for m in new_mets if m not in mets]
 
-def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict(),solver="qminos"):
+def brute_check(me_model, growth_key_and_value, met_type, skip = set(), history = dict(), solver = "qminos"):
 	"""Remove metabolites from our heuristics and call the brute force search algorithm"""
 	mets = get_mets_from_type(me_model,met_type)
 	if met_type == 'Metabolite':

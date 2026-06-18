@@ -1,112 +1,122 @@
 import re
-
+import tqdm
 import logging
 log = logging.getLogger(__name__)
 
 import coralme
-from collections import Counter
+from coralme.core.extended_classes import log_format, bar_format
+import collections
+import copy
 
-def get_remaining_complex_elements(model, met, modification_formulas):
-	# get base complex and modifications, without compartment ID
-	regex = r'_mod_([A-Za-z0-9_]*\(\d*\))'
-	regex = re.compile(regex)
-
-	tmp_met = coralme.core.component.Metabolite('tmp_met')
-	base_complex = met.id.split('_mod_')[0]
-	components = re.findall(regex, met.id)
-	elements = Counter()
-
-	# If a the completely unmodified complex is present in the model
-	# has a formula, initialize the elements dictionary with that
-	mets = model.metabolites
-	if base_complex in mets and mets.get_by_id(base_complex).formula:
-		elements.update(mets.get_by_id(base_complex).elements)
-
-	# get component and stoichiometry per modification
-	regex = r'([A-Za-z0-9_]*)\((\d*)\)'
-	regex = re.compile(regex)
-	for component in components:
-		new_elements = elements.copy()
-		new_complex = '_mod_'.join([base_complex, component])
-
-		if new_complex in mets and mets.get_by_id(new_complex).formula:
-			# default to new_complex elements if both new and old exist
-			if base_complex in mets and mets.get_by_id(base_complex).formula:
-				new_elements = Counter()
-			formula = mets.get_by_id(new_complex).formula
-			tmp_met.formula = formula
-			new_elements.update(tmp_met.elements)
-
-		## Net effect of an SH modification is adding a Sulfur to elements
-		## SH should be in the me_mets file
-		#elif 'SH(1)' in component:
-			#new_elements['S'] += 1
-
-		elif 'glycyl(1)' in component:
-			new_elements['H'] -= 1
-
-		# modifies O- to SH
-		elif component == 'cosh(1)':
-			new_elements['O'] -= 1
-			new_elements['S'] += 1
-			new_elements['H'] += 1
-
-		elif component in modification_formulas: # Previously, a cofactor stoichiometry of 1 could be omitted
-			formula = modification_formulas[component]
-			tmp_met.formula = formula
-			new_elements.update(tmp_met.elements)
-
-		elif 'Oxidized(1)' in component and 'FLAVODOXIN' not in base_complex:
-			new_elements.update({'H': -2})
-
-		elif '(' in component: # FIXED: Check new complex ID convention
-			component, value = re.findall(regex, component)[0]
-			if component in modification_formulas:
-				tmp_met.formula = modification_formulas[component]
-			elif component + '_c' in mets:
-				tmp_met.formula = mets.get_by_id(component + '_c').formula
-			else:
-				logging.warning('No formula found for modification \'{:s}\' either in me.metabolites nor metabolites.txt input.'.format(component))
-				continue
-
-			for e, v in tmp_met.elements.items():
-				new_elements[e] += v * float(value)
-
-		if elements == new_elements and 'FLAVODOXIN' not in base_complex:
-			logging.warning('The stoichiometry of \'{:s}\' is identical to \'{:s}\'. Check if it is the correct behavior.'.format(met.id, base_complex))
-
-		base_complex = '_mod_'.join([base_complex, component]) # DO NOT DELETE
-		elements = new_elements.copy()
-
-	return elements
-
-def add_remaining_complex_formulas(model, modification_formulas):
+# WARNING: Originally on main.py
+def add_remaining_complex_formulas(me, df_mets):
 	"""
 	Add formula to complexes that are not formed from a complex formation
 	reaction (i.e., complexes involved in metabolic reactions)
 	"""
-	element_dict = {}
+	modification_formulas = df_mets[df_mets['type'].str.match('COFACTOR|MOD|MODIFICATION')]
+	modification_formulas = dict(zip(modification_formulas['me_id'], modification_formulas['formula']))
+	me.global_info['modification_formulas'] = modification_formulas
 
-	# Reset all formulas first
-	complex_list = []
-	for met in model.metabolites:
-		# If met is not a complex or not formed by a complex formation reaction, do not reset
-		if not isinstance(met, coralme.core.component.Complex) or met.id in model.process_data:
-			continue
+	modification_charges = {}
+	if 'charge' in df_mets.columns:
+		modification_charges = df_mets[df_mets['type'].str.match('COFACTOR|MOD|MODIFICATION')]
+		modification_charges = dict(zip(modification_charges['me_id'], modification_charges['charge']))
+		modification_charges = { k:float(v) for k,v in modification_charges.items() if v != '' }
+		me.global_info['modification_charges'] = modification_charges
 
-		for r in met.reactions:
-			if hasattr(r, 'update'):
-				r.update()
-
+	for met in [ x for x in me.metabolites if '_mod_' in x.id and isinstance(x, coralme.core.component.Complex)]:
 		met.formula = None
 		met.elements = {}
-		complex_list.append(met)
 
-	# Get formulas only for complexes without complex formation reaction
-	for met in complex_list:
-		element_dict[met] = get_remaining_complex_elements(model, met, modification_formulas)
+		base_complex = met.id.split('_mod_')[0]
+		if not me.metabolites.has_id(base_complex) and not hasattr(met, 'base_complex_elements'):
+			logging.warning('WARNING: Base complex \'{:s}\' does not exist. Reload an unpruned coralME model.'.format(base_complex))
+			continue # Without continue, add elemental contributions of the modifications
+		if not hasattr(met, 'base_complex_elements'):
+			met.base_complex_elements = collections.Counter(me.metabolites.get_by_id(base_complex).elements)
+		base_complex_elements = collections.Counter(met.base_complex_elements)
+		
+		for mod in met.id.split('_mod_')[1:]:
+			#for num in range(int(mod.rstrip(')').split('(')[1])):
+			mod_elements = None
+			mod_name = mod.split('(')[0]
 
-	# Adding elements for complexes dynamically can change function output
-	# Update all of them after
-	for met, elements in element_dict.items():
-		coralme.util.massbalance.elements_to_formula(met, elements)
+			if mod_name in modification_formulas:
+				mod_elements = coralme.builder.helper_functions.parse_composition(modification_formulas[mod_name])
+				# 2fe2s_c and 4fe4s_c appear as free metabolites in reactions and need to have formula for correct mass balance determination
+				if me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is None:
+					me.metabolites.get_by_id(mod_name + '_c').formula = modification_formulas[mod_name]
+					logging.warning('WARNING: New formula for \'{:s}\' was updated using me_mets.txt file.'.format(mod_name + '_c'))
+					me.metabolites.get_by_id(mod_name + '_c').charge = modification_charges.get(mod_name, 0)
+					logging.warning('WARNING: New charge for \'{:s}\' was updated using me_mets.txt file.'.format(mod_name + '_c'))
+				logging.warning('INFO: Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
+			
+			elif me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is not None:
+				mod_elements = me.metabolites.get_by_id(mod_name + '_c').elements
+				logging.warning('INFO: Elemental contribution for \'{:s}\' calculated from metabolite formula.'.format(mod_name))
+				
+			# WARNING: electron carriers can, assuming they are neutral, transfer also protons
+			# WARNING: Ferredoxins only transfer electrons; thioredoxins and others transfer protons and electrons.
+			elif mod.startswith('Oxidized'):
+				if base_complex in me.global_info['electron_transfers'].get('ferredoxins', []):
+					mod_elements = {'H': 0}
+					logging.warning('INFO: Elemental contribution in ferredoxin-type Complex \'{:s}\' calculated manually.'.format(met.id))
+				elif base_complex in me.global_info['electron_transfers'].get('cytochromes', []):
+					mod_elements = {'H': 0}
+					logging.warning('INFO: Elemental contribution in cytochrome-type Complex \'{:s}\' calculated manually.'.format(met.id))
+				elif 'Oxidized(1)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+					mod_elements = {'H': -2}
+					logging.warning('INFO: Elemental contribution in thioredoxin-type Complex \'{:s}\' calculated manually.'.format(met.id))
+				elif 'Oxidized(2)' == mod and base_complex not in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+					mod_elements = {'H': -4}
+					logging.warning('INFO: Elemental contribution in thioredoxin-type Complex \'{:s}\' calculated manually.'.format(met.id))
+				# TODO: is the fmn cofactor in flavodoxin neutral?
+				# WARNING: flavodoxin homologs might have a different base_complex ID compared to the ecolime model
+				elif 'Oxidized(1)' == mod and base_complex in me.global_info['electron_transfers'].get('flavodoxins', ['FLAVODOXIN']):
+					mod_elements = {'H': 0}
+					logging.warning('INFO: Elemental contribution in flavodoxin-type Complex \'{:s}\' calculated manually.'.format(met.id))
+				else:
+					logging.warning('WARNING: Elemental contribution in \'{:s}\' could not be determined.'.format(met.id))
+					logging.warning('INFO: Please check configuration file and add the base complex into the \'electron_transfers\' key.')
+
+			# WARNING: Negative elemental contributions cannot be set in the metabolites.txt input file
+			elif 'glycyl(1)' == mod:
+				mod_elements = {'H': -1}
+				logging.warning('INFO: Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
+			elif 'cosh(1)' == mod:
+				mod_elements = {'H': +1, 'O': -1, 'S': +1}
+				logging.warning('INFO: Elemental contribution for \'{:s}\' calculated manually.'.format(mod_name))
+			else:
+				if not me.metabolites.has_id(mod_name + '_c'):
+					logging.warning('WARNING: Metabolite does not exist in M-model. Elemental contribution for \'{:s}\' could not be determined.'.format(mod_name))				
+				else:
+					logging.warning('WARNING: Elemental contribution for \'{:s}\' could not be determined. Please check me_mets.txt file.'.format(mod_name))
+
+			if mod_elements:
+				mod_elements = collections.Counter(mod_elements)
+				mod_elements = { k:v * int(re.findall(r'\((\d+)\)', mod)[0]) for k,v in mod_elements.items() }
+				base_complex_elements.update(mod_elements)
+			else:
+				logging.warning('WARNING: Attempt to calculate a corrected formula for \'{:s}\' failed. Please check if it is the correct behaviour, or if the modification \'{:s}_c\' exists as a metabolite in the ME-model or a formula is included in the me_mets.txt file.'.format(met.id, mod_name))
+		
+		complex_elements = { k:base_complex_elements[k] for k in sorted(base_complex_elements) if base_complex_elements[k] != 0 }
+		met.formula = ''.join([ '{:s}{:d}'.format(k, v) for k,v in complex_elements.items() ])
+		met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
+		logging.warning('INFO: Setting new formula for \'{:s}\' to \'{:s}\' successfully.'.format(met.id, met.formula))
+
+	# Update a second time to incorporate all of the metabolite formulas correctly
+	for data in tqdm.tqdm(me.subreaction_data.query(r'(?!^\w\w\w_addition_at_\w\w\w$)'), 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
+		data._element_contribution = data.calculate_element_contribution()
+
+	# Update reactions affected by formula update
+	for r in tqdm.tqdm(me.reactions.query('^formation_'), 'Updating all FormationReactions...', bar_format = bar_format):
+		r.update()
+
+	for r in tqdm.tqdm(me.reactions.query('_mod_lipoyl'), 'Updating FormationReactions involving a lipoyl prosthetic group...', bar_format = bar_format):
+		r.update()
+
+	for r in tqdm.tqdm(me.reactions.query('_mod_glycyl'), 'Updating FormationReactions involving a glycyl radical...', bar_format = bar_format):
+		r.update()
+
+	return None

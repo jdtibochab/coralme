@@ -35,7 +35,8 @@ def publish_curation_notes(curation_notes,filepath):
 						file.write(json.dumps(i))
 						file.write('\n')
 					else:
-						file.write(i + '\n')
+						file.write(i + ', ')
+				file.write('\n')
 			file.write('\n{}Solution:\n{}\n\n'.format('*'*10,w['to_do']))
 		file.write('\n\n')
 	file.close()

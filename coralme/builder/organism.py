@@ -18,7 +18,6 @@ import logging
 log = logging.getLogger(__name__)
 
 element_types = {'CDS', 'rRNA','tRNA', 'ncRNA','misc_RNA','RNA','tmRNA'}
-
 class Organism(object):
     """Organism class for storing information about an organism
 
@@ -2136,13 +2135,12 @@ class Organism(object):
     def _solve_duplicates_between_datasets(self,
                                            dup_df):
         """Solves found duplicates according to hierarchy"""
-        from coralme.builder.helper_functions import change_reaction_id
         for c,row in tqdm.tqdm(dup_df.iterrows(),
                            'Solving duplicates across datasets...',
                            bar_format = bar_format,
                            total=dup_df.shape[0]):
             if row['reactions']:
-                change_reaction_id(self.m_model,c,c+'_rxn')
+                coralme.builder.helper_functions.change_reaction_id(self.m_model,c,c+'_rxn')
                 logging.warning('INFO: Changed reaction ID from {} to {} to prevent the conflict between: {}'.format(c,c+'_rxn',' and '.join([j for j,k in row.items() if k])))
             else:
                 raise ValueError('The identifier {} is duplicated in {}. Please fix!'.format(c,' and '.join([j for j,k in row.items() if k])))

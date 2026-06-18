@@ -4,7 +4,7 @@ import copy
 import json
 import sympy
 import jsonschema
-from collections import OrderedDict
+import collections
 
 import logging
 import pandas
@@ -149,11 +149,8 @@ def load_json_me_model(file_name):
 
 	# We will remove duplicates entries in the log output
 	with open('MELoader.log', 'w') as outfile:
-		logger = log.handlers[1].log_list
-
-		tmp = pandas.DataFrame(logger)
-		for idx, data in tmp.drop_duplicates(subset = 1).iterrows():
-			outfile.write('{:s} {:s}\n'.format(data[0], data[1]))
+		logger = log.handlers[1]
+		coralme.core.extended_classes.ListHandler.log_to_file(logger.log_list, logger.debug, outfile)
 
 	return model
 
@@ -246,7 +243,7 @@ def load_reduced_json_me_model(file_name):
 			if k in {'objective_coefficient', 'reversibility', 'reaction'}:
 				continue
 			elif k == 'metabolites':
-				new_reaction.add_metabolites(OrderedDict(
+				new_reaction.add_metabolites(collections.OrderedDict(
 					(model.metabolites.get_by_id(str(met)),
 					 coralme.io.dict.get_numeric_from_string(coeff))
 					for met, coeff in v.items()))

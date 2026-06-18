@@ -12,13 +12,11 @@ import pandas
 import json
 import copy
 
-from cobra.core.dictlist import DictList
-
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(cur_dir, 'column_format.json'), 'r') as f:
     column_format = json.load(f)
 
-class CurationList(DictList):
+class CurationList(cobra.core.dictlist.DictList):
     """Stores CurationInfo instances in a cobra DictList object.
 
     This class stores the generated CurationInfo instances from the

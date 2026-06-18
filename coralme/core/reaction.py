@@ -12,7 +12,8 @@ log = logging.getLogger(__name__)
 import cobra
 import coralme
 # use this because recursive import leads to a partial import and an error
-from coralme.core.component import Metabolite as Metabolite
+from coralme.core.component import *
+from coralme.core.reaction import *
 
 def _get_genes_of_complex(c,genes = set()):
 	if isinstance(c,coralme.core.component.Complex):
@@ -48,6 +49,31 @@ def _get_genes_from_reaction_metabolites(r):
 	for c in complexes:
 		genes = genes.union(_get_genes_of_complex(c))
 	return [cobra.core.Gene(i) for i in genes]
+
+def _create_component(component_id, default_type = MEComponent, rnap_set = set()):
+	"""creates a component and attempts to set the correct type"""
+	if not isinstance(component_id, str):
+		raise TypeError("Component ID \'{:s}\' must be a str, not \'{:s}\'.".format(repr(component_id), str(type(component_id))))
+	if component_id.startswith("protein_"):
+		return TranslatedGene(component_id)
+	elif component_id.startswith("RNA_"):
+		raise ValueError(
+			'TranscribedGene \'{:s}\' should not be added using '
+			'create_component. It requires additional information '
+			'when creating instance.'.format(component_id)
+			)
+	elif component_id.startswith("ribosome"):
+		return Ribosome(component_id)
+	elif component_id.startswith("RNA_Polymerase") or component_id in rnap_set:
+		return RNAP(component_id)
+	elif component_id.startswith("generic_tRNA"):
+		return GenerictRNA(component_id)
+	elif component_id.endswith('_c'):
+		return Metabolite(component_id)
+	elif component_id.startswith('generic_'):
+		return GenericComponent(component_id)
+	else:
+		return default_type(component_id)
 
 class MEReaction(cobra.core.reaction.Reaction):
 	"""
@@ -290,7 +316,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			except KeyError:
 				if key.split('_mod_')[0] in [ x.id for x in list(self._model.complex_data)]:
 					default_type = coralme.core.component.Complex
-				new_met = coralme.core.component.create_component(key, default_type = default_type)
+				new_met = _create_component(key, default_type = default_type)
 				if verbose:
 					#logging.warning('Metabolite created \'{:s}\' in ME-model \'{:s}\'.'.format(repr(new_met), repr(self)))
 					logging.warning('INFO: Component \'{:s}\' created in Reaction \'{:s}\'. No further actions must be taken.'.format(new_met.id, self.id))
@@ -675,17 +701,15 @@ class MEReaction(cobra.core.reaction.Reaction):
 		# Validate bounds before setting them.
 		self._check_bounds(value, self._upper_bound) # if value < self._lower_bound
 
-		if hasattr(self._model, 'unit_registry'):
-			unit = self._model.unit_registry.parse_units('mmols per gram per hour')
-		else:
-			unit = 1.
-
 		if isinstance(value, pint.Quantity):
 			self._lower_bound = value
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._lower_bound = value
 		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
 		elif isinstance(float(value), float):
+			unit = 1.
+			if self._model is not None and 'default_parameters' in self._model.global_info:
+				unit = self._model.unit_registry.parse_units('mmols per gram per hour')
 			self._lower_bound = float(value) * unit
 		else:
 			raise ValueError('The type of the provided lower bound value is not int, float, symbol.Symbol, or pint.Quantity')
@@ -730,17 +754,15 @@ class MEReaction(cobra.core.reaction.Reaction):
 		# Validate bounds before setting them.
 		self._check_bounds(self._lower_bound, value) # if self._lower_bound < value
 
-		if hasattr(self._model, 'unit_registry'):
-			unit = self._model.unit_registry.parse_units('mmols per gram per hour')
-		else:
-			unit = 1.
-
 		if isinstance(value, pint.Quantity):
 			self._upper_bound = value
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._upper_bound = value
 		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
 		elif isinstance(float(value), float):
+			unit = 1.
+			if self._model is not None and 'default_parameters' in self._model.global_info:
+				unit = self._model.unit_registry.parse_units('mmols per gram per hour')
 			self._upper_bound = float(value) * unit
 		else:
 			raise ValueError('The type of the provided upper bound value is not int, float, symbol.Symbol, or pint.Quantity')
@@ -866,7 +888,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			else:
 				return (True, max(lower_bound - self._model.solution.fluxes[self.id], self._model.solution.fluxes[self.id] - upper_bound))
 		else:
-			return ('ME-model not optimized/feasible')
+			return ('coralME model not optimized/feasible')
 
 	def get_me_mass_balance(self):
 		if self.id.startswith(('DM_', 'EX_', 'SK_', 'TS_')):
@@ -874,9 +896,11 @@ class MEReaction(cobra.core.reaction.Reaction):
 		elif self.id.startswith((
 			'biomass_dilution', 'biomass_constituent_demand', 'DNA_replication', 'dummy_protein_to_mass',
 			'translation_', 'transcription_', 'charging_', 'formation_', 'translocation_', 'dummy_reaction_')):
-			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
+			mass_balance = 'Invalid calculation due to massless metabolite(s) in reaction'
+		elif '_lipid_modification_' in self.id:
+			mass_balance = 'Invalid calculation due to the formation of a lipoprotein component'
 		elif '_to_generic_' in self.id or 'biomass_to_biomass' in self.id:
-			mass_balance = 'Invalid calculation due to massless metabolites in reaction.'
+			mass_balance = 'Invalid calculation due to massless metabolite(s) in reaction'
 		else:
 			mass_balance = self.check_me_mass_balance()
 		return mass_balance
@@ -916,7 +940,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 			cost = r'{:g} ($\{:s}$ = {:g} per hour)'.format(self._model.solution.reduced_costs[self.id], str(self._model.mu.magnitude), mu)
 			viol = r'{:s} ($\Delta$ = {:g} per hour)'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
 		else:
-			flux = cost = viol = 'ME-model not optimized/feasible'
+			flux = cost = viol = 'coralME model not optimized/feasible'
 
 		return f"""
 		<table>
@@ -1127,7 +1151,7 @@ class ComplexFormation(MEReaction):
 	a ME-model reaction.
 
 	This reaction class produces a reaction that combines the protein subunits
-	and adds any coenyzmes, prosthetic groups or enzyme modifications to form
+	and adds any coenzymes, prosthetic groups or enzyme modifications to form
 	complete enzyme complex.
 
 	Parameters
@@ -1177,7 +1201,7 @@ class ComplexFormation(MEReaction):
 		complex_data : :class:`coralme.core.processdata.ComplexData`
 			Complex data for complex being formed in the reaction
 
-		complex_met : :class:`coralme.core.processdata.ComplexData`
+		complex_met : :class:`coralme.core.component.Complex`
 			Metabolite of complex being formed in the reaction
 
 		"""
@@ -1227,7 +1251,7 @@ class ComplexFormation(MEReaction):
 
 		# 1) Complex product defined in self._complex_id
 		if self._complex_id not in metabolites:
-			complex_met = coralme.core.component.create_component(self._complex_id, default_type = coralme.core.component.Complex)
+			complex_met = _create_component(self._complex_id, default_type = coralme.core.component.Complex)
 			self._model.add_metabolites([complex_met])
 
 		# WARNING: careful with lipoyl modifications because complex_id != id
@@ -1880,15 +1904,16 @@ class TranslationReaction(MEReaction):
 		# Correct count of amino acids in translation reactions to account for misacylation of tRNAs
 		for aa, value in self.translation_data.amino_acid_count.items():
 			if aa.replace('__L_' + organelle, '') in [ x.lower() for x in trna_misacylation.keys() ]:
+				stoichiometry['h2o_' + organelle] += value
+				# correct amino acid if needed
 				stoichiometry[aa] = 0
 				aa = trna_misacylation[aa.replace('__L_' + organelle, '').capitalize()] + '__L_' + organelle
 				aa = aa[0].lower() + aa[1:]
 				stoichiometry[aa] -= value
-				stoichiometry['h2o_' + organelle] += value
 				continue
 
-			stoichiometry[aa] -= value
 			stoichiometry['h2o_' + organelle] += value
+			stoichiometry[aa] -= value
 
 		# Length protein - 1 dehydration reactions
 		stoichiometry['h2o_' + organelle] -= 1.
@@ -2053,7 +2078,7 @@ class tRNAChargingReaction(MEReaction):
 		# 1) Charged tRNA product following template:
 		# 'generic_tRNA + _ + <data.codon> + _ + <data.amino_acid>'
 		generic_trna = 'generic_tRNA_' + data.codon + '_' + data.amino_acid
-		stoichiometry[generic_trna] = 1
+		stoichiometry[generic_trna] = 1.
 
 		# 2) tRNA metabolite (defined in data.RNA) w/ charging coupling coefficient
 		stoichiometry[data.RNA] = -data.coupling_coefficient_trna_amount

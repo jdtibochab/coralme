@@ -192,7 +192,6 @@ def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbos
 				pass
 	return reactions
 
-from coralme.builder.helper_functions import substitute_value,get_next_from_type
 def get_immediate_partitioning(p):
 	"""
 	This function calculates the partitioning of a metabolite
@@ -220,16 +219,16 @@ def get_partitioning(m, seen = set(),final_fraction=1.0):
 
 	# Reaction objects
 	if isinstance(m,coralme.core.reaction.PostTranslationReaction):
-		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.ProcessedProtein), seen=seen,final_fraction=final_fraction)
+		return get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.ProcessedProtein), seen=seen,final_fraction=final_fraction)
 	if isinstance(m,coralme.core.reaction.ComplexFormation):
-		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction)
+		return get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction)
 	if isinstance(m,coralme.core.reaction.GenericFormationReaction):
-		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
+		return get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
 	if isinstance(m,coralme.core.reaction.tRNAChargingReaction):
-		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenerictRNA), seen=seen,final_fraction=final_fraction)
+		return get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.GenerictRNA), seen=seen,final_fraction=final_fraction)
 	if isinstance(m,coralme.core.reaction.MetabolicReaction):
-		return get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction) | \
-				get_partitioning(get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
+		return get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.Complex), seen=seen,final_fraction=final_fraction) | \
+				get_partitioning(coralme.builder.helper_functions.get_next_from_type(m.metabolites,coralme.core.component.GenericComponent), seen=seen,final_fraction=final_fraction)
 
 	if isinstance(m,coralme.core.reaction.SummaryVariable):
 		return set()
@@ -240,7 +239,7 @@ def get_partitioning(m, seen = set(),final_fraction=1.0):
 	if isinstance(m,coralme.core.component.TranslatedGene):
 		cplxs = set()
 		for r,fraction in partitioning.items():
-			if substitute_value(m,r.metabolites[m] > 0):
+			if coralme.builder.helper_functions.substitute_value(m,r.metabolites[m] > 0):
 				continue
 			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
 		return cplxs
@@ -250,20 +249,25 @@ def get_partitioning(m, seen = set(),final_fraction=1.0):
 			return get_partitioning(m._model.metabolites.get_by_id(translated_protein), seen=seen,final_fraction=final_fraction)
 		cplxs = set()
 		for r,fraction in partitioning.items():
-			if substitute_value(m,r.metabolites[m] > 0):
+			if coralme.builder.helper_functions.substitute_value(m,r.metabolites[m] > 0):
 				continue
 			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
 		return cplxs
 	if isinstance(m,coralme.core.component.ProcessedProtein):
 		cplxs = set()
 		for r,fraction in partitioning.items():
-			if substitute_value(m,r.metabolites[m] > 0):
+			if coralme.builder.helper_functions.substitute_value(m,r.metabolites[m] > 0):
 				continue
 			cplxs = cplxs | get_partitioning(r, seen=seen,final_fraction=final_fraction*fraction)
 		return cplxs
 
 	if isinstance(m,coralme.core.component.Complex) or isinstance(m,coralme.core.component.GenericComponent) or isinstance(m,coralme.core.component.GenerictRNA):
-		other_formations = [(r,fraction) for r,fraction in partitioning.items() if (isinstance(r,coralme.core.reaction.ComplexFormation) or isinstance(r,coralme.core.reaction.GenericFormationReaction)) and substitute_value(m,r.metabolites[m]) < 0]
+		other_formations = [
+			(r,fraction) for r,fraction in partitioning.items() 
+			if (isinstance(r,coralme.core.reaction.ComplexFormation) 
+			or isinstance(r,coralme.core.reaction.GenericFormationReaction)) 
+			and coralme.builder.helper_functions.substitute_value(m,r.metabolites[m]) < 0
+			]
 		cplxs = set([(m,final_fraction)])
 		if other_formations:
 			cplxs = set()
