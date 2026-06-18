@@ -363,9 +363,16 @@ class MEReaction(cobra.core.reaction.Reaction):
 			Initial biomass value + biomass added from subreactions in kDa
 
 		"""
+		biomass = collections.defaultdict(float)
+		# before, only one value was returned depending on the total mass of the modification
 		for subrxn, count in process_data.subreactions.items():
 			subrxn_obj = self._model.process_data.get_by_id(subrxn)
-			biomass += subrxn_obj.calculate_biomass_contribution() / 1000. * count
+			if self._model.metabolites.has_id(subrxn[4:-2] + '_biomass'):
+				biomass[subrxn[4:-2]] += subrxn_obj.calculate_biomass_contribution() / 1000. * count
+			else:
+				biomass['prosthetic_group'] += subrxn_obj.calculate_biomass_contribution() / 1000. * count
+		if not biomass:
+			biomass = 0.
 		return biomass  # in kDa
 
 	def clear_metabolites(self):
