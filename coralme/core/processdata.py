@@ -45,6 +45,9 @@ class ProcessData(object):
 		model.process_data.append(self)
 		self.processdata_type = str(type(self))[8:-2]
 
+	@property
+	def index(self):
+		return self.model.process_data.index(self.id)
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def copy(self) -> "ProcessData":
@@ -97,8 +100,81 @@ class ProcessData(object):
 		for i in self._parent_reactions:
 			reactions.get_by_id(i).update()
 
+	def remove(self, process_data):
+		if not self._model.process_data.has_id(process_data):
+			return None
+		if isinstance(process_data, str) and self._model.process_data.has_id(process_data):
+			process_data = self._model.process_data.get_by_id(process_data)
+		self.remove(process_data)
+
 	def __repr__(self):
 		return '<{:s} {:s} at 0x{:x}>'.format(self.__class__.__name__, self.id, id(self))
+
+	def _repr_html_(self):
+		import html
+		def safe(val):
+			"""Escape HTML for safety."""
+			return html.escape(str(val))
+
+		def format_dict(d):
+			if not d:
+				return "<em>empty</em>"
+			return "<table>\n" + \
+					"\n".join(
+						f"<tr><td>{safe(k)}</td>"
+						f"<td>{safe(v)}</td></tr>"
+						for k, v in d.items()
+					) + "\n</table>"
+
+		def format_iterable(it):
+			if not it:
+				return "<em>empty</em>"
+			return ", ".join(safe(x) for x in it)
+
+		# --- Gather main fields
+		rows = []
+		rows.append(("<strong>Class</strong>", self.__class__.__name__))
+		rows.append(("<strong>Memory address</strong>", f"{id(self):#x}"))
+		rows.append(("<strong>Identifier</strong>", getattr(self, "id", "")))
+
+		# --- Special biological tables ---
+		if hasattr(self, "stoichiometry"):
+			rows.append(("<strong>Stoichiometry</strong>", format_dict(self.stoichiometry)))
+		if hasattr(self, "subreactions"):
+			rows.append(("<strong>Subreactions</strong>", format_dict(self.subreactions)))
+		if hasattr(self, "RNA_products"):
+			rows.append(("<strong>RNA products</strong>", format_iterable(self.RNA_products)))
+		if hasattr(self, "component_list"):
+			rows.append(("<strong>Component list</strong>", format_iterable(self.component_list)))
+		if hasattr(self, "enzyme_dict"):
+			rows.append(("<strong>Enzyme dictionary</strong>", format_dict(self.enzyme_dict)))
+
+		# --- General attributes (excluding large or redundant ones) ---
+		skip = {
+			"_model", "_parent_reactions", "stoichiometry", "subreactions",
+			"RNA_products", "enzyme_dict", "component_list", "id"
+		}
+		for k, v in self.__dict__.items():
+			if k in skip or k.startswith("_") or callable(v):
+				continue
+			if isinstance(v, (dict, list, set)):
+				display_val = f"{type(v).__name__} ({len(v)})"
+			else:
+				display_val = v
+			rows.append((safe(k), safe(display_val)))
+
+		# --- Build the HTML table ---
+		table_rows = "\n".join(
+			f"<tr><td style='font-weight:bold; vertical-align:top;'>{key}</td><td>{val}</td></tr>"
+			for key, val in rows
+		)
+
+		html_output = f"""
+		<table style='border-collapse:collapse; width:100%;'>
+			{table_rows}
+		</table>
+		"""
+		return html_output
 
 class StoichiometricData(ProcessData):
 	"""Encodes the stoichiometry for a metabolic reaction.
@@ -173,6 +249,11 @@ class StoichiometricData(ProcessData):
 		for rxn in self.parent_reactions:
 			fluxes.append(rxn.flux if '_FWD_' in rxn.id else -1*rxn.flux)
 		return sum(fluxes)
+
+	@property
+	def artifact(self):
+		if len(list(filter(lambda x: x.flux >= 1e-20, self.parent_reactions))) >= 2:
+			return f'Possible simulation artifact.'
 
 class SubreactionData(ProcessData):
 	"""
