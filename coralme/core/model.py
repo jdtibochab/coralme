@@ -1372,7 +1372,7 @@ class MEModel(cobra.core.object.Object):
 				flux_dict[protein_id] += solution.fluxes[reaction.id]
 		return flux_dict
 
-	def prune(self, skip = None):
+	def prune(self, skip = None, dry_run = False):
 		"""
 		Remove all unused metabolites and reactions
 		This should be run after the model is fully built. It will be
@@ -1388,134 +1388,168 @@ class MEModel(cobra.core.object.Object):
 			#logging.warning('Removing inactive MetabolicReaction {}'.format(r.id))
 			#r.remove_from_model(remove_orphans = False)
 
-		complex_data_list = [ i.id for i in self.complex_data if i.id not in skip ]
-		for c_d in tqdm.tqdm(complex_data_list, 'Pruning unnecessary ComplexData reactions...', bar_format = bar_format):
-			c = self.process_data.get_by_id(c_d)
-			cplx = c.complex
-			if len(cplx.reactions) == 1:
-				list(cplx.reactions)[0].delete(remove_orphans = True) replaced by for-loop 
+		cplxes_list = [ i for i in self.complex_data if i.id not in skip ] # ComplexData and associated Formation reactions
+		folded_list = [ i for i in self.metabolites.query('_folded') if i.id not in skip if 'partially' not in i.id ] # FoldedProtein
+		prots_list = [ i for i in self.metabolites.query('^protein_') if i.id not in skip ] # ProcessedProtein + TranslatedGene
+		rnas_list = [ i for i in self.metabolites.query('^RNA_') if i.id not in skip ] # TranscribedGene
+		txs_list = [ i for i in self.reactions.query('^transcription_TU') if i.id not in skip ] # Transcriptional Units
+
+		total = len(cplxes_list) + len(folded_list) + (len(prots_list) * 2) + len(rnas_list) + len(txs_list)
+		with tqdm.tqdm(desc = 'Prunning unnecessary components...', bar_format = bar_format, total = total) as pbar:
+			for data in tqdm.tqdm(cplxes_list, 'Pruning unnecessary ComplexData and associated Formation reactions...', bar_format = bar_format, disable = True):
+				# c = self.process_data.get_by_id(c_d)
+				cplx = data.complex
+				# if len(cplx.reactions) == 1:
+				# WARNING: new degradation reaction adds a reaction, but not always, e.g., acyl carrier protein phosphodiesterase reaction
+				# WARNING: querying without dollar sign can match modified complexes
+				if cplx.reactions == set(self.query(cplx.id + '$', subtypes = set([coralme.core.reaction.ComplexDegradation, coralme.core.reaction.ComplexFormation]))):
+					if not dry_run:
+						# list(cplx.reactions)[0].delete(remove_orphans = True) replaced by for-loop 
 						logging.warning('INFO: Removing unnecessary Formation reaction for \'{:s}\' component and its ComplexData.'.format(data.id))
-				self.process_data.remove(self.process_data.get_by_id(c_d))
+						self.process_data.remove(data)
+						for rxn in cplx.reactions:
+							rxn.delete(remove_orphans = True)
+					else:
+						print('ComplexData \'{:s}\' and its Formation reaction will be removed (dry run).'.format(data.id))
+				pbar.update(1)
 
-		for p in tqdm.tqdm(list(self.metabolites.query('_folded')), 'Pruning unnecessary FoldedProtein reactions...', bar_format = bar_format):
-			if 'partially' not in p.id and p.id not in skip:
+			for met in tqdm.tqdm(folded_list, 'Pruning unnecessary FoldedProtein reactions...', bar_format = bar_format, disable = True):
 				delete = True
-				for rxn in p.reactions:
-					if rxn.metabolites[p] < 0:
+				for rxn in met.reactions:
+					if rxn.metabolites[met] < 0: # the folded protein is a substrate
 						delete = False
-						break
-
+						break # no need to check all reactions of folded protein
 				if delete:
-					while len(p.reactions) > 0:
-						list(p.reactions)[0].delete(remove_orphans = True)
-						for data in self.process_data.query(p.id):
+					while len(met.reactions) > 0:
+						list(met.reactions)[0].delete(remove_orphans = True)
+						for data in self.process_data.query(met.id):
 							logging.warning('INFO: Removing unnecessary FoldedProtein reactions for \'{:s}\''.format(met.id))
 							self.process_data.remove(data.id)
+				pbar.update(1)
 
-		for p in tqdm.tqdm(self.metabolites.query('^protein_'), 'Pruning unnecessary ProcessedProtein reactions...', bar_format = bar_format):
-			if isinstance(p, coralme.core.component.ProcessedProtein) and p.id not in skip:
-				delete = True
-				for rxn in p.reactions:
-					if rxn.metabolites[p] < 0:
-						delete = False
-						break
-				if delete:
-					for rxn in list(p.reactions):
+			for met in tqdm.tqdm(prots_list, 'Pruning unnecessary ProcessedProtein reactions...', bar_format = bar_format, disable = True):
+				if isinstance(met, coralme.core.component.ProcessedProtein):
+					delete = True
+					for rxn in met.reactions:
+						if rxn.metabolites[met] < 0:
+							delete = False
+							break
+					# this deletes proteins that are only produced but not consumed in metabolic reactions
+					if delete:
+						if not dry_run:
+							for rxn in list(met.reactions):
 								logging.warning('INFO: Removing unnecessary ProcessedProtein reactions for \'{:s}\''.format(rxn.posttranslation_data.id))
-						self.process_data.remove(rxn.posttranslation_data.id)
-						rxn.delete(remove_orphans = True)
+								self.process_data.remove(rxn.posttranslation_data.id)
+								rxn.delete(remove_orphans = True)
+						else:
+							print('Reactions associated to ProcessedProtein \'{:s}\' will be removed (dry run).'.format(met.id))
+				pbar.update(1)
 
-		for p in tqdm.tqdm(self.metabolites.query('^protein_'), 'Pruning unnecessary TranslatedGene reactions...', bar_format = bar_format):
-			if isinstance(p, coralme.core.component.TranslatedGene) and p.id not in skip:
-				delete = True
-				for rxn in p.reactions:
-					if rxn.metabolites[p] < 0 and not rxn.id.startswith('degradation'):
-						delete = False
-						break
-				if delete:
-					for rxn in p.reactions:
-						p_id = p.id.replace('protein_', '')
-						data = self.process_data.get_by_id(p_id)
-						self.process_data.remove(data.id)
+			for met in tqdm.tqdm(prots_list, 'Pruning unnecessary TranslatedGene reactions...', bar_format = bar_format, disable = True):
+				if isinstance(met, coralme.core.component.TranslatedGene):
+					delete = True
+					for rxn in met.reactions:
+						if rxn.metabolites[met] < 0 and not rxn.id.startswith('degradation'):
+							delete = False
+							break
+					if delete:
+						if not dry_run:
+							for rxn in met.reactions:
+								p_id = met.id.replace('protein_', '')
+								data = self.process_data.get_by_id(p_id)
+								self.process_data.remove(data.id)
 								logging.warning('INFO: Removing unnecessary TranslatedGene reactions for \'{:s}\''.format(p_id))
-						rxn.delete(remove_orphans = True)
+								rxn.delete(remove_orphans = True)
+						else:
+							print('Reactions associated to TranslatedGene \'{:s}\' will be removed (dry run).'.format(met.id))
+				pbar.update(1)
 
-		removed_rna = set()
-		for m in tqdm.tqdm(self.metabolites.query('^RNA_'), 'Pruning unnecessary TranscribedGene reactions...', bar_format = bar_format):
-			delete = False if m.id in skip else True
-			for rxn in m.reactions:
-				if rxn.metabolites[m] < 0 and not rxn.id.startswith('DM_'):
-					delete = False
-			if delete and self.reactions.has_id('DM_' + m.id):
-				#try:
-					#WARNING: for some reason, m._model returns None and the try/except fails to catch a KeyError at m.remove_from_model
-					#self.reactions.get_by_id('DM_' + m.id).remove_from_model(remove_orphans = True)
-					#if m in self.metabolites:
-						#Defaults to subtractive when removing reaction
-						#m.remove_from_model(destructive = False)
-				#except KeyError:
-					#pass
-				self.reactions.get_by_id('DM_' + m.id).remove_from_model(remove_orphans = True)
-				try:
+			removed_rna = set()
+			for met in tqdm.tqdm(rnas_list, 'Pruning unnecessary TranscribedGene reactions...', bar_format = bar_format, disable = True):
+				delete = True
+				for rxn in met.reactions:
+					if rxn.metabolites[met] < 0 and not rxn.id.startswith('DM_'):
+						delete = False
+				if delete and self.reactions.has_id('DM_' + met.id):
+					#try:
+						#WARNING: for some reason, m._model returns None and the try/except fails to catch a KeyError at m.remove_from_model
+						#self.reactions.get_by_id('DM_' + m.id).remove_from_model(remove_orphans = True)
+						#if m in self.metabolites:
+							#Defaults to subtractive when removing reaction
+							#m.remove_from_model(destructive = False)
+					#except KeyError:
+						#pass
+					self.reactions.get_by_id('DM_' + met.id).remove_from_model(remove_orphans = True)
+					try:
 						met.remove_from_model(destructive = False)
 						logging.warning('INFO: Removing unnecessary TranscribedGene reactions for \'{:s}\''.format(met.id))
-					m.remove_from_model(destructive = False)
-				except AttributeError:
+					except AttributeError:
 						logging.warning('ERROR: AttributeError for \'{:s}\''.format(met.id))
-					pass
-				removed_rna.add(m.id)
+						pass
+					removed_rna.add(met.id)
+				pbar.update(1)
 
-		for t in tqdm.tqdm(self.reactions.query('transcription_TU'), 'Pruning unnecessary Transcriptional Units...', bar_format = bar_format):
-			if t.id in skip:
-				delete = False
-			else:
+			for rxn in tqdm.tqdm(txs_list, 'Pruning unnecessary Transcriptional Units...', bar_format = bar_format, disable = True):
 				delete = True
+				for product in rxn.products:
+					if isinstance(product, coralme.core.component.TranscribedGene):
+						delete = False
 
-			for product in t.products:
-				if isinstance(product, coralme.core.component.TranscribedGene):
-					delete = False
-
-			t_process_id = t.id.replace('transcription_', '')
-			if delete:
-				t.remove_from_model(remove_orphans = True)
+				t_process_id = rxn.id.replace('transcription_', '')
+				if delete:
+					rxn.remove_from_model(remove_orphans = True)
 					logging.warning('INFO: Removing the unnecessary \'{:s}\' transcriptional unit.'.format(t_process_id))
-				self.process_data.remove(t_process_id)
-			else:
-				# gets rid of the removed RNA from the products
-				self.process_data.get_by_id(t_process_id).RNA_products.difference_update(removed_rna)
+					self.process_data.remove(t_process_id)
+				else:
+					# this gets rid of the removed RNA from the products
+					self.process_data.get_by_id(t_process_id).RNA_products.difference_update(removed_rna)
 
-			# update the TranscriptionReaction mRNA biomass stoichiometry with new RNA_products
-			# WARNING: The deletion of RNA(s) from a TU increases the number of nucleotides that should be degraded using the degradosome
-			# WARNING: However, n_cuts and n_excised are not recalculated using coralme.builder.transcription.add_rna_splicing
-			if not delete:
-				t.update()
+				# update the TranscriptionReaction mRNA biomass stoichiometry with new RNA_products
+				# WARNING: The deletion of RNA(s) from a TU increases the number of nucleotides that should be degraded using the degradosome
+				# WARNING: However, n_cuts and n_excised are not recalculated using coralme.builder.transcription.add_rna_splicing
+				if not delete:
+					rxn.update()
+				pbar.update(1)
 
 	def remove_genes_from_model(self, gene_list):
-		for gene in tqdm.tqdm(gene_list, 'Removing gene(s) from ME-model...', bar_format = bar_format):
+		for gene in tqdm.tqdm(gene_list, 'INFO: Removing gene(s) and associated reactions from ME-model...', bar_format = bar_format):
 			# defaults to subtractive when removing model
-			self.metabolites.get_by_id('RNA_' + gene).remove_from_model()
-			protein = self.metabolites.get_by_id('protein_'+gene)
-			for cplx in protein.complexes:
-				print('Complex \'{:s}\' removed from ME-model.'.format(cplx.id))
-				for rxn in cplx.metabolic_reactions:
-					try:
-						self.process_data.remove(rxn.id.split('_')[0])
-					except ValueError:
-						pass
-					rxn.remove_from_model()
+			if self.metabolites.has_id('RNA_' + gene):
+				self.metabolites.get_by_id('RNA_' + gene).remove_from_model()
 
-			protein.remove_from_model(destructive = True)
+		rnum = len(self.reactions)
+		delta = 1
+		while delta > 0:
+			self.prune()
+			delta = rnum - len(self.reactions)
+			rnum = len(self.reactions)
 
-		# Remove all transcription reactions that now do not form a used transcript
-		for tu in tqdm.tqdm(self.reactions.query('transcription_TU'), 'Removing unnecessary Transcriptional Units...', bar_format = bar_format):
-			delete = True
-			for product in tu.products:
-				if isinstance(product, coralme.core.component.TranscribedGene):
-					delete = False
-			if delete:
-				tu.remove_from_model(remove_orphans = True)
-				t_process_id = tu.id.replace('transcription_', '')
-				self.process_data.remove(t_process_id)
+		# 	if self.metabolites.has_id('protein_' + gene):
+		# 		protein = self.metabolites.get_by_id('protein_' + gene)
+		# 		for cplx in protein.complexes:
+		# 			print('Complex \'{:s}\' removed from ME-model.'.format(cplx.id))
+		# 			if hasattr(cplx, 'metabolic_reactions'):
+		# 				for rxn in cplx.metabolic_reactions:
+		# 					try:
+		# 						self.process_data.remove(rxn.id.split('_')[0])
+		# 					except ValueError:
+		# 						pass
+		# 					rxn.remove_from_model()
+  #
+		# 		if protein._model is None:
+		# 			continue
+		# 		protein.remove_from_model(destructive = True)
+  #
+		# # Remove all transcription reactions that now do not form a used transcript
+		# for tu in tqdm.tqdm(self.reactions.query('transcription_TU'), 'Removing unnecessary Transcriptional Units...', bar_format = bar_format):
+		# 	delete = True
+		# 	for product in tu.products:
+		# 		if isinstance(product, coralme.core.component.TranscribedGene):
+		# 			delete = False
+		# 	if delete:
+		# 		tu.remove_from_model(remove_orphans = True)
+		# 		t_process_id = tu.id.replace('transcription_', '')
+		# 		self.process_data.remove(t_process_id)
 
 	def set_sasa_keffs(self, median_keff):
 		# Get median SASA value considering all complexes in model
@@ -1579,7 +1613,13 @@ class MEModel(cobra.core.object.Object):
 			if hasattr(r, 'update'):
 				new.append(r)
 		for r in tqdm.tqdm(new, 'Updating ME-model Reactions...', bar_format = bar_format):
-			_update(r)
+			try:
+				_update(r)
+			except Exception:
+				if allow_errors:
+					print('Something wrong happened trying updating reaction ID \'{:s}\''.format(r.id))
+				else:
+					raise
 
 	# me.update() cannot be parallelized without considering new constraints being added into the model.
 	# New constraints must have a different name, so me.update() fails if two reactions are changed to add the same constraint:
