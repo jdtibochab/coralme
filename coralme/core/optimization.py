@@ -17,6 +17,43 @@ import pandas
 import cobra
 import coralme
 
+# new class
+from dataclasses import dataclass
+@dataclass
+class SymbolicLP:
+	Sf: object
+	Se: object
+	lb: object
+	ub: object
+	b: object
+	c: object
+	cs: object
+	atoms: object
+	lambdas: object
+	Lr: object
+	Lm: object
+
+	@classmethod
+	def from_tuple(cls, lp_tuple):
+		return cls(*lp_tuple)
+
+	def to_tuple(self):
+		return (self.Sf, self.Se, self.lb, self.ub, self.b, self.c, self.cs, self.atoms, self.lambdas, self.Lr, self.Lm)
+
+	def to_dict(self):
+		return {'Sf': self.Sf, 'Se': self.Se, 'xl': self.lb, 'xu': self.ub, 'b': self.b, 'c': self.c, 'cs': self.cs, 'mu': self.atoms, 'lambdas': self.lambdas, 'Lr': self.Lr, 'Lm': self.Lm}
+
+	def to_tensor(self):
+		import torch
+		return { k:torch.tensor(v) if isinstance(v, list) else v for k,v in self.to_dict().items() }
+
+	def evaluate(self, keys):
+		if self.lambdas is None:
+			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(self.Sf, self.Se, self.lb, self.ub, keys, self.atoms)
+		else:
+			Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(self.Sf, self.lambdas, self.lb, self.ub, keys, self.atoms)
+		return SymbolicLP(Sf, Se, lb, ub, self.b, self.c, self.cs, self.atoms, self.lambdas, self.Lr, self.Lm)
+
 # simulation helpers and other functions
 def _check_options(model = None, keys = dict(), tolerance = 1e-6, precision = 'quad'):
 	# check options
@@ -47,7 +84,7 @@ def _get_evaluated_nlp(model = None, keys = dict(), **kwargs):
 
 	# populate with stoichiometry with replacement of mu's (Sf contains Se)
 	# for single evaluations of the LP problem, direct replacement is faster than lambdify
-	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs['lp'] if 'lp' in kwargs else construct_lp_problem(model, lambdify = False)
+	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = kwargs['lp'] if 'lp' in kwargs else construct_lp_problem(model, lambdify = False).to_tuple()
 
 	if lambdas is None:
 		Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, keys, atoms)
@@ -62,7 +99,7 @@ def compute_solution_error(model, keys = dict()):
 	if not hasattr(model, 'solution'):
 		model.optimize()
 
-	lp = construct_lp_problem(model, as_dict = False, lambdify = False)
+	lp = construct_lp_problem(model, as_dict = False, lambdify = False).to_tuple()
 	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = _get_evaluated_nlp(keys = keys, **{ 'lp' : lp })
 
 	rows, cols, values = zip(*[ (i, j, v) for (i, j), v in Sf.items() ])
@@ -127,12 +164,12 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 				free_symbols = list(value.free_symbols) # if symbolic coefficient is zero
 				if free_symbols and free_symbols[0] not in atoms:
 					atoms.append(free_symbols[0])
-				Se[met_index, idx] = value
+				Se[met_index, idx] = value.magnitude if isinstance(value, pint.Quantity) else value # coefficients should be 'dimensionless'
 			else:
 				Sf[met_index, idx] = value
 
 	if isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
-		if hasattr(model.mu, 'magnitude'):
+		if model.model_version[:3] != '1.0':
 			lb, ub = zip(*[ (rxn.lower_bound.magnitude, rxn.upper_bound.magnitude) if rxn.functional() else (0., 0.) for rxn in model.reactions ])
 		else:
 			lb, ub = zip(*[ (rxn.lower_bound, rxn.upper_bound) if rxn.functional() else (0., 0.) for rxn in model.reactions ])
@@ -148,17 +185,20 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 	# constraint sense eventually will be in the metabolite object
 	cs = [ 'E' for m in model.metabolites ]
 
-	if lambdify and isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
-		# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+	if lambdify and isinstance(model, coralme.core.model.MEModel):
 		kwargs = {"docstring_limit":None} if sys.version_info >= (3,8) else {}
 		if per_position:
 			fn = numpy.vectorize(lambda x: sympy.lambdify(atoms, x, **kwargs))
 			lb = [ x for x in fn(lb) ]
 			ub = [ x for x in fn(ub) ]
-			lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			if bool(Se):
+				lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
+			else:
+				lambdas = {}
 		else:
 			lb = sympy.lambdify(atoms, lb, **kwargs) # 5x faster than [ x for x in fn(lb) ]
 			ub = sympy.lambdify(atoms, ub, **kwargs) # 5x faster than [ x for x in fn(lb) ]
+			# 2-3x faster than lambdas = { k:v for k,v in zip(Se.keys(), fn(list(Se.values()))) }
 			lambdas = (list(Se.keys()), sympy.lambdify(atoms, list(Se.values()),**kwargs))
 	else:
 		lambdas = None
@@ -173,25 +213,14 @@ def construct_lp_problem(model, lambdify = False, per_position = False, as_dict 
 
 	lb = list(lb) if isinstance(lb, tuple) else lb
 	ub = list(ub) if isinstance(ub, tuple) else ub
+	lp = SymbolicLP(Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm)
 	if as_dict:
-		return {
-			'Sf' : Sf,
-			'Se' : Se,
-			'xl' : lb,
-			'xu' : ub,
-			'b' : b,
-			'c' : c,
-			'cs' : cs,
-			'mu' : atoms,
-			'lambdas' : lambdas,
-			'Lr' : Lr, # list of reaction IDs
-			'Lm' : Lm, # list of metabolite IDs
-			}
+		return lp.to_dict()
 	else:
-		return Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
+		return lp
 
 def rank(model, mu = 0.001):
-	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model)
+	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model).to_tuple()
 	Sp = scipy.sparse.dok_matrix((len(b), len(c)))
 
 	for idx, idj in Sf.keys():
@@ -306,7 +335,7 @@ def _make_mpModel(Sf, lb, ub, c, Lr, Lm):
 def _guess_basis(model, keys = dict(), tolerance = 1e-6, precision = 'quad', method = 2, ncpus = 1, **kwargs):
 	keys, tolerance, precision = _check_options(model, keys, tolerance, precision)
 
-	lp = construct_lp_problem(model, as_dict = False, lambdify = False)
+	lp = construct_lp_problem(model, as_dict = False, lambdify = False).to_tuple()
 	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = _get_evaluated_nlp(keys = keys, **{ 'lp' : lp })
 
 	# make model
@@ -394,7 +423,7 @@ def fva(model,
 		mu_fixed = model.solution.fluxes.get(objective, mu_fixed) * fraction_of_optimum
 
 		# get mathematical representation
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify).to_tuple()
 	else:
 		# not a ME-model, and objective bounds usually are (0, 1000)
 		if model.reactions.has_id(objective):
@@ -404,7 +433,7 @@ def fva(model,
 			raise ValueError('Objective reaction \'{:s}\' not in the M-model.'.format(objective))
 
 		# get mathematical representation
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model).to_tuple()
 
 	if verbose:
 		print('Running FVA for {:d} reactions. Maximum growth rate fixed to {:g}'.format(len(reaction_list), mu_fixed))
@@ -489,9 +518,9 @@ def optimize(model,
 
 	# populate with stoichiometry, no replacement of mu's
 	if hasattr(model, 'construct_lp_problem') and not model.notes.get('from cobra', False):
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify, per_position = per_position)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify, per_position = per_position).to_tuple()
 	else:
-		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, per_position = per_position)
+		Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, per_position = per_position).to_tuple()
 		me_nlp = coralme.solver.solver.ME_NLP(Sf, Se, b, c, lb, ub, cs, atoms, lambdas)
 		xopt, yopt, zopt, stat, basis = me_nlp.solvelp(.1, None, precision, probname = 'lp')
 		
@@ -582,7 +611,7 @@ def optimize_windows(model,
 
 	# populate with stoichiometry with replacement of mu's (Sf contains Se)
 	# for multiple evaluations of the LP problem, replacement in lambdify'ed Se is faster overall
-	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify, per_position = True, as_dict = False)
+	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = construct_lp_problem(model, lambdify = lambdify, per_position = True, as_dict = False).to_tuple()
 
 	# test max_mu
 	model.check_feasibility(model, keys = { model.mu.magnitude:max_mu }, precision = 'quad', **{ 'lp' : [Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm] })

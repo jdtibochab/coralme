@@ -233,7 +233,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 # 	ridx = { k:v for k,v in me_model.reactions._dict.items() if k in rxns }
 
 	# populate with stoichiometry
-	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = me_model.construct_lp_problem()
+	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = me_model.construct_lp_problem().to_tuple()
 
 	if lambdas is None:
 		Sf, Se, lb, ub = coralme.builder.helper_functions.evaluate_lp_problem(Sf, Se, lb, ub, growth_key_and_value, atoms)
