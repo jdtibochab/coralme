@@ -394,14 +394,16 @@ def check_me_coverage(builder):
 
 	return len(res)
 
-def check_and_correct_stoichiometries(m_model):
+def check_and_correct_stoichiometries(m_model, proton = 'h_c'):
 	import logging
 	log = logging.getLogger(__name__)
 
 	# correct stoichiometry if rxn.check_mass_balance() == {'charge': +1.0, 'H': +1.0} or integer multiples of it
 	skip = set()
-	rxn_count = 0
-	met_count = 0
+	rxn_count = set()
+	met_count_formula = 0
+	met_count_charge = 0
+
 	for rxn in m_model.reactions:
 		if rxn.id.startswith(('EX_', 'DM_', 'SK_')):
 			continue
@@ -410,44 +412,69 @@ def check_and_correct_stoichiometries(m_model):
 			continue
 
 		any_missing_formula = False
+		any_missing_charge = False
+
 		for met, coeff in rxn.metabolites.items():
-			if met.formula is None:
-				met_count += 1
-				logging.warning('Missing formula for metabolite \'{:s}\' in reaction \'{:s}\'. Not checking any reaction associated to \'{:s}\'.'.format(met.id, rxn.id, met.id))
+			if met.formula is None or met.formula == '':
+				met_count_formula += 1
+				logging.warning('WARNING: Missing formula for metabolite \'{:s}\' in reaction \'{:s}\'. Not checking any reaction associated to \'{:s}\'.'.format(met.id, rxn.id, met.id))
 				skip.update([ x.id for x in met.reactions ])
 				any_missing_formula = True
 
-		if any_missing_formula:
+			elif '(' in met.formula:
+				met_count_formula += 1
+				logging.warning('WARNING: Formula for metabolite \'{:s}\' in reaction \'{:s}\' is incompatible. Not checking any reaction associated to \'{:s}\'.'.format(met.id, rxn.id, met.id))
+				skip.update([ x.id for x in met.reactions ])
+				any_missing_formula = True
+
+			if met.charge is None:
+				met_count_charge += 1
+				logging.warning('WARNING: Missing charge for metabolite \'{:s}\' in reaction \'{:s}\'. Not checking any reaction associated to \'{:s}\'.'.format(met.id, rxn.id, met.id))
+				skip.update([ x.id for x in met.reactions ])
+				any_missing_charge = True
+
+		if any_missing_formula or any_missing_charge:
 			continue
 
 		check = rxn.check_mass_balance()
 		if check == {}:
 			continue
+		elif set(check.keys()) == {'charge'}:
+			logging.warning('WARNING: Reaction \'{:s}\' is not charge balanced. Please check and correct if it is needed.'.format(rxn.id))
+			rxn_count.add(rxn.id)
 		elif set(check.keys()) == {'H', 'charge'} and check['charge'] == check['H']:
 			compt = rxn.get_compartments()
 			if len(compt) == 1:
-				metabolites = Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
-				metabolites.update(Counter({ m_model.metabolites.get_by_id('h_{:s}'.format(compt[0])) : -1 * check['H'] }))
+				logging.warning('WARNING: The reaction \'{:s}\' does not mass balance protons.'.format(rxn.id))
+				metabolites = collections.Counter(m_model.reactions.get_by_id(rxn.id).metabolites)
+				metabolites.update(collections.Counter({ m_model.metabolites.get_by_id('h_{:s}'.format(compt[0])) : -1 * check['H'] }))
 				m_model.reactions.get_by_id(rxn.id)._metabolites = { k:v for k,v in metabolites.items() if v != 0. }
 				logging.warning('INFO: Stoichiometry for \'{:s}\' was corrected to mass balance protons.'.format(rxn.id))
 			else:
 				logging.warning('WARNING: Stoichiometry for \'{:s}\' was not corrected due to more than one compartment detected in the reaction. Please check and correct if it is needed.'.format(rxn.id))
-				rxn_count += 1
+				rxn_count.add(rxn.id)
+		elif 'charge' not in check.keys():
+			logging.warning('WARNING: Reaction \'{:s}\' is not mass balanced. Please check and correct if it is needed.'.format(rxn.id))
+			rxn_count.add(rxn.id)
 		else:
 			logging.warning('WARNING: Reaction \'{:s}\' is not mass and not charge balanced. Please check and correct if it is needed.'.format(rxn.id))
-			rxn_count += 1
+			rxn_count.add(rxn.id)
 
 	# Report
-	if rxn_count == 0:
+	if len(rxn_count) == 0:
 		logging.warning('INFO: No mass/charge imbalance was detected in M-model (excluding prefixed EX, DM, and SK reactions).')
 	else:
 		logging.warning('WARNING: Stoichiometry problems detected in {:d} reactions: {:s}.'.format(len(rxn_count), ', '.join(rxn_count)))
 
-	if met_count == 0:
+	if met_count_formula == 0:
 		logging.warning('INFO: No missing formulas were detected in M-model.')
 	else:
 		logging.warning('WARNING: Missing or problematic formulas were detected in {:d} metabolites.'.format(met_count_formula))
 
+	if met_count_charge == 0:
+		logging.warning('INFO: No missing charges were detected in M-model.')
+	else:
+		logging.warning('WARNING: Missing charges were detected in {:d} metabolites.'.format(met_count_charge))
 
 	return m_model
 
