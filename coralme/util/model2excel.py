@@ -1,7 +1,6 @@
 import numpy
 import pandas
-import cobra
-import coralme
+import sympy
 
 def _mets2df(model):
 	#metabolites
@@ -20,6 +19,8 @@ def _mets2df(model):
 		for key in list(mets.keys()):
 			if key in ['model', 'notes']:
 				mets[key].append(numpy.nan)
+			elif key == 'charge':
+				mets[key].append(0) if metabolite.__dict__[key] is None else mets[key].append(metabolite.__dict__[key])
 			else:
 				mets[key].append(metabolite.__dict__[key])
 
@@ -35,7 +36,7 @@ def _mets2df(model):
 	mets = pandas.concat([mets.iloc[:, :-1], tmp], axis = 1)
 	return mets
 
-def _rxns2df(model):
+def _rxns2df(model, keys = { sympy.Symbol('mu', positive = True) : 1.0 }):
 	#reactions
 	rxns = {
 		'notes' : [],
@@ -43,6 +44,8 @@ def _rxns2df(model):
 		'_id' : [],
 		'name' : [],
 		'_metabolites' : [],
+		'_substrates' : [],
+		'_products' : [],
 		'_lower_bound' : [],
 		'_upper_bound' : [],
 		'_gpr' : [],
@@ -52,12 +55,8 @@ def _rxns2df(model):
 		}
 
 	for reaction in model.reactions:
-		rxn_subs = [ [x,y] for x,y in zip([x._id for x in reaction._metabolites], reaction._metabolites.values()) if y < 0]
-		rxn_prod = [ [x,y] for x,y in zip([x._id for x in reaction._metabolites], reaction._metabolites.values()) if y > 0]
-
-		if isinstance(model, coralme.core.model.MEModel):
-			rxn_subs = [ [x[0],x[1]] if isinstance(x[1], (int, float)) else [x[0],x[1].subs(model.default_parameters)] for x in rxn_subs ]
-			rxn_prod = [ [x[0],x[1]] if isinstance(x[1], (int, float)) else [x[0],x[1].subs(model.default_parameters)] for x in rxn_prod ]
+		rxn_subs = [ [x._id,y.subs(keys)] if hasattr(y, 'subs') else [x._id,y] for x,y in reaction.metabolites.items() if y < 0]
+		rxn_prod = [ [x._id,y.subs(keys)] if hasattr(y, 'subs') else [x._id,y] for x,y in reaction.metabolites.items() if y > 0]
 
 		for key in rxns.keys():
 			if key in ['model']:
@@ -73,10 +72,25 @@ def _rxns2df(model):
 					rxns[key].append(numpy.nan)
 
 			elif key == '_metabolites':
-				rxns['_metabolites'].append(
-					'{:s} = {:s}'.format(
-						' + '.join([ '{:.6g} {:s}'.format(y*-1., x) if isinstance(y, (int, float)) else '[{:s}] {:s}'.format(str(y*-1), x) for x,y in rxn_subs ]),
-						' + '.join([ '{:.6g} {:s}'.format(y*+1., x) if isinstance(y, (int, float)) else '[{:s}] {:s}'.format(str(y*+1), x) for x,y in rxn_prod ])))
+				tmp_subs = ' + '.join([ '{:.6g} {:s}'.format(y*-1., x) if isinstance(y, (int, float, sympy.core.numbers.Float)) else '[{:s}] {:s}'.format(str(y*-1), x) for x,y in rxn_subs ])
+				tmp_prod = ' + '.join([ '{:.6g} {:s}'.format(y*+1., x) if isinstance(y, (int, float, sympy.core.numbers.Float)) else '[{:s}] {:s}'.format(str(y*+1), x) for x,y in rxn_prod ])
+				rxns['_metabolites'].append('{:s} = {:s}'.format(tmp_subs, tmp_prod))
+			elif key == '_substrates':
+				rxns['_substrates'].append('{:s}'.format(tmp_subs))
+			elif key == '_products':
+				rxns['_products'].append('{:s}'.format(tmp_prod))
+
+			elif key == '_lower_bound':
+				bound = reaction._lower_bound
+				bound = bound.magnitude if hasattr(bound, 'subs') else bound
+				bound = '{:.6g}'.format(bound.subs(model.default_parameters).subs(keys) if hasattr(bound, 'subs') else bound)
+				rxns['_lower_bound'].append(bound)
+
+			elif key == '_upper_bound':
+				bound = reaction._upper_bound
+				bound = bound.magnitude if hasattr(bound, 'subs') else bound
+				bound = '{:.6g}'.format(bound.subs(model.default_parameters).subs(keys) if hasattr(bound, 'subs') else bound)
+				rxns['_upper_bound'].append(bound)
 
 			elif key == '_gpr':
 				rxns['_gpr'].append(reaction._gpr.to_string())
@@ -106,13 +120,17 @@ def _genes2df(model):
 	# genes
 	genes = {
 		'_id' : [],
-		'name' : [],
+		# 'name' : [], # it is included in _annotation
+		'functional' : [],
 		'_annotation' : [],
 		}
 
 	for gene in model.genes:
 		for key in genes.keys():
-			genes[key].append(gene.__dict__[key])
+			if key == 'functional':
+				genes['functional'].append(gene.functional)
+			else:
+				genes[key].append(gene.__dict__[key])
 
 	genes = pandas.DataFrame.from_dict(genes)
 	# formatting annotations
@@ -126,9 +144,12 @@ def _genes2df(model):
 	genes = pandas.concat([genes.iloc[:, :-1], tmp], axis = 1)
 	return genes
 
-def ToExcel(model, outfile: str):
+def ToExcel(model, outfile: str, keys : dict = dict()):
+	if not outfile.endswith('.xlsx'):
+		raise('Filename must end with \'.xlsx\'.')
+
 	mets = _mets2df(model)
-	rxns = _rxns2df(model)
+	rxns = _rxns2df(model, keys = keys)
 	genes = _genes2df(model)
 
 	if outfile.endswith('.xlsx'):

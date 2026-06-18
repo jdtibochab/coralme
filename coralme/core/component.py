@@ -140,6 +140,8 @@ class TranscribedGene(MEComponent):
 		self.strand = None
 		self.RNA_type = rna_type
 		self.nucleotide_sequence = nucleotide_sequence
+		# TODO: modify reaction.functional accordingly
+		self.functional = True
 
 	#def __repr__(self):
 		#return 'TranscribedGene'
