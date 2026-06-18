@@ -372,8 +372,9 @@ class MEReaction(cobra.core.reaction.Reaction):
 		"""
 		Remove all metabolites from the reaction
 		"""
-		for metabolite in list(self._metabolites.keys()):
-			self.add_metabolites({metabolite: 0}, combine = False)
+		# for metabolite in list(self._metabolites.keys()):
+		# 	self.add_metabolites({metabolite: 0}, combine = False)
+		self._metabolites = {}
 
 	# overwrite methods from cobrapy
 	def _set_id_with_model(self, value: str) -> None:
@@ -1195,7 +1196,8 @@ class MetabolicReaction(MEReaction):
 		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
 
 		# Replace old stoichiometry with new one
-		self.add_metabolites(new_stoich)
+		# self.add_metabolites(new_stoich)
+		self._metabolites = new_stoich
 
 		# Set the bounds
 		if self.reverse:
@@ -1343,12 +1345,15 @@ class ComplexFormation(MEReaction):
 		# Biomass accounting of protein subunits is handled in translation
 		# reactions. Handle cofactors and prosthetic groups here
 		biomass = self.add_biomass_from_subreactions(complex_info)
-		if biomass > 0:
-			self.add_metabolites({metabolites.prosthetic_group_biomass: biomass})
+		
+		if isinstance(biomass, collections.defaultdict):
+			for group, biomass in biomass.items():
+				# self.add_metabolites({metabolites.prosthetic_group_biomass: biomass})
+				new_stoich.update({metabolites.get_by_id(group + '_biomass'): biomass})
 
-		self.add_metabolites(new_stoich, combine = False)
+		# self.add_metabolites(new_stoich, combine = False)
+		self._metabolites = { k:v for k,v in new_stoich.items() if v != 0. }
 
-# TODO: Review and modify processdata accordingly to hold coupling coefficients
 class PostTranslationReaction(MEReaction):
 	"""
 	Reaction class that includes all posttranslational modification reactions
@@ -1555,11 +1560,13 @@ class PostTranslationReaction(MEReaction):
 		# Add biomass from significant modifications (i.e. lipids for lipoproteins)
 		biomass = self.add_biomass_from_subreactions(posttranslation_data)
 		if biomass > 0 and posttranslation_data.biomass_type:
-			self.add_metabolites({metabolites.get_by_id(posttranslation_data.biomass_type): biomass})
+			# self.add_metabolites({metabolites.get_by_id(posttranslation_data.biomass_type): biomass})
+			object_stoichiometry.update({metabolites.get_by_id(posttranslation_data.biomass_type): biomass})
 		elif biomass > 0 and not posttranslation_data.biomass_type:
 			raise ValueError('If SubReactions in PostTranslationData modify the protein, the \'biomass_type\' must be provided.')
 
-		self.add_metabolites(object_stoichiometry, combine = False)
+		# self.add_metabolites(object_stoichiometry, combine = False)
+		self._metabolites = object_stoichiometry
 
 	@property
 	def genes(self):
@@ -1755,7 +1762,7 @@ class TranscriptionReaction(MEReaction):
 		# convert metabolite ids to coralme metabolites
 		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose, default_type = coralme.core.component.TranscribedGene)
 		# add metabolites to reaction
-		self.add_metabolites(new_stoich, combine = False)
+		# self.add_metabolites(new_stoich, combine = False)
 
 		# 6) Biomass constraints corresponding to data.RNA_products and their associated masses
 		trna_mass = rrna_mass = ncrna_mass = mrna_mass = tmrna_mass = 0.
@@ -1780,15 +1787,22 @@ class TranscriptionReaction(MEReaction):
 		# Add the appropriate biomass constraints for each RNA contained in
 		# the transcription unit
 		if trna_mass > 0:
-			self.add_metabolites({metabolites.tRNA_biomass: trna_mass}, combine = False)
+			# self.add_metabolites({metabolites.tRNA_biomass: trna_mass}, combine = False)
+			new_stoich.update({metabolites.tRNA_biomass: trna_mass})
 		if rrna_mass > 0:
-			self.add_metabolites({metabolites.rRNA_biomass: rrna_mass}, combine = False)
+			# self.add_metabolites({metabolites.rRNA_biomass: rrna_mass}, combine = False)
+			new_stoich.update({metabolites.rRNA_biomass: rrna_mass})
 		if ncrna_mass > 0:
-			self.add_metabolites({metabolites.ncRNA_biomass: ncrna_mass}, combine = False)
+			# self.add_metabolites({metabolites.ncRNA_biomass: ncrna_mass}, combine = False)
+			new_stoich.update({metabolites.ncRNA_biomass: ncrna_mass})
 		if mrna_mass > 0:
-			self.add_metabolites({metabolites.mRNA_biomass: mrna_mass}, combine = False)
+			# self.add_metabolites({metabolites.mRNA_biomass: mrna_mass}, combine = False)
+			new_stoich.update({metabolites.mRNA_biomass: mrna_mass})
 		if tmrna_mass > 0:
-			self.add_metabolites({metabolites.tmRNA_biomass: tmrna_mass}, combine = False)
+			# self.add_metabolites({metabolites.tmRNA_biomass: tmrna_mass}, combine = False)
+			new_stoich.update({metabolites.tmRNA_biomass: tmrna_mass})
+
+		self._metabolites = new_stoich
 
 	@property
 	def genes(self):
@@ -2064,17 +2078,21 @@ class TranslationReaction(MEReaction):
 		# convert metabolite ids to coralme metabolites
 		new_stoich = self.get_components_from_ids(stoichiometry, verbose = verbose)
 		# add metabolites to reaction
-		self.add_metabolites(new_stoich, combine = False)
+		# self.add_metabolites(new_stoich, combine = False)
 		# update element dictionary and formula
 		self._add_formula_to_protein(self.translation_data, protein)
 
 		# 8) protein_biomass corresponding to the protein product's mass
 		protein_mass = self.translation_data.translational_efficiency * protein.formula_weight / 1000.  # kDa
-		self.add_metabolites({metabolites.protein_biomass: protein_mass}, combine = False)
+		# self.add_metabolites({metabolites.protein_biomass: protein_mass}, combine = False)
 
 		# 9) Subtract mRNA_biomass defined by mRNA degradation coupling coefficient (if kdeg > 0)
 		mrna_mass = transcript.formula_weight / 1000.  # kDa
-		self.add_metabolites({metabolites.mRNA_biomass: (-mrna_mass * self._model.symbols['deg_amount'])}, combine = False)
+		# self.add_metabolites({metabolites.mRNA_biomass: (-mrna_mass * self._model.symbols['deg_amount'])}, combine = False)
+
+		new_stoich.update({metabolites.protein_biomass: protein_mass})
+		new_stoich.update({metabolites.mRNA_biomass: (-mrna_mass * self._model.symbols['deg_amount'])})
+		self._metabolites = { k:v for k,v in new_stoich.items() if v != 0. }
 
 	@property
 	def genes(self):

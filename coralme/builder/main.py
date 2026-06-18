@@ -1999,6 +1999,9 @@ class MEReconstruction(MEBuilder):
 			else:
 				pass
 
+		# Removing add_metabolites from reaction.update methods requires repairing metabolite._reaction property
+		me.repair()
+
 		# ### 5) Add *GenericData* and its reactions
 		# Multiple entities can perform the same role. To prevent a combinatorial explosion, we create "generic" versions of the components, where any of those entities can fill in.
 		#
@@ -2421,7 +2424,10 @@ class MEReconstruction(MEBuilder):
 			#complex_mods = df_ptms,
 			#compartments = { v:k for k,v in me._compartments.items() })
 
-		for complex_id, info in tqdm.tqdm(mods_dct.items(), 'Processing ComplexData in ME-model...', bar_format = bar_format):
+		# Removing add_metabolites from reaction.update methods requires repairing metabolite._reaction property
+		me.repair()
+
+		for complex_id, info in tqdm.tqdm(mods_dct.items(), 'Processing ComplexData in ME-model associated to modifications...', bar_format = bar_format):
 			modifications = {}
 			for mod, value in info['modifications'].items():
 				# stoichiometry of modification determined in subreaction_data.stoichiometry
@@ -2636,6 +2642,9 @@ class MEReconstruction(MEBuilder):
 
 		# ### 2. Correct complex formation IDs if they contain lipoproteins
 
+		# Removing add_metabolites from reaction.update methods requires repairing metabolite._reaction property
+		me.repair()
+
 		#for gene in tqdm.tqdm(coralme.builder.translocation.lipoprotein_precursors.values()):
 		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			for gene in tqdm.tqdm(lipoprotein_precursors.values(), 'Adding lipid precursors and lipoproteins...', bar_format = bar_format):
@@ -2822,6 +2831,9 @@ class MEReconstruction(MEBuilder):
 		coralme.builder.compartments.add_compartments_to_model(me)
 
 		# ### 6. Prune reactions from ME-model
+		# Removing add_metabolites from reaction.update methods requires repairing metabolite._reaction property
+		me.repair()
+
 		# WARNING: Do it recursively to reduce further the size of the ME-model.
 		if prune:
 			rnum = len(me.reactions)
