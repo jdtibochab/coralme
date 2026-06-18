@@ -436,7 +436,7 @@ def fva(model,
 
 def optimize(model,
 	max_mu = 2.8100561374051836, min_mu = 0., maxIter = 100, lambdify = True, basis = None,
-	tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False, solver = "qminos"):
+	tolerance = 1e-6, precision = 'quad', verbose = True, get_reduced_costs = False, solver = "qminos", sense = 'maximize'):
 
 	"""Solves the NLP problem to obtain reaction fluxes for a ME-model.
 
@@ -464,6 +464,8 @@ def optimize(model,
 		and its bounds. New reduced costs and shadow prices will be returned.
 	solver : str, { "qminos", "gurobi", "cplex" }
 		Solver to use for optimization
+	sense : str, { "maximize", "minimize" }
+		Whether to maximize or minimize the growth rate.
 	"""
 
 	if isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
@@ -514,9 +516,11 @@ def optimize(model,
 			basis = basis,
 			tolerance = tolerance,
 			precision = precision,
-			verbose = verbose)
+			verbose = verbose,
+			sense = sense)
 
 	if stat == 'optimal':
+		model.basis = basis
 		# Adapted from Maxwell Neal, 2024
 		if get_reduced_costs:
 			rxn_idx =  {rxn.id : idx for idx, rxn in enumerate(model.reactions)}
@@ -529,7 +533,6 @@ def optimize(model,
 			_xopt, yopt, zopt, _stat, _basis = me_nlp.solvelp(muf = muopt, basis = basis, precision = precision)
 
 		model.solution = _solver_solution_to_cobrapy_solution(model, muopt, xopt, yopt, zopt, stat)
-		model.basis = basis
 		return True
 	else:
 		if hasattr(model, 'solution'):

@@ -422,7 +422,7 @@ class ME_NLP:
 
     def bisectmu(
         self, mumin = 0.0, mumax = 2.0, maxIter = 100, basis = None,
-        tolerance = 1e-6, precision = 'quad', verbose = False
+        tolerance = 1e-6, precision = 'quad', verbose = False, sense = 'maximize'
         ):
         """
         muopt, hs, xopt, cache = bisectmu(
@@ -440,26 +440,39 @@ class ME_NLP:
         if verbose:
             #print('Iteration\t       Growth Rate\t Solution to check\tSolver Status')
             #print('---------\t------------------\t------------------\t-------------')
-            print('Iteration\t Solution to check\tSolver Status')
-            print('---------\t------------------\t-------------')
+            pad = 0
+            if int('{:g}'.format(tolerance).split('e-')[1]) > 16:
+                pad = int('{:g}'.format(tolerance).split('e-')[1]) - 16
+            print('Iteration\tSolution to check{:s}\tSolver Status'.format(' ' * (1+pad)))
+            print('---------\t{:s}\t-------------'.format('-' * (18+pad)))
 
         # test mumax
         x_new, y_new, z_new, stat_new, hs_new = self.solvelp(mumax, basis, precision)
 
-        def get_stat_msg(stat):
+        def _get_stat_msg(stat):
             if stat == "optimal":
                 return "Optimal"
             if stat == 1:
                 return "Not feasible"
             return str(stat)
-
-        if stat_new == 'optimal' and verbose:
-            print('{:s}\t{:.16f}\t{:s}'.format(
-                        str(0).rjust(9), mumax, get_stat_msg(stat_new)))
-            return mumax, x_new, y_new, z_new, basis, stat_new
-
+        
+        def _get_message(iter, mumax, stat_new):
+            prec = int('{:g}'.format(tolerance).split('e-')[1])
+            if prec < 15:
+                fmt = '{:.16f}'.format(mumax).rjust(18) # if precision is 16 significant figures
+            else:
+                fmt = '{:.{}f}'.format(mumax, prec).ljust(prec)
+            print('{:s}\t{:s}\t{:s}'.format(str(iter).rjust(9), fmt, _get_stat_msg(stat_new)))
+        
+        if stat_new == 'optimal' and sense == 'maximize':
+            _get_message(iter = 0, mumax = mumax, stat_new = stat_new) if verbose else None
+            return mumax, x_new, y_new, z_new, hs_new, stat_new
+        
         else:
             res = []
+            # WARNING: if sense == 'minimize', we require the first iteration to be feasible
+            # Otherwise, the bisection method approaches to max_mu, not min_mu
+            is_feasible = False 
             for idx in range(1, maxIter + 1):
                 # Just a sequence of feasibility checks
                 muf = (mumin + mumax) / 2.
@@ -470,16 +483,24 @@ class ME_NLP:
 
                 if stat_new == 'optimal':
                     basis = hs_new
-                    mumin = muf
+                    if sense == 'maximize':
+                        mumin = muf
+                    else:
+                        is_feasible = True
+                        mumax = muf
                 else:
-                    mumax = muf
+                    if sense == 'maximize':
+                        mumax = muf
+                    else:
+                        mumin = muf
 
                 if verbose:
-                    #print('{:s}\t{:.16f}\t{:.16f}\t{:s}'.format(
-                    print('{:s}\t{:.16f}\t{:s}'.format(
-                        str(idx).rjust(9), muf, get_stat_msg(stat_new)))
+                    _get_message(iter = idx, mumax = muf, stat_new = stat_new) if verbose else None
+                
+                if sense == 'minimize' and not is_feasible:
+                    raise ValueError('First iteration should be feasible. Set a lower max_mu value.')
 
-                if abs(mumax - mumin) <= tolerance:# and stat_new == 'optimal':
+                if abs(mumax - mumin) <= tolerance or idx == maxIter:# and stat_new == 'optimal':
                     valid_solutions = [ x for x in res if x[-1] == 'optimal' ]
                     if len(valid_solutions) != 0:
                         return valid_solutions[-1]
