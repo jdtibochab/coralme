@@ -35,6 +35,7 @@ PACKAGES=(
   "sympy"
   "pint"
   "anyconfig"
+  "requests"
 )
 
 # Gather versions

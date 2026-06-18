@@ -100,6 +100,7 @@ def main():
 			'Pint==0.24.4',
 			'pyranges',
 			'pytest',
+			'requests==2.32.3',
 			'scipy==1.14.0',
 			'sympy==1.12.1',
 			'tqdm==4.66.4',
