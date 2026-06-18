@@ -209,6 +209,7 @@ class SubreactionData(ProcessData):
 		# self._coupling_coefficient_subreaction = sympy.Mul(self._model.mu, sympy.Rational('1/3600'), model.symbols['k^default_cat']**-1, evaluate = False)
 		self._coupling_coefficient_subreaction = self._model.mu * model.symbols['k^default_cat'].to('1 per hour')**-1
 		self._element_contribution = {}
+		self._charge_contribution = 0
 
 	# Backward compatibility
 	@property
@@ -289,6 +290,14 @@ class SubreactionData(ProcessData):
 			raise TypeError('Elemental_contribution must be a dictionary, not \'{:s}\'.'.format(type(value)))
 		self._element_contribution = value
 
+	@property
+	def charge_contribution(self):
+		return self.calculate_charge_contribution()
+
+	@charge_contribution.setter
+	def charge_contribution(self, value):
+		self._charge_contribution = value
+
 	def calculate_element_contribution(self):
 		"""
 		Calculate net contribution of chemical elements based on the
@@ -319,6 +328,31 @@ class SubreactionData(ProcessData):
 				elements[e] -= n * coefficient
 
 		return elements
+
+	# WARNING: experimental
+	def calculate_charge_contribution(self):
+		charge = 0.
+		for met, coefficient in self.stoichiometry.items():
+			if self._model.metabolites.has_id(met):
+				met_obj = self._model.metabolites.get_by_id(met)
+			elif met in ['coo_c', 'cosh_c']:
+				logging.warning('WARNING: Charge contribution for \'{:s}\' is assumed to be zero.'.format(met))
+				continue
+			else:
+				logging.warning('WARNING: The metabolite \'{:s}\' must exist in the ME-model to calculate its charge contribution to Complex \'{:s}\'.'.format(met, self.id))
+				continue
+
+			# elements lost in conversion are added to complex, protein, etc.
+			if met_obj.charge is None and not isinstance(met_obj, coralme.core.component.GenerictRNA):
+				if isinstance(met_obj, coralme.core.component.Complex):
+					logging.warning('INFO: Charge of Complex \'{:s}\' will be determined from amino acid composition and prosthetic groups stoichiometry.'.format(met_obj.id))
+				else:
+					logging.warning('WARNING: Metabolite \'{:s}\' does not have charge. Please add it to the M-model.'.format(met_obj.id))
+
+			if not met_obj.charge is None:
+				charge -= met_obj.charge * coefficient
+
+		return charge
 
 	def calculate_biomass_contribution(self):
 		"""

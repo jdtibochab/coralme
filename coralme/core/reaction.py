@@ -1205,16 +1205,21 @@ class ComplexFormation(MEReaction):
 			Metabolite of complex being formed in the reaction
 
 		"""
+		charge = 0 # WARNING: experimental
 		elements = collections.defaultdict(int)
 		for component, count in complex_data.stoichiometry.items():
 			component_obj = self._model.metabolites.get_by_id(component)
+			if not component_obj.charge is None:
+				charge += component_obj.charge * count # WARNING: experimental
 			for e, n in component_obj.elements.items():
 				elements[e] += n * count
 
 		elements = coralme.util.massbalance.get_elements_from_process_data(self, complex_data, elements)
+		charge += coralme.util.massbalance.get_charge_from_process_data(self, complex_data)
 
 		# Convert element dict to formula string and associate it with complex
 		coralme.util.massbalance.elements_to_formula(complex_met, elements)
+		complex_met.charge = charge # WARNING: experimental
 
 	def update(self, verbose=True):
 		"""
@@ -1482,6 +1487,7 @@ class PostTranslationReaction(MEReaction):
 
 		# Convert element dict to formula string and associate it with protein
 		coralme.util.massbalance.elements_to_formula(protein_met, elements)
+		protein_met.charge = metabolites.get_by_id(unprocessed_protein).charge # WARNING: experimental
 
 		# Add biomass from significant modifications (i.e. lipids for lipoproteins)
 		biomass = self.add_biomass_from_subreactions(posttranslation_data)
@@ -1803,8 +1809,12 @@ class TranslationReaction(MEReaction):
 		"""
 		elements = collections.defaultdict(int)
 		aa_count = self.translation_data.amino_acid_count
+		charge = 0
+
 		for aa_name, value in aa_count.items():
 			aa_obj = self._model.metabolites.get_by_id(aa_name)
+			if aa_obj.charge is not None: # coralME v1.0 does not store charge values
+				charge += aa_obj.charge * value
 			for e, n in aa_obj.elements.items():
 				elements[e] += n * value
 
@@ -1835,6 +1845,7 @@ class TranslationReaction(MEReaction):
 				elements[e] += n
 
 		coralme.util.massbalance.elements_to_formula(protein, elements)
+		protein.charge = charge # WARNING: experimental
 
 	def update(self, verbose = True):
 		"""
