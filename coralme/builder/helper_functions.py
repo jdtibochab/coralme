@@ -478,6 +478,35 @@ def check_and_correct_stoichiometries(m_model, proton = 'h_c'):
 
 	return m_model
 
+def simplify_boolean_expr(expr_str, form = 'dnf'):
+	if isinstance(expr_str, str):
+		expr_sympy = cobra.core.gene.GPR.from_string(expr_str).as_symbolic()
+	elif isinstance(expr_str, cobra.core.gene.GPR):
+		expr_sympy = expr_sympy.as_symbolic()
+	else:
+		raise NotImplementedError
+
+	# # Step 1: Replace textual operators with symbolic ones
+	# expr_cleaned = expr_str.replace(' or ', ' | ').replace(' and ', ' & ')
+	#
+	# # Step 2: Extract unique variable names (words)
+	# var_names = sorted(set(re.findall(r'\b\w+\b', expr_cleaned)))
+	# symbols_map = {name: sympy.symbols(name) for name in var_names}
+	#
+	# # Step 3: Replace variable names with sympy symbols in expression
+	# for name in var_names:
+	# 	expr_cleaned = re.sub(rf'\b{name}\b', f"symbols_map['{name}']", expr_cleaned)
+	#
+	# # Step 4: Evaluate the expression
+	# expr_sympy = eval(expr_cleaned)
+	# # print(expr_sympy)
+
+	# Step 5: Simplify logic
+	simplified = sympy.simplify_logic(expr_sympy, form = form, force = False)
+	simplified = str(simplified).replace(' & ', ' and ').replace(' | ', ' or ')
+
+	return simplified
+
 def bind_public_module_functions(target, module):
 	"""Bind all public functions from a module to an instance and return the list of names."""
 	import types
