@@ -849,11 +849,12 @@ class GenericData(ProcessData):
 		except KeyError:
 			generic_metabolite = coralme.core.component.GenericComponent(self.id)
 			model.add_metabolites([generic_metabolite])
+
 		for c_id in [ x for x in self.component_list if x.replace('RNA_', '') not in model.global_info['knockouts'] ]:
 			reaction_id = c_id + '_to_' + self.id
-			try:
+			if model.reactions.has_id(reaction_id):
 				reaction = model.reactions.get_by_id(reaction_id)
-			except KeyError:
+			else:
 				reaction = coralme.core.reaction.GenericFormationReaction(reaction_id)
 				model.add_reactions([reaction])
 			stoic = {

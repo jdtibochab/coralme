@@ -194,9 +194,7 @@ def process_m_model(
 		# Metabolites need to be added into the M-model first
 		rxn_stoichiometry = reaction_matrix_dict[rxn_id]
 		for met in rxn_stoichiometry:
-			try:
-				met_obj = m_model.metabolites.get_by_id(met)
-			except KeyError:
+			if not m_model.metabolites.has_id(met):
 				if met.startswith('RNA_'):
 					met_obj = coralme.core.component.TranscribedGene(str(met), 'tRNA', '')
 				elif met.startswith('generic_tRNA'):
@@ -204,6 +202,8 @@ def process_m_model(
 				else:
 					met_obj = coralme.core.component.Metabolite(str(met))
 				m_model.add_metabolites([met_obj])
+			else:
+				met_obj = m_model.metabolites.get_by_id(met)
 
 			met_id = remove_compartment(met_obj.id)
 			if met_id in mets_data.index and not met_obj.formula:
