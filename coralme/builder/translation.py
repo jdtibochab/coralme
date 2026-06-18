@@ -14,12 +14,12 @@ import collections
 
 def add_subreactions_to_model(me_model, subreactions):
 	if not me_model.process_data.has_id('DEF'):
-		stoichiometry = { 'h2o_c': -1.0, 'for_c': +1.0 }
+		stoichiometry = { 'h2o_c': -1.0, 'h_c': +1.0, 'for_c': +1.0 } # formate is charged -1
 		coralme.util.building.add_subreaction_data(
 			me_model, modification_id = 'DEF', modification_stoichiometry = stoichiometry, modification_enzyme = 'CPLX_dummy')
 
 	if not me_model.process_data.has_id('MAP'):
-		stoichiometry = { 'h2o_c': -1.0, 'h_c': +1.0, 'met__L_c': +1.0 }
+		stoichiometry = { 'h2o_c': -1.0, 'met__L_c': +1.0 } # methionine is neutral
 		coralme.util.building.add_subreaction_data(
 			me_model, modification_id = 'MAP', modification_stoichiometry = stoichiometry, modification_enzyme = 'CPLX_dummy')
 

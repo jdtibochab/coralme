@@ -92,6 +92,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 	"""
 	def __init__(self, id = None, name = '', lower_bound = 0.0, upper_bound = None):
 		cobra.core.reaction.Reaction.__init__(self, id, name)
+		self.reaction_type = str(type(self))[8:-2]
 		self._objective_coefficient = 0.
 
 	def copy(self) -> "Reaction":

@@ -16,6 +16,8 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	"""
 	def __init__(self, id):
 		cobra.core.metabolite.Metabolite.__init__(self, id)
+		self.metabolite_type = str(type(self))[8:-2]
+		self._reaction = set()
 		self._subreaction = set()
 
 	@property

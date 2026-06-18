@@ -366,8 +366,8 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 
 			if (filter1 or filter2 or filter3) and mods == '':
 				return 'ribosome:1'
-			elif (filter1 or filter2 or filter3) and mods == 'acetyl(1)':
-				return 'ribosome:2'
+			elif (filter1 or filter2 or filter3) and mods in ['acetyl(1)', 'acetyl(2)']:
+				return 'ribosome:2' # This will correct the stoichiometry from builder.org.update_ribosome_stoich
 
 	dct = {}
 	for x in [ x for y in [builder.org.ribosome_stoich[x]['stoich'].keys() for x in ['30_S_assembly', '50_S_assembly']] for x in y ]:

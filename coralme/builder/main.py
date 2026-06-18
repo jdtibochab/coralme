@@ -9,6 +9,7 @@ import pathlib
 import warnings
 import collections
 import subprocess
+import datetime
 import logging
 
 # third party imports
@@ -36,10 +37,10 @@ class MEBuilder(object):
 
 	"""
 	def __init__(self, *args,
-			m_model_path = False,
-			genbank_path = False,
+			m_model_path = None,
+			genbank_path = None,
 			locus_tag = 'locus_tag',
-			blast_threads = None, # if zero, no run_bbh_blast
+			blast_threads = 'auto', # if zero, no run_bbh_blast
 			df_gene_cplxs_mods_rxns = 'automated-org-with-refs.xlsx',
 			df_TranscriptionalUnits = '',
 			df_matrix_stoichiometry = '',
@@ -55,7 +56,7 @@ class MEBuilder(object):
 			m-model-path, JSON or SBML file
 			genbank-path, GenBank file only
 
-			df_gene_cplxs_mods_rxns, path to output, must end in '.xlsx'
+			df_gene_cplxs_mods_rxns, path to OSM. It must ends in '.xlsx'
 			df_TranscriptionalUnits
 			df_matrix_stoichiometry
 			df_matrix_subrxn_stoich
@@ -77,18 +78,18 @@ class MEBuilder(object):
 				}
 
 		run_bbh_blast = True
-		if blast_threads < 0:
+		if blast_threads == 0:
 			run_bbh_blast = False
 
-		if blast_threads is None:
+		if blast_threads is None or blast_threads == 'auto':
 			blast_threads = os.cpu_count()-1
-
+		
 		config = {
 			'ME-Model-ID' : 'coralME',
 			'm-model-path' : m_model_path,
 			'genbank-path' : genbank_path,
 
-			'df_gene_cplxs_mods_rxns' : '{:s}/{:s}'.format(out_directory, df_gene_cplxs_mods_rxns),
+			'df_gene_cplxs_mods_rxns' : df_gene_cplxs_mods_rxns,
 			'df_TranscriptionalUnits' : df_TranscriptionalUnits,
 			'df_matrix_stoichiometry' : df_matrix_stoichiometry,
 			'df_matrix_subrxn_stoich' : df_matrix_subrxn_stoich,
@@ -129,8 +130,8 @@ class MEBuilder(object):
 		for input_file in args:
 			with open(input_file, 'r') as infile:
 				config.update(anyconfig.load(infile))
-
-		if kwargs:
+		
+		if kwargs: # this updates remaining values in kwargs
 			config.update(kwargs)
 
 		# User must provide values for m-model-path and genbank-path
@@ -1787,7 +1788,7 @@ class MEReconstruction(MEBuilder):
 					pathlib.Path(filename).unlink() # python==3.7
 
 		if pathlib.Path(filename).is_file() and filename.endswith('.xlsx'):
-			df_data = pandas.read_excel(filename, dtype = str).dropna(how = 'all')
+			df_data = pandas.read_excel(filename, dtype = str, engine = 'openpyxl').dropna(how = 'all')
 		elif pathlib.Path(filename).is_file() and filename.endswith('.txt'):
 			df_data = pandas.read_csv(filename, sep = '\t', header = 0, dtype = str).dropna(how = 'all')
 		else:
@@ -1877,7 +1878,8 @@ class MEReconstruction(MEBuilder):
 				me.gem = cobra.io.read_sbml_model(me.global_info['m-model-path'])
 
 		# remove unused genes, reactions, and metabolites
-		cobra.manipulation.delete.remove_genes(me.gem, [ x for x in me.gem.genes if len(x.reactions) == 0 ], remove_reactions = False)
+		if sys.version_info < (3, 13): # TypeError: GPR.__init__() takes from 1 to 2 positional arguments but 3 were given
+			cobra.manipulation.delete.remove_genes(me.gem, [ x for x in me.gem.genes if len(x.reactions) == 0 ], remove_reactions = False)
 		coralme.core.model.MEModel.prune_unused_reactions(me.gem) # reactions without metabolites
 		# coralme.core.model.MEModel.prune_unused_metabolites(me.gem) # orphan metabolites
 
@@ -2632,7 +2634,7 @@ class MEReconstruction(MEBuilder):
 		#for gene in tqdm.tqdm(coralme.builder.translocation.lipoprotein_precursors.values()):
 		if bool(config.get('add_lipoproteins', False)) and lipoprotein_precursors:
 			for gene in tqdm.tqdm(lipoprotein_precursors.values(), 'Adding lipid precursors and lipoproteins...', bar_format = bar_format):
-				compartment = compartment_dict.get(gene)
+				compartment = compartment_dict.get(gene, None)
 				if compartment is None:
 					logging.warning('The protein ID \'{:s}\' has no \'compartment\' property. Check \'peptide_compartment_and_pathways.txt\' in the building_data directory.'.format(gene))
 				else:

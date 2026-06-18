@@ -391,7 +391,7 @@ def get_reaction_keffs(me, keffs = 'keffs.json', verbose = True):
 		if getattr(met_rxn, 'complex_data', None) is None:
 			continue
 
-		if isinstance(met_rxn, coralme.core.reaction.MetabolicReaction) and r.complex_data.id != 'CPLX_dummy':
+		if isinstance(met_rxn, coralme.core.reaction.MetabolicReaction) and met_rxn.complex_data.id != 'CPLX_dummy':
 			key = met_rxn.id.replace('-', '_DASH_').replace('__', '_DASH_').replace(':', '_COLON_')
 			# key = met_rxn.id
 			key = 'keff_' + key.replace('_FWD_', '_').replace('_REV_', '_')

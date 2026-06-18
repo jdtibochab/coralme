@@ -43,6 +43,8 @@ class ProcessData(object):
 		# a parent must have an update method
 		self._parent_reactions = set()
 		model.process_data.append(self)
+		self.processdata_type = str(type(self))[8:-2]
+
 
 	# WARNING: MODIFIED FUNCTION FROM COBRAPY
 	def copy(self) -> "ProcessData":
@@ -136,6 +138,11 @@ class StoichiometricData(ProcessData):
 		self.subreactions = collections.defaultdict(int)
 		self.lower_bound = 0.
 		self.upper_bound = 1000.
+		# extra data to convert metabolic reactions in a ME-model back into M-model
+		self.name = ''
+		self.subsystem = ''
+		self.gpr = cobra.core.GPR.from_string('')
+		self.cofactors = ''
 
 	@property
 	def stoichiometry(self):

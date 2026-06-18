@@ -57,14 +57,14 @@ class SymbolicLP:
 # simulation helpers and other functions
 def _check_options(model = None, keys = dict(), tolerance = 1e-6, precision = 'quad'):
 	# check options
-	tolerance = tolerance if tolerance >= 1e-15 else 1e-6
+	# tolerance = tolerance if tolerance >= 1e-15 else 1e-6
 	precision = precision if precision in [ 'quad', 'double', 'dq', 'dqq' ] else 'quad'
 
 	if isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
 		if isinstance(keys, float):
-			keys = { model.mu.magnitude : keys }
+			keys = { model.mu.magnitude : keys } if hasattr(model.mu, 'magnitude') else { model.mu : keys }
 		elif len(keys.items()) == 0.:
-			keys = { model.mu.magnitude : 0.01 }
+			keys = { model.mu.magnitude : 0.01 } if hasattr(model.mu, 'magnitude') else { model.mu : 0.01 }
 
 		for key in list(keys.keys()):
 			if isinstance(key, pint.Quantity):
@@ -93,12 +93,15 @@ def _get_evaluated_nlp(model = None, keys = dict(), **kwargs):
 
 	return Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm
 
-def compute_solution_error(model, keys = dict()):
+def compute_solution_error(model, keys = None):
 	errors = {}
 
 	if not hasattr(model, 'solution'):
 		model.optimize()
 
+	if keys is None:
+		keys = { model.mu.magnitude : model.growth_rate.magnitude }
+	
 	lp = construct_lp_problem(model, as_dict = False, lambdify = False).to_tuple()
 	Sf, Se, lb, ub, b, c, cs, atoms, lambdas, Lr, Lm = _get_evaluated_nlp(keys = keys, **{ 'lp' : lp })
 

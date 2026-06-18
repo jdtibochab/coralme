@@ -2285,6 +2285,8 @@ class Organism(object):
                     met.name = info["name"]
                 if info["formula"]:
                     met.formula = info["formula"]
+                if  info.get("charge", None) is not None:
+                    met.charge = info["charge"]
 
     def add_manual_complexes(self):
         """ Modifies complexes from manual input"""
