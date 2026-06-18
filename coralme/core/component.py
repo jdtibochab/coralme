@@ -16,6 +16,19 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	"""
 	def __init__(self, id):
 		cobra.core.metabolite.Metabolite.__init__(self, id)
+		self._subreaction = set()
+
+	@property
+	def subreactions(self):
+		return self._subreaction
+	
+	# @property
+	def metabolic_reactions(self):
+		data = []
+		for rxn in self.reactions:
+			if isinstance(rxn, (coralme.core.reaction.MetabolicReaction, coralme.core.reaction.BoundaryReaction)):
+				data.append(rxn)
+		return coralme.core.extended_classes.MappableList(sorted(data, key = lambda x: x.id))
 
 	def get_fluxes(self,
 		only_types = (), ignore_types = (),
@@ -80,11 +93,44 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 		if numeric_only:
 			return res
 		else:
-			return '{:f} g/mol'.format(res)
+			if hasattr(self._model, 'unit_registry'):
+				unit = self._model.unit_registry.parse_units('gram per mmol')
+			else:
+				unit = 1.
+			return res * unit #'{:f} g/mol'.format(res)
+	
+	@property
+	def mass(self):
+		return self.formula_weight
 
 	@property
 	def elements_as_counter(self):
 		return coralme.core.extended_classes.MCounter(self.elements)
+
+	@property
+	def index(self):
+		return self.model.metabolites.index(self.id)
+	
+	@property
+	def mappable_reactions(self):
+		return coralme.core.extended_classes.MappableList(self.reactions)
+
+	# Modified from COBRApy
+	def _repr_html_(self) -> str:
+		"""Return the metabolite as an HTML string."""
+		met_type = str(type(self))[8:-2]
+
+		return f"""
+		<table>
+			<tr><td><strong>Metabolite identifier</strong></td><td>{self.id}</td></tr>
+			<tr><td><strong>Name</strong></td><td>{cobra.util.util.format_long_string(self.name)}</td></tr>
+			<tr><td><strong>Memory address</strong></td><td>{id(self):#x}</td></tr>
+			<tr><td><strong>Formula</strong></td><td>{self.formula}</td></tr>
+			<tr><td><strong>Compartment</strong></td><td>{self._model.compartments[self.compartment] or self.compartment}</td></tr>
+			<tr><td><strong>Metabolite type</strong></td><td>{met_type}</td></tr>
+			<tr><td><strong>In {len(self.reactions)} reaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.reactions), 200)}</td></tr>
+			<tr><td><strong>In {len(self.subreactions)} subreaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.subreactions), 200)}</td></tr>
+		</table>"""
 
 class Metabolite(MEComponent):
 	"""
