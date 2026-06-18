@@ -95,7 +95,13 @@ class MEReaction(cobra.core.reaction.Reaction):
 		self.reaction_type = str(type(self))[8:-2]
 		self._objective_coefficient = 0.
 
-	def copy(self) -> "Reaction":
+	@property
+	def reaction(self):
+		if hasattr(self._model, 'solution') and hasattr(self._model, 'coralme'):
+			return self.build_reaction_string() + ' @ ' + str(self.flux)
+		return self.build_reaction_string()
+
+	def copy(self) -> "MEReaction":
 		"""Copy a reaction.
 
 		The referenced metabolites and genes are also copied.
@@ -141,14 +147,19 @@ class MEReaction(cobra.core.reaction.Reaction):
 	@property
 	def symbolic_stoichiometry(self):
 		mets = { k.id:v for k,v in self._metabolites.items() }
+		mets = dict(sorted(mets.items()))
 		return coralme.core.extended_classes.ScalableKeyDict(mets)
 
-	def stoichiometry(self, keys = dict()):
+	def stoichiometry(self, evaluate = True, keys = dict()):
 		"""
 		Evaluate the stoichiometry.
 
 		If keys is empty, evaluate it at current model.growth_rate
 		"""
+		mets = { k.id:v for k,v in self._metabolites.items() }
+		if not evaluate:
+			return coralme.core.extended_classes.ScalableKeyDict(mets)
+
 		if not keys and not numpy.isnan(self._model.growth_rate):
 			keys = { self._model.mu.magnitude : self._model.growth_rate.magnitude }
 		elif isinstance(float(keys), float):
@@ -156,14 +167,17 @@ class MEReaction(cobra.core.reaction.Reaction):
 		else:
 			raise NotImplementedError
 
-		mets = { k.id:v for k,v in self._metabolites.items() }
 		mets = { k:v.subs(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in mets.items() }
 		mets = { k:v.subs(keys) if hasattr(v, 'subs') else v for k,v in mets.items() }
 		return coralme.core.extended_classes.ScalableKeyDict(mets)
 
 	@property
-	def metabolites(self):
-		mets = { k:v.xreplace(self._model.global_info['default_parameters']) if hasattr(v, 'subs') else v for k,v in self._metabolites.items() }
+	def metabolites(self, zeroes = False):
+		# retrocompatibility with coralme v1.0 schema
+		if self._model is None:
+			return coralme.core.extended_classes.ScalableKeyDict(self._metabolites)
+		mets = { k:v.xreplace(self._model.global_info.get('default_parameters', {})) if hasattr(v, 'subs') else v for k,v in self._metabolites.items() }
+		mets = mets if zeroes else { k:v for k,v in mets.items() if v != 0. }
 		return coralme.core.extended_classes.ScalableKeyDict(mets)
 
 	@property
@@ -205,7 +219,12 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 		mass_balance = collections.Counter()
 		for met, value in self.metabolites.items():
-			value = value if isinstance(value, (float, int)) else float(value.subs(self._model.mu.magnitude, 0.))
+			if isinstance(value, (float, int)):
+				value = value
+			elif isinstance(value, pint.Quantity):
+				value = float(value.subs(self._model.mu.magnitude, 0.).magnitude)
+			else:
+				value = float(value.subs(self._model.mu.magnitude, 0.))
 			mass_balance.update({ k:(v*value) for k,v in collections.Counter(met.elements).items() })
 		mass_balance = { k:mass_balance[k] for k in sorted(mass_balance) if mass_balance[k] != 0 }
 		return mass_balance
@@ -860,7 +879,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 	def functional(self) -> bool:
 		"""All required cofactors for reaction are functional.
 		"""
-		if self._model.notes.get('from cobra', False):
+		if self._model is not None and self._model.notes.get('from cobra', False):
 			filter1 = filter2 = True
 			if hasattr(self, 'cofactors'):
 				filter1 = cobra.core.gene.GPR._eval_gpr(self.cofactors, expr = self.cofactors.body, knockouts = {cofactor.id for cofactor in self._model.metabolites if not cofactor.functional})
@@ -876,13 +895,13 @@ class MEReaction(cobra.core.reaction.Reaction):
 				lower_bound = self.lower_bound.subs(self._model.default_parameters)
 				lower_bound = float(lower_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
-				lower_bound = self.lower_bound.magnitude
+				lower_bound = self.lower_bound.magnitude if hasattr(self.lower_bound, 'magnitude') else self.lower_bound
 
 			if hasattr(self.upper_bound, 'subs'):
 				upper_bound = self.upper_bound.subs(self._model.default_parameters)
 				upper_bound = float(upper_bound.subs(self._model.mu.magnitude, self._model.solution.fluxes['biomass_dilution']))
 			else:
-				upper_bound = self.upper_bound.magnitude
+				upper_bound = self.upper_bound.magnitude if hasattr(self.upper_bound, 'magnitude') else self.upper_bound
 
 			if lower_bound <= self._model.solution.fluxes[self.id] <= upper_bound:
 				return (False, )
@@ -892,19 +911,30 @@ class MEReaction(cobra.core.reaction.Reaction):
 			return ('coralME model not optimized/feasible')
 
 	def get_me_mass_balance(self):
-		if self.id.startswith(('DM_', 'EX_', 'SK_', 'TS_')):
-			mass_balance = False
+		if self.id.startswith(('DM_', 'EX_', 'SK_', 'TS_', 'dummy_reaction_')):
+			mass_balance = 'Boundary reaction'
 		elif self.id.startswith((
 			'biomass_dilution', 'biomass_constituent_demand', 'DNA_replication', 'dummy_protein_to_mass',
-			'translation_', 'transcription_', 'charging_', 'formation_', 'translocation_', 'dummy_reaction_')):
+			'translation_', 'transcription_', 'charging_')):
 			mass_balance = 'Invalid calculation due to massless metabolite(s) in reaction'
 		elif '_lipid_modification_' in self.id:
 			mass_balance = 'Invalid calculation due to the formation of a lipoprotein component'
 		elif '_to_generic_' in self.id or 'biomass_to_biomass' in self.id:
 			mass_balance = 'Invalid calculation due to massless metabolite(s) in reaction'
 		else:
-			mass_balance = self.check_me_mass_balance()
+			missing = False
+			for met in self.metabolites:
+				if not isinstance(met, (coralme.core.component.GenericComponent, coralme.core.component.Constraint)) and met.formula is None:
+					missing = True
+					mass_balance = 'Invalid calculation due to missing formula ({:s})'.format(met.id)
+					break
+			if not missing:
+				mass_balance = self.check_me_mass_balance()
 		return mass_balance
+
+	@property
+	def index(self):
+		return self.model.reactions.index(self.id)
 
 	def _repr_html_(self) -> str:
 		"""Generate html representation of reaction.
@@ -918,14 +948,23 @@ class MEReaction(cobra.core.reaction.Reaction):
 		name = cobra.util.util.format_long_string(str(self.name), 500)
 		rxn_as_ids = cobra.util.util.format_long_string(self.build_reaction_string(False), 1000)
 		rxn_as_names = cobra.util.util.format_long_string(self.build_reaction_string(True), 1000)
-		if self._model.notes.get('from cobra', False):
+
+		if self._model.notes.get('from cobra', False) or self._model.notes.get('from coralme', False):
 			gpr = cobra.util.util.format_long_string(self.gene_reaction_rule, 500)
+			cofactors = cobra.util.util.format_long_string(self.cofactors.to_string(), 500)
+		elif 'SPONT' in self.id:
+			gpr = 'non-enzymatic'
+			cofactors = None
 		elif hasattr(self, '_complex_data'):
 			gpr = self._complex_data.id
+			cofactors = ' and '.join([ x.split('(')[0] for x in gpr.split('_mod_')[1:]])
 		elif type(self) == coralme.core.reaction.SummaryVariable:
 			gpr = None
+			cofactors = None
 		else:
 			gpr = None
+			cofactors = None
+
 		lower = self.lower_bound
 		upper = self.upper_bound
 		rxn_type = str(type(self))[8:-2]
@@ -936,16 +975,32 @@ class MEReaction(cobra.core.reaction.Reaction):
 			if self._model.notes.get('from cobra', False):
 				mu = self._model.solution.objective_value
 			else:
-				mu = self._model.solution.fluxes['biomass_dilution']
+				mu = self._model.solution.fluxes.get('biomass_dilution', self._model.solution.objective_value)
 			flux = r'{:g} ($\{:s}$ = {:g} per hour)'.format(self._model.solution.fluxes[self.id], str(self._model.mu.magnitude), mu)
 			cost = r'{:g} ($\{:s}$ = {:g} per hour)'.format(self._model.solution.reduced_costs[self.id], str(self._model.mu.magnitude), mu)
 			viol = r'{:s} ($\Delta$ = {:g} per hour)'.format(str(self.bound_violation[0]), self.bound_violation[1]) if self.bound_violation[0] else self.bound_violation[0]
 		else:
 			flux = cost = viol = 'coralME model not optimized/feasible'
 
+		alias = ''
+		if hasattr(self._model, 'aliases'):
+			inv = { v:k for k,v in self._model.aliases['reactions'].items() }
+			if self.id in inv:
+				alias = inv.get(self.id)
+
+			if self._model.aliases['metabolites']:
+				inv = { v:k for k,v in self._model.aliases['metabolites'].items() }
+				import re
+				pattern = re.compile("|".join(re.escape(k) for k in inv.keys()))
+				rxn_as_ids = pattern.sub(lambda m: inv[m.group(0)], rxn_as_ids)
+				rxn_as_names = pattern.sub(lambda m: inv[m.group(0)], rxn_as_names)
+				if gpr is not None:
+					gpr = pattern.sub(lambda m: inv[m.group(0)], gpr)
+
 		return f"""
 		<table>
 			<tr><td><strong>Reaction identifier</strong></td><td>{rxn}</td></tr>
+			<tr><td><strong>Reaction alias</strong></td><td>{alias}</td></tr>
 			<tr><td><strong>Name</strong></td><td>{name}</td></tr>
 			<tr><td><strong>Memory address</strong></td><td>{f'{id(self):#x}'}</td></tr>
 			<tr><td><strong>Stoichiometry</strong>
@@ -954,6 +1009,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 				<p style='text-align:right'>{rxn_as_names}</p>
 			</td></tr>
 			<tr><td><strong>GPR</strong></td><td>{gpr}</td></tr>
+			<tr><td><strong>Cofactors</strong></td><td>{cofactors}</td></tr>
 			<tr><td><strong>Lower bound</strong></td><td>{lower}</td></tr>
 			<tr><td><strong>Upper bound</strong></td><td>{upper}</td></tr>
 			<tr><td><strong>Reaction type</strong></td><td>{rxn_type}</td></tr>
@@ -972,6 +1028,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 class BoundaryReaction(MEReaction):
 	def __init__(self, id = None, name = ''):
 		MEReaction.__init__(self, id, name)
+
 class MetabolicReaction(MEReaction):
 	"""Irreversible metabolic reaction including required enzymatic complex
 
@@ -1040,7 +1097,8 @@ class MetabolicReaction(MEReaction):
 		var_name = r'keff\_reaction\_{:s}'.format(self.id)
 		value = coralme.core.parameters.MEParameters.check_parameter(value)
 		self._keff = value
-		self._coupling_coefficient_enzyme = self._model.mu * (sympy.Symbol(var_name, positive = True) * self._model.unit_registry.parse_units('1 per second')).to('1 per hour')**-1
+		self._symbolic_keff = (sympy.Symbol(var_name, positive = True) * self._model.unit_registry.parse_units('1 per second')).to('1 per hour')**-1
+		self._coupling_coefficient_enzyme = self._model.mu * self._symbolic_keff
 		self._model.global_info['default_parameters'].update({ var_name : value })
 
 	@property
@@ -1684,6 +1742,8 @@ class TranscriptionReaction(MEReaction):
 		assert len(compartment_suffix) == 1
 
 		for base, count in self.transcription_data.excised_bases.items():
+			if count == 0:
+				continue
 			stoichiometry[base] += count
 			stoichiometry['h2o' + compartment_suffix[0]] -= count
 			stoichiometry['h' + compartment_suffix[0]] += count
@@ -2012,7 +2072,7 @@ class TranslationReaction(MEReaction):
 		protein_mass = self.translation_data.translational_efficiency * protein.formula_weight / 1000.  # kDa
 		self.add_metabolites({metabolites.protein_biomass: protein_mass}, combine = False)
 
-		# 9) Subtract mRNA_biomass defined by mRNA degradation coupling coefficinet (if kdeg > 0)
+		# 9) Subtract mRNA_biomass defined by mRNA degradation coupling coefficient (if kdeg > 0)
 		mrna_mass = transcript.formula_weight / 1000.  # kDa
 		self.add_metabolites({metabolites.mRNA_biomass: (-mrna_mass * self._model.symbols['deg_amount'])}, combine = False)
 
