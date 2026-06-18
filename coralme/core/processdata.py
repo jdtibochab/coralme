@@ -1340,6 +1340,14 @@ class TranslationData(ProcessData):
 		else:
 			logging.warning('WARNING: No termination enzyme for \'{:s}\'. Please review if the gene is a pseudogene.'.format(self.mRNA))
 
+	@property
+	def flux(self):
+		""" Determines net translation flux, i.e., the sum of fluxes of the parent reactions
+		"""
+		flux = 0
+		for rxn in self.parent_reactions:
+			flux += rxn.flux
+		return flux
 class tRNAData(ProcessData):
 	"""
 	Class for storing information about a tRNA charging reaction.
