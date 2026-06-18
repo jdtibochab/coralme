@@ -159,7 +159,7 @@ def process_m_model(
 			#logging.warning('The MetabolicReaction \'{:s}\' (using \'defer_to_rxn_matrix\') was removed from the M-model metabolic network.'.format(rxn.id))
 
 	#m_model.remove_reactions([ m_model.reactions.get_by_id(rxn) for rxn in defer_to_rxn_matrix ])
-	rxns_to_remove = [ m_model.reactions.get_by_id(rxn) for rxn in defer_to_rxn_matrix if m_model.reactions.has_id(rxn) ]
+	rxns_to_remove = [ m_model.reactions.get_by_id(rxn).id for rxn in defer_to_rxn_matrix if m_model.reactions.has_id(rxn) ]
 	m_model.remove_reactions(rxns_to_remove)
 # 	mets_to_remove = [ m for m in m_model.metabolites if len(m.reactions) == 0 ]
 # 	m_model.remove_metabolites(mets_to_remove)
@@ -211,7 +211,7 @@ def process_m_model(
 				met_obj.formula = mets_data.loc[met_id, 'formula']
 
 		# Add new reactions into the M-model
-		rxn = coralme.core.reaction.MEReaction(rxn_id)
+		rxn = cobra.core.reaction.Reaction(rxn_id)
 		m_model.add_reactions([rxn])
 		rxn.add_metabolites(rxn_stoichiometry)
 		if rxn_id in rxns_data.index:
@@ -237,6 +237,11 @@ def process_m_model(
 
 	m_model.add_metabolites([ coralme.core.component.Complex(id = x) for x in set(m_to_me_map['me_id']) ])
 
+	to_replace = [ x for x in m_to_me_map.index if x != '' ]
+	if len(to_replace) != len(set(to_replace)):
+		logging.warning('WARNING: Some metabolite IDs are defined twice or more times. This would replace an ID with a wrong ID.')
+
+	replaced = set()
 	for rxn in m_model.reactions:
 		#met_id = remove_compartment(met.id)
 		# old code. mets_data contains all the metabolites (m+me)
@@ -254,13 +259,21 @@ def process_m_model(
 
 				new_id = m_model.metabolites.get_by_id(m_to_me_map.loc[met.id, 'me_id'])
 				old_stoich = rxn.metabolites[m_model.metabolites.get_by_id(met.id)]
-				rxn.add_metabolites({ new_id : old_stoich })
+				rxn.add_metabolites({ new_id : old_stoich }, combine = False) # if metabolite already exists, replace coefficient
 				logging.warning('INFO: Metabolite \'{:s}\' was replaced with \'{:s}\' in MetabolicReaction \'{:s}\'.'.format(met.id, m_to_me_map.loc[met.id, 'me_id'], rxn.id))
+
+				# compare to original list of metabolites
+				replaced.add(met.id)
+
+	if len(set(to_replace).difference(replaced)) != 0.:
+		logging.warning('WARNING: The following metabolite IDs were not replaced: {:s}.'.format(', '.join(sorted(set(to_replace).difference(replaced)))))
 
 	m_model.remove_metabolites([ m_model.metabolites.get_by_id(x) for x in m_to_me_map[m_to_me_map['type'].str.fullmatch('REPLACE|REMOVE')].index if m_model.metabolites.has_id(x) ])
 
 	# Add new metabolites (ME-metabolites) with properties into the "M-model"
 	for m_met_id in m_to_me_map.index:
+		if m_met_id == '':
+			continue
 		me_met_id = m_to_me_map.loc[m_met_id, 'me_id']
 		if m_model.metabolites.has_id(me_met_id):
 			met_obj = m_model.metabolites.get_by_id(me_met_id)
