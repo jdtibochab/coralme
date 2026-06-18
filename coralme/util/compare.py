@@ -1,6 +1,7 @@
 import difflib
 import glob
 import pathlib
+import re
 
 def main(path1, path2):
 	files = [ '/'.join(x.split('/')[1:]) for x in sorted(glob.glob('{:s}/**/*'.format(path1), recursive=True)) ]
@@ -10,7 +11,7 @@ def main(path1, path2):
 
 	def sort(data):
 		if len(data) > 1:
-			data = [data[0]] + sorted(data[1:])
+			data = [data[0]] + sorted([ re.sub(r'\t+\n$', '\n', x) for x in data[1:] if x.strip() ])
 		return data
 
 	def compare_files(file1_path, file2_path):
