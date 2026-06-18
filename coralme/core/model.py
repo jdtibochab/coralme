@@ -1056,14 +1056,14 @@ class MEModel(cobra.core.object.Object):
 			return None
 			#raise ValueError(f"Boundary reaction '{reaction_id}' already exists.")
 		name = f"{metabolite.name} {type}"
-		rxn = MEReaction(id=reaction_id, name=name)
+		rxn = BoundaryReaction(id=reaction_id, name=name)
+		self.add_reactions([rxn])
 		# WARNING: setting lb and ub through MEReaction definition is not working
 		rxn.lower_bound = lb
 		rxn.upper_bound = ub
 		rxn.add_metabolites({metabolite: -1})
 		if sbo_term:
 			rxn.annotation["sbo"] = sbo_term
-		self.add_reactions([rxn])
 		return rxn
 
 	# WARNING: Modified functions from COBRAme and new functions

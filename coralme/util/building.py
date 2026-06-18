@@ -825,7 +825,7 @@ def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 			continue
 
 		if reaction.id.startswith(('EX_', 'DM_', 'SK_', 'sink_')):
-			new_reaction = coralme.core.reaction.MEReaction(reaction.id)
+			new_reaction = coralme.core.reaction.BoundaryReaction(reaction.id)
 			me_model.add_reactions([new_reaction])
 			new_reaction.subsystem = reaction.subsystem
 			new_reaction.lower_bound = reaction.lower_bound

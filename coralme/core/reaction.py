@@ -967,6 +967,10 @@ class MEReaction(cobra.core.reaction.Reaction):
 	def genes(self):
 		return frozenset()
 
+
+class BoundaryReaction(MEReaction):
+	def __init__(self, id = None, name = ''):
+		MEReaction.__init__(self, id, name)
 class MetabolicReaction(MEReaction):
 	"""Irreversible metabolic reaction including required enzymatic complex
 
