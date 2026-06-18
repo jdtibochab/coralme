@@ -8,7 +8,7 @@ from Bio import SeqIO
 # Written originally by Rodrigo Santibanez
 def get_orthofinder_results(path, save = False):
 	# index: Orthogroups; columns: organisms; data: single string, comma separated
-	data = pandas.read_csv(path, sep = '\t', index_col = 0)
+	data = pandas.read_csv(path, sep = '\t', index_col = 0, low_memory = False)
 
 	# convert NaN to strings -> split string -> get unique IDs -> convert to list -> collapse columns into one
 	fn = lambda x: list(set(str(x).split(', ')))
@@ -47,18 +47,17 @@ def _get_genbank_features_as_dataframe(genbank_path):
 
 	return pandas.DataFrame([dct]).T
 
-def get_features_from_genbanks(reference_genbank_path : str = None, genbanks_target_directory : list = []):
+def get_features_from_genbanks(reference_genbank_path : str = None, target_genbank_paths : list = []):
 	"""
 	This assumes gene IDs in M-model are contained in protein_id/locus_tag only
 	"""
 	data = [_get_genbank_features_as_dataframe(reference_genbank_path)]
 
-	files = sorted(glob.glob(genbanks_target_directory + '/*'))
-	for genbank in files:
+	for genbank in target_genbank_paths:
 		data.append(_get_genbank_features_as_dataframe(genbank))
 
 	tmp = pandas.concat(data, axis = 1)
-	tmp.columns = ['Original'] + [ x.split('/')[1].split('.gb')[0] for x in files ]
+	tmp.columns = ['Original'] + [ x.split('/')[-1].split('.')[0] for x in target_genbank_paths ]
 	return tmp
 
 def _get_homologues(x):
