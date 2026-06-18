@@ -37,7 +37,7 @@ def get_schema():
 	with open(os.path.join(cur_dir, 'JSONSCHEMA'), 'r') as f:
 		return json.load(f)
 
-def save_json_me_model(model, file_name, sort = True, compress = False):
+def save_json_me_model(model, file_name, sort = True, compress = False, check = True):
 	"""
 	Save a full JSON version of the ME-model. Saving/loading a model in this
 	format can then be loaded to return a ME-model identical to the one saved,
@@ -78,10 +78,11 @@ def save_json_me_model(model, file_name, sort = True, compress = False):
 	logging.shutdown()
 
 	# Confirm that dictionary representation of model adheres to JSONSCHEMA
-	try:
-		jsonschema.validate(model_dict, get_schema())
-	except jsonschema.ValidationError:
-		raise Exception('Must pass valid ME-model json file')
+	if check:
+		try:
+			jsonschema.validate(model_dict, get_schema())
+		except jsonschema.ValidationError:
+			raise Exception('Must pass valid ME-model json file')
 
 	#json.dump(model_dict, file_name)
 
@@ -104,7 +105,7 @@ def save_json_me_model(model, file_name, sort = True, compress = False):
 		with open(file_name, 'w') as outfile:
 			outfile.write(json_str)
 
-def load_json_me_model(file_name):
+def load_json_me_model(file_name, update = True, check = True):
 	"""
 	Load a full JSON version of the ME-model. Loading a model in this format
 	will return a ME-model identical to the one saved, which retains all
@@ -138,12 +139,13 @@ def load_json_me_model(file_name):
 	else:
 		model_dict = json.load(file_name)
 
-	try:
-		jsonschema.validate(model_dict, get_schema())
-	except jsonschema.ValidationError:
-		raise Exception('Must pass valid ME-model json file')
+	if check:
+		try:
+			jsonschema.validate(model_dict, get_schema())
+		except jsonschema.ValidationError:
+			raise Exception('Must pass valid ME-model json file')
 
-	model = coralme.io.dict.me_model_from_dict(model_dict)
+	model = coralme.io.dict.me_model_from_dict(model_dict, update = update)
 
 	logging.shutdown()
 

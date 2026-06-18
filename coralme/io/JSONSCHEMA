@@ -1,886 +1,542 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "JSON representation of COBRA ME-model",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "coralME",
+  "description": "JSON representation of a COBRA ME-model",
+  "type": "object",
   "properties": {
-    "annotation": {
-      "type": "object"
-    },
-    "description": {
-      "type": "string"
-    },
-    "global_info": {
-      "properties": {
-        "GC_fraction": {
-          "type": "number"
-        },
-        "f_mRNA": {
-          "type": "number"
-        },
-        "f_rRNA": {
-          "type": "number"
-        },
-        "f_tRNA": {
-          "type": "number"
-        },
-        "k_deg": {
-          "type": "number"
-        },
-        "kt": {
-          "type": "number"
-        },
-        "m_aa": {
-          "type": "number"
-        },
-        "m_nt": {
-          "type": "number"
-        },
-        "m_rr": {
-          "type": "number"
-        },
-        "m_tRNA": {
-          "type": "number"
-        },
-        "propensity_scaling": {
-          "type": "number"
-        },
-        "r0": {
-          "type": "number"
-        },
-        "temperature": {
-          "type": "number"
-        }
-      },
-      "type": "object"
-    },
     "id": {
       "type": "string"
-    },
-    "metabolites": {
-      "items": {
-        "properties": {
-          "_bound": {
-            "default": 0,
-            "type": "number"
-          },
-          "_constraint_sense": {
-            "default": "E",
-            "pattern": "E|L|G",
-            "type": "string"
-          },
-          "annotation": {
-            "type": "object"
-          },
-          "charge": {
-            "type": "integer"
-          },
-          "compartment": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "formula": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "id": {
-            "type": "string"
-          },
-          "metabolite_type": {
-            "oneOf": [
-              {
-                "properties": {
-                  "Metabolite": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "Metabolite"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranslatedGene": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranslatedGene"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "ProcessedProtein": {
-                    "properties": {
-                      "unprocessed_protein_id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "unprocessed_protein_id"
-                    ],
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "ProcessedProtein"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "Complex": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "Complex"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "Ribosome": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "Ribosome"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "GenericComponent": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "GenericComponent"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "GenerictRNA": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "GenerictRNA"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "RNAP": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "RNAP"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "Constraint": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "Constraint"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranscribedGene": {
-                    "properties": {
-                      "RNA_type": {
-                        "pattern": "mRNA|rRNA|tRNA|ncRNA|tmRNA|.*RNA$",
-                        "type": "string"
-                      },
-                      "left_pos": {
-                        "items": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "type": [
-                          "string",
-                          "null",
-                          "array"
-                        ]
-                      },
-                      "nucleotide_sequence": {
-                        "type": "string"
-                      },
-                      "right_pos": {
-                        "items": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
-                        },
-                        "type": [
-                          "string",
-                          "null",
-                          "array"
-                        ]
-                      },
-                      "strand": {
-                        "pattern": "[+]|[-]",
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      }
-                    },
-                    "required": [
-                      "nucleotide_sequence",
-                      "right_pos",
-                      "left_pos",
-                      "strand",
-                      "RNA_type"
-                    ],
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranscribedGene"
-                ],
-                "type": "object"
-              }
-            ]
-          },
-          "name": {
-            "type": "string"
-          },
-          "notes": {
-            "type": "object"
-          }
-        },
-        "type": "object"
-      },
-      "type": "array"
     },
     "name": {
       "type": "string"
     },
+    "description": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "annotation": {
+      "type": "object"
+    },
     "notes": {
       "type": "object"
     },
-    "process_data": {
+    "global_info": {
+      "$ref": "#/$defs/global_info"
+    },
+    "metabolites": {
+      "type": "array",
       "items": {
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "process_data_type": {
-            "oneOf": [
-              {
-                "properties": {
-                  "StoichiometricData": {
-                    "properties": {
-                      "lower_bound": {
-                        "type": "number"
-                      },
-                      "stoichiometry": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "subreactions": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "upper_bound": {
-                        "type": "number"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "StoichiometricData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "ComplexData": {
-                    "properties": {
-                      "complex_id": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "modifications": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "stoichiometry": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "subreactions": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "ComplexData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranscriptionData": {
-                    "properties": {
-                      "RNA_polymerase": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "RNA_products": {
-                        "items": {
-                          "type": "string"
-                        },
-                        "type": "array"
-                      },
-                      "modifications": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "nucleotide_sequence": {
-                        "type": "string"
-                      },
-                      "organelle": {
-                        "default": "null",
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "subreactions": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": ["number", "null"]
-                          }
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranscriptionData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranslationData": {
-                    "properties": {
-                      "mRNA": {
-                        "type": "string"
-                      },
-                      "modifications": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "nucleotide_sequence": {
-                        "type": "string"
-                      },
-                      "protein": {
-                        "type": "string"
-                      },
-                      "pseudo": {
-                        "type": "boolean"
-                      },
-                      "subreactions": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranslationData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "tRNAData": {
-                    "properties": {
-                      "RNA": {
-                        "type": "string"
-                      },
-                      "amino_acid": {
-                        "type": "string"
-                      },
-                      "codon": {
-                        "type": "string"
-                      },
-                      "modifications": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "synthetase": {
-                        "default": "null",
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "synthetase_keff": {
-                        "type": "number"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "tRNAData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranslocationData": {
-                    "properties": {
-                      "enzyme_dict": {
-                        "patternProperties": {
-                          ".*": {
-                            "properties": {
-                              "fixed_keff": {
-                                "type": "boolean"
-                              },
-                              "length_dependent": {
-                                "type": "boolean"
-                              }
-                            },
-                            "type": "object"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "length_dependent_energy": {
-                        "type": [
-                          "boolean",
-                          "string"
-                        ]
-                      },
-                      "stoichiometry": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranslocationData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "PostTranslationData": {
-                    "properties": {
-                      "aggregation_propensity": {
-                        "type": "number"
-                      },
-                      "biomass_type": {
-                        "type": "string"
-                      },
-                      "k_folding": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "keq_folding": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "modifications": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "processed_protein_id": {
-                        "type": "string"
-                      },
-                      "propensity_scaling": {
-                        "type": "number"
-                      },
-                      "subreactions": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "surface_area": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "translocation": {
-                        "items": {
-                          "type": "string"
-                        },
-                        "type": "array"
-                      },
-                      "translocation_multipliers": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "unprocessed_protein_id": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "PostTranslationData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "SubreactionData": {
-                    "properties": {
-                      "element_contribution": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      },
-                      "enzyme": {
-                        "default": "null",
-                        "type": [
-                          "string",
-                          "null",
-                          "array"
-                        ]
-                      },
-                      "keff": {
-                        "type": "number"
-                      },
-                      "name": {
-                        "type": "string"
-                      },
-                      "stoichiometry": {
-                        "patternProperties": {
-                          ".*": {
-                            "type": "number"
-                          }
-                        },
-                        "type": "object"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "SubreactionData"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "GenericData": {
-                    "properties": {
-                      "component_list": {
-                        "type": "array"
-                      },
-                      "name": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "GenericData"
-                ],
-                "type": "object"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "type": "array"
+        "$ref": "#/$defs/metabolite"
+      }
+    },
+    "process_data": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/process_data"
+      }
     },
     "reactions": {
+      "type": "array",
       "items": {
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "metabolites": {
-            "patternProperties": {
-              ".*": {
-                "type": [
-                  "string",
-                  "number"
-                ]
-              }
-            },
-            "type": "object"
-          },
-          "reaction_type": {
-            "keff": {
-              "type": "number"
-            },
-            "lower_bound": {
-              "type": "number"
-            },
-            "objective_coefficient": {
-              "default": 0,
-              "type": "number"
-            },
-            "oneOf": [
-              {
-                "properties": {
-                  "MetabolicReaction": {
-                    "properties": {
-                      "complex_data": {
-                        "type": [
-                          "string",
-                          "null"
-                        ]
-                      },
-                      "keff": {
-                        "type": "number"
-                      },
-                      "reverse": {
-                        "type": "boolean"
-                      },
-                      "stoichiometric_data": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "MetabolicReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "ComplexFormation": {
-                    "properties": {
-                      "_complex_id": {
-                        "type": "string"
-                      },
-                      "complex_data_id": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "ComplexFormation"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "PostTranslationReaction": {
-                    "properties": {
-                      "posttranslation_data": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "PostTranslationReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranscriptionReaction": {
-                    "properties": {
-                      "transcription_data": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranscriptionReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "GenericFormationReaction": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "GenericFormationReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "Reaction": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "MEReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "SummaryVariable": {
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "SummaryVariable"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "TranslationReaction": {
-                    "properties": {
-                      "translation_data": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "TranslationReaction"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "tRNAChargingReaction": {
-                    "properties": {
-                      "tRNA_data": {
-                        "type": "string"
-                      }
-                    },
-                    "type": "object"
-                  }
-                },
-                "required": [
-                  "tRNAChargingReaction"
-                ],
-                "type": "object"
-              }
-            ],
-            "upper_bound": {
-              "type": "number"
-            },
-            "variable_kind": {
-              "default": "continuous",
-              "pattern": "continuous",
-              "type": "string"
-            }
-          }
-        },
-        "type": "object"
-      },
-      "type": "array"
-    },
-    "version": {
-      "default": 1,
-      "type": "integer"
+        "$ref": "#/$defs/reaction"
+      }
     }
   },
-  "title": "coralME",
-  "type": "object"
+  "required": [
+    "global_info",
+    "metabolites",
+    "process_data",
+    "reactions"
+  ],
+  "unevaluatedProperties": true,
+  "$defs": {
+    "nullable_string": {
+      "type": ["string", "null"]
+    },
+    "nullable_number": {
+      "type": ["number", "null"]
+    },
+    "reaction_bound": {
+      "type": ["number", "string"]
+    },
+    "number_dict": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "type": "number"
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "string_number_dict": {
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "type": ["string", "number"]
+        }
+      },
+      "unevaluatedProperties": false
+    },
+    "global_info": {
+      "type": "object",
+      "properties": {
+        "GC_fraction":        { "type": "number" },
+        "f_mRNA":             { "type": "number" },
+        "f_rRNA":             { "type": "number" },
+        "f_tRNA":             { "type": "number" },
+        "k_deg":              { "type": "number" },
+        "kt":                 { "type": "number" },
+        "m_aa":               { "type": "number" },
+        "m_nt":               { "type": "number" },
+        "m_rr":               { "type": "number" },
+        "m_tRNA":             { "type": "number" },
+        "propensity_scaling": { "type": "number" },
+        "r0":                 { "type": "number" },
+        "temperature":        { "type": "number" }
+      },
+      "unevaluatedProperties": true
+    },
+    "base_metabolite": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "formula": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "compartment": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "charge": {
+          "$ref": "#/$defs/nullable_number"
+        },
+        "_bound": {
+          "type": "number",
+          "default": 0
+        },
+        "_constraint_sense": {
+          "type": "string",
+          "pattern": "^(E|L|G)$",
+          "default": "E"
+        },
+        "annotation": {
+          "type": "object"
+        },
+        "notes": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "metabolite": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/base_metabolite"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "metabolite_type": {
+              "oneOf": [
+                { "$ref": "#/$defs/Metabolite" },
+                { "$ref": "#/$defs/TranslatedGene" },
+                { "$ref": "#/$defs/ProcessedProtein" },
+                { "$ref": "#/$defs/Complex" },
+                { "$ref": "#/$defs/Ribosome" },
+                { "$ref": "#/$defs/GenericComponent" },
+                { "$ref": "#/$defs/GenerictRNA" },
+                { "$ref": "#/$defs/RNAP" },
+                { "$ref": "#/$defs/Constraint" },
+                { "$ref": "#/$defs/TranscribedGene" }
+              ]
+            }
+          },
+          "required": [
+            "metabolite_type"
+          ]
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "Metabolite": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Metabolite"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "TranslatedGene": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TranslatedGene"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "ProcessedProtein": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ProcessedProtein"
+        },
+        "unprocessed_protein_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "unprocessed_protein_id"
+      ]
+    },
+    "Complex": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Complex"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Ribosome": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "Ribosome"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "GenericComponent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "GenericComponent"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "GenerictRNA": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "GenerictRNA"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "RNAP": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "RNAP"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Constraint": {
+      "type": "object",
+      "properties": {
+        "Constraint": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "TranscribedGene": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TranscribedGene"
+        },
+        "RNA_type": {
+          "type": "string",
+          "pattern": "^(mRNA|rRNA|tRNA|ncRNA|tmRNA|.*RNA)$"
+        },
+        "nucleotide_sequence": {
+          "type": "string"
+        },
+        "left_pos": {
+          "type": ["string", "null", "array"]
+        },
+        "right_pos": {
+          "type": ["string", "null", "array"]
+        },
+        "strand": {
+          "type": ["string", "null"],
+          "pattern": "^(\\+|-)$"
+        }
+      },
+      "required": [
+        "type",
+        "RNA_type",
+        "nucleotide_sequence",
+        "left_pos",
+        "right_pos",
+        "strand"
+      ]
+    },
+    "reaction_base": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "metabolites": {
+          "$ref": "#/$defs/string_number_dict"
+        },
+        "lower_bound": {
+          "$ref": "#/$defs/reaction_bound"
+        },
+        "upper_bound": {
+          "$ref": "#/$defs/reaction_bound"
+        },
+        "objective_coefficient": {
+          "type": "number",
+          "default": 0
+        },
+        "variable_kind": {
+          "type": "string",
+          "pattern": "^continuous$",
+          "default": "continuous"
+        }
+      },
+      "required": [
+        "id",
+        "metabolites",
+        "lower_bound",
+        "upper_bound"
+      ]
+    },
+    "reaction": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/reaction_base"
+        },
+        {
+          "oneOf": [
+            { "$ref": "#/$defs/MetabolicReaction" },
+            { "$ref": "#/$defs/BoundaryReaction" },
+            { "$ref": "#/$defs/ComplexFormation" },
+            { "$ref": "#/$defs/ComplexDegradation" },
+            { "$ref": "#/$defs/PostTranslationReaction" },
+            { "$ref": "#/$defs/TranscriptionReaction" },
+            { "$ref": "#/$defs/GenericFormationReaction" },
+            { "$ref": "#/$defs/SummaryVariable" },
+            { "$ref": "#/$defs/TranslationReaction" },
+            { "$ref": "#/$defs/tRNAChargingReaction" },
+            { "$ref": "#/$defs/rRNAFormationReaction" }
+          ]
+        }
+      ],
+      "unevaluatedProperties": true
+    },
+    "BoundaryReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "BoundaryReaction"
+        },
+        "stoichiometric_data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "stoichiometric_data"
+      ]
+    },
+    "MetabolicReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MetabolicReaction"
+        },
+        "complex_data": {
+          "$ref": "#/$defs/nullable_string"
+        },
+        "stoichiometric_data": {
+          "type": "string"
+        },
+        "keff": {
+          "type": "number"
+        },
+        "reverse": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "stoichiometric_data"
+      ]
+    },
+    "ComplexFormation": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ComplexFormation"
+        },
+        "_complex_id": {
+          "type": "string"
+        },
+        "complex_data_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "_complex_id",
+        "complex_data_id"
+      ]
+    },
+    "ComplexDegradation": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ComplexDegradation"
+        },
+        "_complex_id": {
+          "type": "string"
+        },
+        "complex_data_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "_complex_id",
+        "complex_data_id"
+      ]
+    },
+    "PostTranslationReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "PostTranslationReaction"
+        },
+        "posttranslation_data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "posttranslation_data"
+      ]
+    },
+    "TranscriptionReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TranscriptionReaction"
+        },
+        "transcription_data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "transcription_data"
+      ]
+    },
+    "GenericFormationReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "GenericFormationReaction"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "rRNAFormationReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "rRNAFormationReaction"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "SummaryVariable": {
+      "type": "object",
+      "properties": {
+        "SummaryVariable": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "TranslationReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TranslationReaction"
+        },
+        "translation_data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "translation_data"
+      ]
+    },
+    "tRNAChargingReaction": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "tRNAChargingReaction"
+        },
+        "tRNA_data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "tRNA_data"
+      ]
+    },
+    "process_data": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+  }
 }
