@@ -83,6 +83,7 @@ def flux_based_reactions(model,
 						 flux_dict=0,
 						 include_zeroes=True,
 						 solution = None,
+						 aliases = None,
 						 keffs=False,
 						 verbose=False):
 	"""
@@ -114,7 +115,7 @@ def flux_based_reactions(model,
 		if f:
 			coeff = get_met_coeff(rxn.metabolites[met],
 								  g,
-								growth_key=model.mu if hasattr(model,"mu") else None)
+								growth_key=model.mu.magnitude if hasattr(model,"mu") else None)
 
 		else:
 			coeff = 0
@@ -138,6 +139,11 @@ def flux_based_reactions(model,
 	df['met_flux'] = df['met_flux'].astype(float)
 
 	df = df.loc[df['met_flux'].abs().sort_values(ascending=False).index]
+
+	if not aliases is None:
+		df = df.rename(index = { v:k for k,v in model.aliases['reactions'].items() })
+		df = df.replace({ re.escape(v):k for k,v in model.aliases['metabolites'].items() }, regex = True)
+
 	if include_zeroes:
 		return df#[df['ub'] != 0]
 	else:

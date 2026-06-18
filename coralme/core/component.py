@@ -20,11 +20,11 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	def get_fluxes(self,
 		only_types = (), ignore_types = (),
 		threshold = 0., flux_dict = 0, include_zeroes = True,
-		solution = None, keffs = False, verbose = False):
+		solution = None, aliases = None, keffs = False, verbose = False):
 		"""
 		Shortcut for coralme.util.flux_analysis.flux_based_reactions(model, met_id, [...])
 		"""
-		return coralme.util.flux_analysis.flux_based_reactions(self._model, self.id, only_types, ignore_types, threshold, flux_dict, include_zeroes, solution, keffs, verbose)
+		return coralme.util.flux_analysis.flux_based_reactions(self._model, self.id, only_types, ignore_types, threshold, flux_dict, include_zeroes, solution, aliases, keffs, verbose)
 
 	def add_boundary(self, type: str = "exchange", reaction_id = None, lb = None, ub = None, sbo_term = None):
 		"""
