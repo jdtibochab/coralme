@@ -307,15 +307,42 @@ class MEModel(cobra.core.object.Object):
 			del state['check_feasibility']
 		if hasattr(self, 'get_feasibility'):
 			del state['get_feasibility']
+
+		# Save M-models as OrderedDict
+		if 'gem' in state and isinstance(state['gem'], coralme.core.model.MEModel):
+			for rxn in state['gem'].reactions:
+				# lower_bound and upper_bound methods append units if floats are used to set values
+				if hasattr(rxn.lower_bound, 'magnitude'):
+					rxn._lower_bound = rxn.lower_bound.magnitude
+				if hasattr(rxn.upper_bound, 'magnitude'):
+					rxn._upper_bound = rxn.upper_bound.magnitude
+
+		for model in [ 'gem', 'processed_m_model' ]:
+			if model in state:
+				state[model] = cobra.io.dict.model_to_dict(state[model])
+
 		return state
 
 	def __setstate__(self, state):
 		self.__dict__.update(state)
 		# Add unit_registry back since it doesn't exist in the pickle
-		self.unit_registry = self.mu._REGISTRY
+		if hasattr(self.mu, '_REGISTRY'):
+			self.unit_registry = self.mu._REGISTRY
+		# Also retrocompatibility with coralme v1.0 schema
+		else:
+			self.unit_registry = pint.UnitRegistry()
+			self._mu = sympy.Symbol('mu', positive = True) * self.unit_registry.parse_units('1 per hour')
 
 		# simulation methods in optimization.py
 		coralme.builder.helper_functions.bind_public_module_functions(self, coralme.core.optimization)
+
+		# Reconstruct M-model from OrderedDict
+		if hasattr(self, 'gem') and isinstance(self.gem, dict):
+			self.gem = cobra.io.dict.model_from_dict(self.gem)
+		if hasattr(self, 'gem') and self.gem.notes.get('from cobra'):
+			self.gem = coralme.core.model.MEModel.from_cobra(self.gem)
+		if hasattr(self, 'processed_m_model') and isinstance(self.processed_m_model, dict):
+			self.processed_m_model = cobra.io.dict.model_from_dict(self.processed_m_model)
 
 		# if reconstruction_time is missing
 		if not hasattr(self, 'reconstruction_time'):
