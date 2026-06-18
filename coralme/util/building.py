@@ -909,7 +909,7 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 
 	if update:
 		complex_data.create_complex_formation()
-	if me_model.global_info['add_prot_deg_reactions']: # and complex_data.prot_components: # missing property in CPLX_dummy
+	if me_model.global_info.get('add_prot_deg_reactions', False): # and complex_data.prot_components: # missing property in CPLX_dummy
 		complex_data.create_complex_degradation()
 		logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(complex_data.id))
 

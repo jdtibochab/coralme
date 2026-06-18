@@ -532,6 +532,10 @@ class ComplexData(ProcessData):
 		# Forming some metacomplexes occur in multiple steps
 		self.subreactions = {}
 		self._complex_id = None  # assumed to be the same as id if None
+		if self._model.global_info.get('add_prot_deg_reactions', False):
+			# experimental, allows degradation of proteins and modified proteins
+			self._degradation_specific_constant = sympy.Symbol(r'k_{{deg}}^{{{:s}}}'.format(self.id.replace('_', '\\_')), positive = True) # dimensionless
+			self._dissociation_specific_constant = sympy.Symbol(r'k_{{dissoc}}^{{{:s}}}'.format(self.id.replace('_', '\\_')), positive = True) # dimensionless
 
 	@property
 	def formation(self):

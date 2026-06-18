@@ -68,7 +68,7 @@ class MEModel(cobra.core.object.Object):
 			# analysis and reconstruction flags
 			'add_lipoproteins' : False, #
 			'add_translocases' : True, # actually, True will assign CPLX_dummy to missing translocase components
-			'add_translocases' : True, # actually, assign CPLX_dummy to missing enzymes
+			'add_prot_deg_reactions' : False, # WARNING: experimental
 			'include_pseudo_genes' : False,
 			'run_bbh_blast' : True,
 

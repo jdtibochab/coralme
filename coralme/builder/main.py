@@ -2012,6 +2012,10 @@ class MEReconstruction(MEBuilder):
 			elif data.id != 'CPLX_dummy':
 				data.create_complex_formation()
 				logging.warning('INFO: Added ComplexFormation for \'{:s}\'.'.format(data.id))
+				# will degrade prot/prot and prot/rna complexes only
+				if me.global_info.get('add_prot_deg_reactions', False) and data.prot_components:
+					data.create_complex_degradation()
+					logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(data.id))
 			else:
 				pass
 
@@ -2414,6 +2418,9 @@ class MEReconstruction(MEBuilder):
 		else:
 			data.stoichiometry.update({'CPLX_dummy' : -1.})
 		data.create_complex_formation(verbose = False)
+		if me.global_info.get('add_prot_deg_reactions', False):
+			data.create_complex_degradation()
+			logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(data.id))
 
 		# Used for RNA splicing
 		data = coralme.core.processdata.SubreactionData('RNA_degradation_machine', me)
@@ -2507,6 +2514,9 @@ class MEReconstruction(MEBuilder):
 			else:
 				data.create_complex_formation()
 				logging.warning('INFO: Added a ComplexFormation reaction for \'{:s}\'.'.format(data.id))
+				if me.global_info.get('add_prot_deg_reactions', False):
+					data.create_complex_degradation(inplace = True)
+					logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(data.id))
 
 		# ## Part 4: Add remaining subreactions
 		# ### 1. Add translation related subreactions

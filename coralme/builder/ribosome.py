@@ -71,3 +71,6 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 			ribosome_components[protein] += amount
 
 	ribosome_complex.create_complex_formation(verbose = verbose)
+	if me_model.global_info.get('add_prot_deg_reactions', False):
+		ribosome_complex.create_complex_degradation()
+		logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(ribosome_complex.id))
