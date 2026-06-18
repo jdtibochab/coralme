@@ -2005,10 +2005,14 @@ class MEReconstruction(MEBuilder):
 		# This step was originally in the second part of the builder process, and was moved here to be able to use generics in enzymes associated to metabolic reactions.
 
 		generics = coralme.builder.preprocess_inputs.get_generics(df_data)
+		fes_transfers = []
 		for generic, components in tqdm.tqdm(generics, 'Adding Generic(s) into the ME-model...', bar_format = bar_format):
 			if 'generic_fes_transfers_complex' in generic:
+				components = set([ x.split('_mod_')[0] for x in components ])
+				fes_transfers.append(components)
 				continue
 			coralme.core.processdata.GenericData(generic, me, components).create_reactions()
+		fes_transfers = [ x for y in fes_transfers for x in y ]
 
 		# ### 6) Add dummy reactions to model and the *unmodeled_protein_fraction* constraint
 		#
@@ -2026,7 +2030,8 @@ class MEReconstruction(MEBuilder):
 
 		# WARNING: DO NOT REMOVE. This is needed if troubleshooter adds sink reactions for 4fe4s/2fe2s
 		# Add CPLX_dummy_mod_2fe2s(1) and CPLX_dummy_mod_4fe4s(1) if fes_transfers is {'CPLX_dummy'}
-		if 'CPLX_dummy' in me.global_info['complex_cofactors']['fes_transfers']:
+		# if 'CPLX_dummy' in me.global_info['complex_cofactors']['fes_transfers']:
+		if not fes_transfers:
 			for fes in ['2fe2s', '4fe4s']:
 				coralme.util.building.add_complex_to_model(me, 'CPLX_dummy_mod_{:s}(1)'.format(fes), { 'protein_dummy' : 1.0, fes + '_c': 1.0})
 			# WARNING: do not change escape characters
@@ -2461,7 +2466,7 @@ class MEReconstruction(MEBuilder):
 				me.remove_metabolites([me.metabolites.lipoyl_c])
 
 		if me.process_data.has_id('mod_3fe4s_c') or me.process_data.has_id('mod_4fe4s_c') or me.process_data.has_id('mod_2fe2s_c'):
-			coralme.builder.modifications.add_iron_sulfur_modifications(me)
+			coralme.builder.modifications.add_iron_sulfur_modifications(me, fes_transfers)
 		if me.process_data.has_id('mod_FeFe_cofactor_c') or me.process_data.has_id('mod_NiFe_cofactor_c'):
 			coralme.builder.modifications.add_FeFe_and_NiFe_modifications(me)
 		if me.process_data.has_id('mod_bmocogdp_c'):

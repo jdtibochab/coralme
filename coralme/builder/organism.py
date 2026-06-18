@@ -1105,7 +1105,7 @@ class Organism(object):
         complexes_df = self.complexes_df
         protein_mod = self.protein_mod.reset_index().set_index('Core_enzyme')
         ribo_df = complexes_df.loc[
-            complexes_df["name"].str.contains("ribosomal.*(?:subunit)?.* protein", regex=True)
+            complexes_df["name"].str.contains("ribosomal.*(?:subunit)?.* protein", regex=True, na = False)
         ]
         self.ribosomal_proteins = ribo_df
         ribosome_stoich = self.ribosome_stoich
@@ -1119,10 +1119,10 @@ class Organism(object):
             update_50S = False
         else:
             update_50S = True
-        if not(update_30S or update_50S):
-            # Only update if it has not been user-defined
-            return
-        trigger_factor = list(complexes_df[complexes_df['name'].str.contains('[T,t]rigger factor',regex=True)].index)
+        # if not(update_30S or update_50S):
+        #     # Only update if it has not been user-defined
+        #     return
+        trigger_factor = list(complexes_df[complexes_df['name'].str.contains('[T,t]rigger factor',regex=True, na = False)].index)
         if trigger_factor:
             ribo_50S[trigger_factor[0]] = 1
         warn_proteins = []
@@ -1133,7 +1133,8 @@ class Organism(object):
                            total=ribo_df.shape[0]):
             p_mod_list = []
             if p in protein_mod.index:
-                p_mod_list = protein_mod.loc[[p]]['Modified_enzyme'].values
+                # WARNING: keep p = p_mod_list to add modified proteins instead of core enzyme
+                p = p_mod_list = protein_mod.loc[[p]]['Modified_enzyme'].values[0]
             if re.search("30S|small.*subunit",row["name"],re.IGNORECASE) and update_30S:
                 if set(p_mod_list) & set(ribo_30S.keys()):
                     continue

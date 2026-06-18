@@ -2,9 +2,9 @@ import logging
 log = logging.getLogger(__name__)
 import coralme
 
-def add_iron_sulfur_modifications(me_model):
-	#generic_fes_transfer_complexes = me_model.global_info['complex_cofactors']['generic_fes_transfer_complexes']
-	fes_transfers = me_model.global_info['complex_cofactors']['fes_transfers']
+def add_iron_sulfur_modifications(me_model, fes_transfers):
+	# generic_fes_transfer_complexes = me_model.global_info['complex_cofactors']['generic_fes_transfer_complexes']
+	# fes_transfers = me_model.global_info['complex_cofactors']['fes_transfers']
 
 	#identify if the user added MetabolicReactions to create modified FeS transfers
 	#if not, FormationReaction's are modified during update(),
@@ -13,8 +13,10 @@ def add_iron_sulfur_modifications(me_model):
 		# WARNING: If the organism doesn't have iron-sulfur loaders, CPLX_dummy will be added as an iron-sulfur loader
 		# WARNING: The troubleshooter will add sink reactions for 4fe4s/2fe2s, making necessary formation reactions
 		# See main.py, lines 1931-1936
-		components = [ '{:s}_mod_{:s}(1)'.format(x, fes) for x in set(fes_transfers) if x != '' and x != 'CPLX_dummy' ]
-		for component in components:
+		components = [ '{:s}_mod_{:s}(1)'.format(x.split('_mod')[0], fes) for x in set(fes_transfers) if x != '' and x != 'CPLX_dummy' ]
+		for component in set(components):
+			if not me_model.metabolites.has_id(component):
+				continue
 			query = me_model.metabolites.get_by_id(component).reactions
 			query = [ x for x in query if x.metabolites[me_model.metabolites.get_by_id(component)] > 0 ]
 			rtypes = [ type(x) for x in query ]

@@ -136,6 +136,15 @@ class Homology(object):
 								})
 						not_annotated_candidates.add(rc)
 
+		# NEW: get_complex_homology adds complexes with complete homology from reference model
+		for rc, row in ref_complexes_df.iterrows():
+			genes = [re.findall(r'.*(?=\(\d*\))', g)[0] for g in row['genes'].split(' AND ')]
+			if not genes or not set(genes).issubset(set(mutual_hits.keys())):
+				continue
+			if not rc in org_cplx_homolog:
+				org_cplx_homolog[rc] = rc
+				ref_cplx_homolog[rc] = rc
+
 		not_annotated_candidates = not_annotated_candidates.difference(set(ref_cplx_homolog.keys()))
 		logging.warning('INFO: {} complexes were mapped successfully'.format(len(org_cplx_homolog)))
 
