@@ -5,6 +5,7 @@ import pandas
 import logging
 log = logging.getLogger(__name__)
 
+import cobra
 import coralme
 from coralme.core.extended_classes import log_format, bar_format
 
@@ -742,7 +743,7 @@ def build_reactions_from_genbank(
 
 			# Read OSM to override data from the assumption "A tRNA-aa decodes all the codons for the specific amino acid"
 			with open(me_model.global_info['df_gene_cplxs_mods_rxns'], 'rb') as infile:
-				df_data = pandas.read_excel(infile)
+				df_data = pandas.read_excel(infile, engine = 'openpyxl')
 
 			user_input = df_data[['Gene Locus ID', 'tRNA-codon association']].dropna(axis = 0, how = 'any').set_index('Gene Locus ID')
 			user_input = user_input.to_dict()['tRNA-codon association']
@@ -827,16 +828,25 @@ def add_m_model_content(me_model, m_model, complex_metabolite_ids = []):
 		if reaction.id.startswith(('EX_', 'DM_', 'SK_', 'sink_')):
 			new_reaction = coralme.core.reaction.BoundaryReaction(reaction.id)
 			me_model.add_reactions([new_reaction])
-			new_reaction.subsystem = reaction.subsystem
 			new_reaction.lower_bound = reaction.lower_bound
 			new_reaction.upper_bound = reaction.upper_bound
 			for met, stoichiometry in reaction.metabolites.items():
 				new_reaction.add_metabolites({ me_model.metabolites.get_by_id(met.id): stoichiometry })
+			# extra information to reconstruct M-model from metabolic reactions in a ME-model
+			new_reaction.name = reaction.name
+			new_reaction.subsystem = reaction.subsystem
+			new_reaction.gene_reaction_rule = reaction.gene_reaction_rule
+			new_reaction.cofactors = reaction.cofactors if hasattr(reaction, 'cofactors') else cobra.core.GPR.from_string('')
 		else:
 			reaction_data = coralme.core.processdata.StoichiometricData(reaction.id, me_model)
 			reaction_data.lower_bound = reaction.lower_bound
 			reaction_data.upper_bound = reaction.upper_bound
 			reaction_data._stoichiometry = { k.id:v for k,v in reaction.metabolites.items() }
+			# extra information to reconstruct M-model from metabolic reactions in a ME-model
+			reaction_data.name = reaction.name
+			reaction_data.subsystem = reaction.subsystem
+			reaction_data.gpr = reaction.gpr
+			reaction_data.cofactors = reaction.cofactors if hasattr(reaction, 'cofactors') else cobra.core.GPR.from_string('')
 
 def add_dummy_reactions(me_model, transl_table, update = True):
 	"""
@@ -899,6 +909,9 @@ def add_dummy_reactions(me_model, transl_table, update = True):
 
 	if update:
 		complex_data.create_complex_formation()
+	if me_model.global_info['add_prot_deg_reactions']: # and complex_data.prot_components: # missing property in CPLX_dummy
+		complex_data.create_complex_degradation()
+		logging.warning('INFO: Added ComplexDegradation for \'{:s}\'.'.format(complex_data.id))
 
 def add_complex_to_model(me_model, complex_id, complex_stoichiometry, complex_modifications = None):
 	"""
@@ -923,6 +936,8 @@ def add_complex_to_model(me_model, complex_id, complex_stoichiometry, complex_mo
 		complex_modifications = {}
 
 	complex_data = coralme.core.processdata.ComplexData(complex_id, me_model)
+	complex_data.rna_components = [ comp for comp in list(complex_stoichiometry.keys()) if 'RNA' in comp ]
+	complex_data.prot_components = [ comp for comp in list(complex_stoichiometry.keys()) if not 'RNA' in comp ]
 	# must add update stoichiometry one by one since it is a defaultdict
 	for metabolite, value in complex_stoichiometry.items():
 		complex_data.stoichiometry[metabolite] += value
@@ -1142,6 +1157,8 @@ def add_reactions_from_stoichiometric_data(
 		for complex_id in complexes_list:
 			if complex_id in reaction_data.stoichiometry.keys():
 				logging.warning('WARNING: Associated reverse reaction to \'{:s}\' cannot be added into the ME-model. Currently, only enzymes that are not part of the stoichiometry are allowed.'.format(reaction_data.id))
+				directionality_list = ['forward']
+			elif reaction_data.id == 'dummy_reaction': # This is a normal demand reaction
 				directionality_list = ['forward']
 			else:
 				directionality_list = ['reverse', 'forward']
