@@ -64,8 +64,8 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 	ribosome_complex.subreactions['mod_mg2_c'] = me_model.global_info['mg2_per_ribosome']
 
 	# assemble_ribosome_subunits in ecolime ribosome.py
-	ribosome_complex.subreactions['mod_gtp_c'] = 1.
-
+	# ribosome_complex.subreactions['mod_gtp_c'] = 1.
+	ribosome_components = ribosome_complex.stoichiometry
 	for process in ribosome_stoich:
 		for protein, amount in ribosome_stoich[process]['stoich'].items():
 			ribosome_components[protein] += amount

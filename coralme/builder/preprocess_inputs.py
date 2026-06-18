@@ -754,7 +754,7 @@ def _get_metacomplex_stoichiometry(df, key):
 def ribosome_stoichiometry(df):
 	tmp = _get_metacomplex_stoichiometry(df, 'ribosome')
 	ribosome_stoich = { 'ribosome' : { 'stoich' : { k.split(':')[0]:int(v) for k,v in zip(tmp['Gene Locus ID'], tmp['stoich'])}}}
-	# ribosome_stoich['ribosome']['stoich']['gtp_c'] = 1 # WARNING: moved to ribosome.py
+	ribosome_stoich['ribosome']['stoich']['gtp_c'] = 1 # WARNING: moved to ribosome.py
 	return ribosome_stoich
 
 def degradosome_stoichiometry(df):

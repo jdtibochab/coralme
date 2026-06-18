@@ -1586,7 +1586,7 @@ class MEModel(cobra.core.object.Object):
 				# if len(cplx.reactions) == 1:
 				# WARNING: new degradation reaction adds a reaction, but not always, e.g., acyl carrier protein phosphodiesterase reaction
 				# WARNING: querying without dollar sign can match modified complexes
-				if cplx.reactions == set(self.query(cplx.id + '$', subtypes = set([coralme.core.reaction.ComplexDegradation, coralme.core.reaction.ComplexFormation]))):
+				if cplx.reactions == set(self.query(cplx.id + '$', subtypes = set([coralme.core.reaction.ComplexFormation]))):
 					if not dry_run:
 						# list(cplx.reactions)[0].delete(remove_orphans = True) replaced by for-loop 
 						logging.warning('INFO: Removing unnecessary Formation reaction for \'{:s}\' component and its ComplexData.'.format(data.id))
