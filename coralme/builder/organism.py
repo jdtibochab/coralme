@@ -192,10 +192,20 @@ class Organism(object):
             return self.get_TU_df()
 
     @property
-    def _m_model(self):
+    def m_model(self):
+        if isinstance(self._m_model, dict):
+            return cobra.io.dict.model_from_dict(self._m_model)
+        else:
+            return self._m_model
+
+    @m_model.setter
+    def m_model(self, value):
         """
         Returns the M-model.
         """
+        if not isinstance(value, bool):
+            self._m_model = value
+
         if self.is_reference:
             if self.id in self.available_reference_models:
                 # If reference organism is iJL1678b, read it from m_model.json
@@ -206,12 +216,17 @@ class Organism(object):
             # Read M-model from the configuration file path
             model = self.config['m-model-path']
 
-        if model.endswith('.json'):
+        if isinstance(model, cobra.core.model.Model):
+            self._m_model = model
+        elif model.endswith('.json'):
             # Read from JSON model
-            return cobra.io.load_json_model(model)
+            self._m_model = cobra.io.load_json_model(model)
         elif model.endswith('.xml'):
             # Read from SBML model
-            return cobra.io.read_sbml_model(model)
+            self._m_model = cobra.io.read_sbml_model(model)
+        elif model.endswith('.xlsx'):
+            # Read from XSLX model
+            self._m_model = coralme.util.excel2model.FromExcel(model, model_name = 'coralme', outfile = os.devnull)
         else:
             raise ValueError('M-model input file must be json or xml format.')
 
@@ -234,7 +249,7 @@ class Organism(object):
             logging.warning('Checking folder')
             self.check_folder()
         logging.warning("Loading M-model")
-        self.m_model = self._m_model
+        self.m_model = True
         logging.warning("Checking M-model")
         self.check_m_model()
         logging.warning("Loading genbank file")

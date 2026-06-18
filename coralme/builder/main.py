@@ -200,6 +200,8 @@ class MEBuilder(object):
 				pass
 			elif config.get(filename, '') == '':
 				pass
+			elif isinstance(config.get(filename, ''), cobra.core.model.Model):
+				pass
 			else:
 				exists.append([config[filename], pathlib.Path(config[filename]).exists()])
 
