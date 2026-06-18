@@ -49,7 +49,9 @@ class MEBuilder(object):
 			df_metadata_metabolites = '',
 			out_directory = './',
 			log_directory = './',
-			debug = False, **kwargs):
+			relax_rrna_modifications = False,
+
+			**kwargs):
 		"""
 		keyword arguments
 			ME-Model-ID, str
@@ -104,6 +106,8 @@ class MEBuilder(object):
 			'blast_threads' : blast_threads,
 			'dev_reference' : True,
 			'add_lipoproteins' : True,
+			'relax_rrna_modifications' : relax_rrna_modifications,
+
 			# 'add_translocases' : False,
 			'estimate_keffs' : True,
 

@@ -15,6 +15,9 @@ def add_ribosome(me_model, ribosome_stoich, ribosome_subreactions, rrna_mods, ve
 
 	for idx, mod_data in rrna_mods.iterrows():
 		for position in mod_data.positions.split(','):
+			if me_model.global_info.get('relax_rrna_modifications', False) and ('mod_4fe4s' in mod_data.enzymes):
+				logging.warning('INFO: Requirement of iron-sulfur clusters relaxed by user and modification using \'{:s}\' was not added to ME-model.'.format(mod_data.enzymes))
+				continue
 			rrna_mod = coralme.core.processdata.SubreactionData('{:s}_at_{:s}'.format(mod_data.modification, position), me_model)
 			rrna_mod.enzyme = mod_data.enzymes.split(' AND ') if mod_data.enzymes != 'No_Machine' else ['CPLX_dummy']
 			#rrna_mod.stoichiometry = modification_info[mod_data.modification]['metabolites']
