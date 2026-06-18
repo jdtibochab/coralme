@@ -3,6 +3,7 @@ import re
 import pickle
 import typing
 import collections
+import datetime
 
 import logging
 log = logging.getLogger(__name__)
@@ -224,6 +225,7 @@ class MEModel(cobra.core.object.Object):
 			'braun\'s_murein_flux' : -0.0,
 
 			# active biomass reaction, default value
+			'biomass_reactions' : [ 'biomass_constituent_demand' ],
 			'active_biomass_reaction' : 'biomass_constituent_demand'
 			}
 
@@ -313,6 +315,30 @@ class MEModel(cobra.core.object.Object):
 		# simulation methods in optimization.py
 		coralme.builder.helper_functions.bind_public_module_functions(self, coralme.core.optimization)
 
+		# if reconstruction_time is missing
+		if not hasattr(self, 'reconstruction_time'):
+			self.reconstruction_time = datetime.datetime.fromtimestamp(0)
+
+	def query_internal_data(self, query : str = None):
+		if hasattr(self, 'internal_data'):
+			substring = query  # The substring to search for
+			matches = []
+
+			for name, df in self.internal_data.items():
+				# Convert everything to string and check for substring
+				if any(substring in str(col) for col in df.columns):
+					matches.append((name, "column"))
+				elif any(substring in str(idx) for idx in df.index):
+					matches.append((name, "index"))
+				elif df.astype(str).applymap(lambda x: substring in x).any().any():
+					matches.append((name, "value"))
+
+			# Output matches
+			for df_name, where in matches:
+				print("Match found in '{}': {}".format(df_name, where))
+		else:
+			return None
+
 	@property
 	def active_biomass_reaction(self):
 		return self.get(self.global_info['active_biomass_reaction'])
@@ -321,7 +347,7 @@ class MEModel(cobra.core.object.Object):
 	def active_biomass_reaction(self, name):
 		if self.global_info['biomass_reactions'] != ['biomass_constituent_demand']:
 			name = 'biomass_constituent_demand_' + name
-			biomass_reactions = [ 'biomass_constituent_demand_{:s}'.format(x) for x in self.biomass_reactions ]
+			biomass_reactions = [ 'biomass_constituent_demand_{:s}'.format(x) for x in self.global_info['biomass_reactions'] ]
 		else:
 			name = 'biomass_constituent_demand'
 			biomass_reactions = self.global_info['biomass_reactions']
@@ -347,7 +373,9 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def aliases(self):
-		return self._aliases
+		if hasattr(self, '_aliases'):
+			return self._aliases
+		return {'metabolites': {}, 'reactions': {}}
 
 	@aliases.setter
 	def aliases(self, args):
@@ -369,6 +397,9 @@ class MEModel(cobra.core.object.Object):
 
 	def to_pickle(self, outfile):
 		coralme.io.pickle.save_pickle_me_model(self, outfile)
+
+	def to_excel(self, outfile, keys):
+		coralme.util.model2excel.ToExcel(self, outfile, keys)
 
 	def minimize(self, id_or_model = 'copy', name = 'copy', include_original_m_model = False, include_processed_m_model = False, include_processdata = True):
 		new_model = coralme.core.model.MEModel(id_or_model = id_or_model, name = name)
@@ -392,8 +423,80 @@ class MEModel(cobra.core.object.Object):
 		return new_model
 
 	@staticmethod
+	def to_cobra(model, id = 'coralME', objective = None):
+		if not isinstance(model, coralme.core.model.MEModel):
+			return NotImplementedError
+
+		def _me_metabolite_to_m_model(me_metabolite):
+			new_metabolite = Metabolite(me_metabolite.id)
+			new_metabolite.name = me_metabolite.name
+			new_metabolite.formula = me_metabolite.formula
+			new_metabolite.compartment = me_metabolite.compartment
+			new_metabolite.charge = me_metabolite.charge
+			new_metabolite.annotation = me_metabolite.annotation
+			new_metabolite.notes = me_metabolite.notes
+			new_metabolite.functional = True
+			return new_metabolite
+
+		def _me_reaction_to_m_model(new_model, me_reaction, mu):
+			new_reaction = MEReaction(me_reaction.id)
+			new_reaction.name = me_reaction.name
+			new_reaction.subsystem = me_reaction.subsystem
+			new_reaction.lower_bound = me_reaction.lower_bound
+			new_reaction.upper_bound = me_reaction.upper_bound
+			for met, stoichiometry in me_reaction.metabolites.items():
+				stoichiometry = stoichiometry.subs({ mu: 0. }) if hasattr(stoichiometry, 'subs') else stoichiometry
+				new_reaction.add_metabolites({ new_model.metabolites.get_by_id(met.id): float(stoichiometry) })
+			if hasattr(me_reaction, '_complex_data') and 'SPONT' not in me_reaction.id:
+				cplx = me_reaction._complex_data
+				new_reaction.gpr = cobra.core.GPR.from_string(' and '.join([ x for x in cplx.stoichiometry.keys() if x != 'protein_dummy' ]))
+				cofactors = [ x.split('(')[0] for x in cplx.id.split('_mod_')[1:] ]
+				new_reaction.cofactors = cobra.core.GPR.from_string(' and '.join(cofactors))
+			else: 
+				new_reaction.cofactors = cobra.core.GPR.from_string('')
+			return new_reaction
+
+		new_model = MEModel(id_or_model = id, name = id)
+		new_model.metabolites[0].remove_from_model()
+		new_model.add_metabolites([ _me_metabolite_to_m_model(x) for x in model.metabolites 
+			if isinstance(x, (coralme.core.component.Metabolite, coralme.core.component.Complex, coralme.core.component.GenerictRNA)) ])
+		new_model.reactions[0].remove_from_model()
+		new_model.add_reactions([ _me_reaction_to_m_model(new_model, x, model.mu.magnitude) for x in model.reactions 
+			if isinstance(x, (coralme.core.reaction.MetabolicReaction, coralme.core.reaction.BoundaryReaction)) and x.bounds != (0., 0.) ])
+		# new_model.genes = model.all_genes # TODO
+
+		# others
+		new_model.reconstruction_time = datetime.datetime.now().astimezone()
+		new_model.notes['from coralme'] = True
+
+		# objective function
+		bof = model.gem.objective.expression.as_coefficients_dict()
+		for variable, objective_coefficient in bof.items():
+			if not hasattr(variable, 'name') or 'reverse' in variable.name:
+				continue
+			if hasattr(variable, 'name'):
+				rxn = _me_reaction_to_m_model(new_model, model.gem.reactions.get_by_id(variable.name), model.mu.magnitude)
+				new_model.add_reactions([ rxn ])
+				new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
+
+		# troubleshooting needs gem
+		new_model.gem = model.gem
+
+		return new_model
+
+	@staticmethod
+	def from_manifest(model_key, manifest_path = None, base_dir = 'models', extra_configuration = {}, troubleshoot = True):
+		return coralme.util.agora.get_model_from_manifest(
+			manifest_path = manifest_path,
+			model_key = model_key,
+			base_dir = base_dir,
+			extra_configuration = extra_configuration,
+			troubleshoot = troubleshoot
+			)
+
+	@staticmethod
 	def from_cobra(model, objective = None):
-		if model.notes.get('from cobra', False):
+		if isinstance(model, coralme.core.model.MEModel):
 			return model
 
 		def _reaction_from_cobra_model(model, reaction):
@@ -448,15 +551,11 @@ class MEModel(cobra.core.object.Object):
 		coralme.builder.helper_functions.bind_public_module_functions(new_model, coralme.core.optimization)
 
 		# others
-
+		new_model.reconstruction_time = datetime.datetime.now().astimezone()
 		return new_model
 
 	@property
 	def default_parameters(self):
-		return self.global_info.get('default_parameters', {})
-
-	@default_parameters.setter
-	def default_parameters(self, args):
 		"""
 		This will only update original MEModel symbols.
 
@@ -469,6 +568,10 @@ class MEModel(cobra.core.object.Object):
 		Use 'k_deg' instead of 'k^mRNA_deg'
 		Use 'kcat' instead of 'k^default_cat'
 		"""
+		return self.global_info.get('default_parameters', {})
+
+	@default_parameters.setter
+	def default_parameters(self, args):
 		self.global_info['default_parameters'].update({
 			sympy.Symbol('k_t', positive = True) : args.get('kt', 4.5),
 			sympy.Symbol('r_0', positive = True) : args.get('r0', 0.087),
@@ -489,6 +592,25 @@ class MEModel(cobra.core.object.Object):
 			sympy.Symbol('b', positive = True) : args.get('b', 0.1168587392731988), # per hour**d
 			sympy.Symbol('d', positive = True) : args.get('c', 3.903641432780327) # dimensionless
 			})
+
+	@property
+	def growth_rate(self):
+		if hasattr(self, 'solution'):
+			if self.notes.get('from cobra', False):
+				self.gr = self.solution.objective_value
+			else:
+				self.gr = self.solution.fluxes['biomass_dilution']
+			self.dt = numpy.log(2) / self.gr
+		else:
+			self.gr = self.dt = numpy.nan
+
+		# retrocompatiblity added with v1.0
+		return self.gr * self.unit_registry.parse_units('1 per hour') if hasattr(self, 'unit_registry') else self.gr
+
+	@property
+	def doubling_time(self):
+		self.growth_rate
+		return self.dt * self.unit_registry.parse_units('hour')
 
 	@property
 	def mu(self):
@@ -563,6 +685,20 @@ class MEModel(cobra.core.object.Object):
 		self._compartments.update(value)
 
 	# WARNING: FROM COBRAPY WITHOUT MODIFICATIONS
+	@property
+	def boundaries(self):
+		"""Boundary reactions in the model.
+
+		Reactions that either have no substrate or product.
+
+		Returns
+		-------
+		list
+			A list of reactions that either have no substrate or product and
+			only one metabolite overall.
+		"""
+		return [rxn for rxn in self.reactions if rxn.boundary]
+
 	@property
 	def medium(self):
 		"""Get the constraints on the model exchanges.
@@ -731,6 +867,10 @@ class MEModel(cobra.core.object.Object):
 			merge.add_processdata(merge.merged_models[org].process_data)
 			merge.add_metabolites(merge.merged_models[org].metabolites)
 			merge.add_reactions(merge.merged_models[org].reactions)
+
+		# TODO: rename parameters and combine with merge model parameters
+		for org, me in list(merge.merged_models.items()):
+			merge.default_parameters.update(me.default_parameters)
 
 		return merge
 
@@ -901,12 +1041,12 @@ class MEModel(cobra.core.object.Object):
 			if isinstance(reaction.lower_bound, (numpy.floating, float, numpy.integer, int, sympy.Symbol)):
 				reaction.lower_bound = reaction.lower_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 			else:
-				reaction.lower_bound = reaction.lower_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+				reaction.lower_bound = reaction.lower_bound
 
 			if isinstance(reaction.upper_bound, (numpy.floating, float, numpy.integer, int, sympy.Symbol)):
 				reaction.upper_bound = reaction.upper_bound * reaction._model.unit_registry.parse_units('mmols per gram per hour')
 			else:
-				reaction.upper_bound = reaction.upper_bound.magnitude * reaction._model.unit_registry.parse_units('mmols per gram per hour')
+				reaction.upper_bound = reaction.upper_bound
 
 		self.reactions += pruned
 
@@ -1082,7 +1222,7 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def get_troubleshooted_reactions(self):
-		return self.reactions.query('^TS_')
+		return self.reactions.query('^TS_|^COFACTOR_TS_')
 
 	def remove_troubleshooted_reactions(self):
 		return self.remove_reactions(self.get_troubleshooted_reactions)
@@ -1101,10 +1241,17 @@ class MEModel(cobra.core.object.Object):
 		return [ x for x in self.get('CPLX_dummy').reactions ]
 
 	@property
+	def get_proxy_metabolites(self):
+		return [ x for x in self.metabolites if isinstance(x, coralme.core.component.Proxy) ]
+
+	@property
 	def get_mass_unbalanced_reactions(self):
 		return [ x for x in self.reactions if isinstance(x.get_me_mass_balance(), dict) and x.get_me_mass_balance() != {} ]
 
 	def add_biomass_constraints_to_model(self, biomass_types):
+		if isinstance(biomass_types, str):
+			biomass_types = [biomass_types]
+			
 		for biomass_type in tqdm.tqdm(biomass_types, 'Adding biomass constraint(s) into the ME-model...', bar_format = bar_format):
 			if '_biomass' not in biomass_type:
 				raise ValueError('Biomass types should be suffixed with \'_biomass\'.')
@@ -1288,18 +1435,18 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def all_genes(self):
-		if len(self._all_genes) == 0.:
-			lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
-			self._all_genes = cobra.core.dictlist.DictList(lst)
+		# if len(self._all_genes) == 0.:
+		lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
+		self._all_genes = cobra.core.dictlist.DictList(lst)
 		return self._all_genes
 
-	@all_genes.setter
-	def all_genes(self, values):
-		if self.notes.get('from cobra', False):
-			lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
-			self._all_genes = cobra.core.dictlist.DictList(lst)
-		else:
-			self._all_genes = values
+	# @all_genes.setter
+	# def all_genes(self, values):
+	# 	if self.notes.get('from cobra', False):
+	# 		lst = [ g for g in self.metabolites if isinstance(g, coralme.core.component.TranscribedGene) and "dummy" not in g.id ]
+	# 		self._all_genes = cobra.core.dictlist.DictList(lst)
+	# 	else:
+	# 		self._all_genes = values
 
 	@property
 	def mRNA_genes(self):
@@ -1317,8 +1464,15 @@ class MEModel(cobra.core.object.Object):
 		return cobra.core.dictlist.DictList(lst)
 
 	@property
+	def ncRNA_genes(self):
+		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'ncRNA' ]
+		return cobra.core.dictlist.DictList(lst)
+
+	@property
 	def pseudo_genes(self):
-		lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
+		lst = []
+		if hasattr(self.translation_data[0], 'pseudo'):
+			lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
 		return lst
 
 	def get_metabolic_flux(self, solution = None):
@@ -1627,7 +1781,7 @@ class MEModel(cobra.core.object.Object):
 	def _parallel_update(self):
 		return NotImplemented
 
-	def get(self, x: typing.Union[cobra.core.object.Object, str]) -> cobra.core.object.Object:
+	def get(self, x: typing.Union[cobra.core.object.Object, str], fallback = 'query', mappable = False) -> cobra.core.object.Object:
 		"""
 		Return the element with a matching id from model.reactions or model.metabolites attributes.
 		"""
@@ -1642,12 +1796,17 @@ class MEModel(cobra.core.object.Object):
 				return self.reactions.get_by_id(x)
 			elif self.reactions.has_id(self.aliases['reactions'].get(x, None)):
 				return self.reactions.get_by_id(self.aliases['reactions'][x])
+			elif fallback == 'query':
+				if mappable:
+					return self.query(x, mappable = True)
+				return self.query(x, mappable = False)
 			else:
-				raise ValueError('Query not found.')
+				return None
+				# raise ValueError('Query not found.')
 		else:
 			return NotImplemented
 
-	def query(self, queries, filter_out_blocked_reactions = False):
+	def query(self, queries = '', filter_out_blocked_reactions = False, types = tuple(), subtypes = set(), mappable = True):
 		"""
 		Return the elements with a matching substring from
 		model.reactions, model.metabolites, and model.process_data attributes.
@@ -1676,8 +1835,13 @@ class MEModel(cobra.core.object.Object):
 		# correct queries
 		queries = [ x.replace('(', r'\(').replace(')', r'\)').replace('[', r'\[').replace(']', r'\]') for x in queries ]
 
-		for query in queries:
+		for query in queries[:1]: # a list of queries should be interpreted as AND logic
+			# compile query
+			query = re.compile(query, flags = re.IGNORECASE)
+
 			res.append(self.metabolites.query(query))
+			res.append(self.metabolites.query(query, attribute = 'name'))
+
 			if filter_out_blocked_reactions:
 				res.append([ x for x in self.reactions.query(query) if x.bounds != (0, 0) ])
 			else:
@@ -1688,23 +1852,41 @@ class MEModel(cobra.core.object.Object):
 		# compress
 		res = [ x for y in res for x in y ]
 
+		# filter out results
+		if len(queries) > 1:
+			for query in queries[1:]:
+				res = [ x for x in res if query in x.id ]
+
+		# remove result types
+		if len(types) > 0:
+			res = [ x for x in res if isinstance(x, tuple(types)) ]
+
+		# remove result subtypes
+		if len(subtypes) > 0:
+			res = [ x for x in res if type(x) in set(subtypes) ]
+
 		if len(queries) > 1:
 			# remove from output (AND logic)
 			for query in queries[1:]:
 				res = [ x for x in res if query in x.id ]
 
+		if mappable:
+			return coralme.core.extended_classes.MappableList(res)
 		return res
 
 	# Originally developed by JDTB@UCSD, 2022
-	def relax_bounds(self, copy = False):
+	def relax_bounds(self, skip: set = set(), copy: bool = False):
 		if copy:
 			test = self.copy()
 		else:
 			test = self
 
+		skip.add('biomass_dilution')
+
 		for rxn in test.reactions:
-			if rxn.id == 'biomass_dilution':
+			if rxn.id in skip:
 				continue
+
 			if hasattr(rxn.upper_bound, 'subs') or rxn.upper_bound > 0:
 				rxn.upper_bound = 1000
 			else:
@@ -1716,6 +1898,10 @@ class MEModel(cobra.core.object.Object):
 				rxn.lower_bound = -1000
 
 		return test
+	
+	@staticmethod
+	def rename_genes(model, dct: None):
+		cobra.manipulation.rename_genes(model, dct)
 
 	# Modified from COBRApy
 	def _repr_html_(self) -> str:
@@ -1727,20 +1913,11 @@ class MEModel(cobra.core.object.Object):
 			Model representation as HTML string.
 		"""
 
-		if hasattr(self, 'solution'):
-			if self.notes.get('from cobra', False):
-				mu = self.solution.objective_value
-				dt = numpy.log(2) / mu
-			else:
-				mu = self.solution.fluxes['biomass_dilution']
-				dt = numpy.log(2) / mu
-		else:
-			mu = dt = numpy.nan
-
 		if hasattr(self, 'process_data'):
 			process_data = len(self.process_data)
 		else:
 			process_data = numpy.nan
+		self.growth_rate
 
 		return f"""
 		<table>
@@ -1749,19 +1926,19 @@ class MEModel(cobra.core.object.Object):
 				<td>{self.id}</td>
 			</tr><tr>
 				<td><strong>Memory address</strong></td>
-				<td>{f"{id(self):x}"}</td>
+				<td>{f"0x{id(self):x}"}</td>
 			</tr><tr>
 				<td><strong>Growth rate</strong></td>
-				<td>{mu:g} per hour</td>
+				<td>{self.gr:g} per hour</td>
 			</tr><tr>
 				<td><strong>Doubling time</strong></td>
-				<td>{dt:g} hours</td>
+				<td>{self.dt:g} hours</td>
 			</tr><tr>
-				<td><strong>Number of metabolites</strong></td>
-				<td>{len(self.metabolites)}</td>
+				<td><strong>Number of active metabolites</strong></td>
+				<td>{len([ x for x in self.metabolites if len(x.reactions) != 0. ])} (total {len(self.metabolites)})</td>
 			</tr><tr>
-				<td><strong>Number of reactions</strong></td>
-				<td>{len(self.reactions)}</td>
+				<td><strong>Number of active reactions</strong></td>
+				<td>{len([ x for x in self.reactions if x.bounds != (0., 0.) ])} (total {len(self.reactions)})</td>
 			</tr><tr>
 				<td><strong>Number of process data</strong></td>
 				<td>{process_data}</td>
@@ -1778,6 +1955,9 @@ class MEModel(cobra.core.object.Object):
 				<td><strong>Number of tRNA genes</strong></td>
 				<td>{len(self.tRNA_genes)}</td>
 			</tr><tr>
+				<td><strong>Number of ncRNA genes</strong></td>
+				<td>{len(self.ncRNA_genes)}</td>
+			</tr><tr>
 				<td><strong>Number of pseudogenes</strong></td>
 				<td>{len(self.pseudo_genes)}</td>
 			</tr><tr>
@@ -1785,7 +1965,13 @@ class MEModel(cobra.core.object.Object):
 				<td>{cobra.util.util.format_long_string(" + ".join([ '{:.1f}*{:s}'.format(r[1], r[0].id) for r in self.objective]), 100)}</td>
 			</tr><tr>
 				<td><strong>Compartments</strong></td>
-				<td>{", ".join(v if v else k for k, v in
-								self.compartments.items())}</td>
+				<td>{cobra.util.util.format_long_string(", ".join(v if v else k for k, v in
+								self.compartments.items()))}</td>
+			</tr><tr>
+				<td><strong>Model version</strong></td>
+				<td>{self.model_version}</td>
+			</tr><tr>
+				<td><strong>Reconstruction time</strong></td>
+				<td>{self.reconstruction_time.strftime("%Y-%m-%d %H:%M %z")}</td>
 			</tr>
-			</table>"""
+			</table>""" 
