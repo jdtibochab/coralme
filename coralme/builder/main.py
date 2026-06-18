@@ -41,6 +41,7 @@ class MEBuilder(object):
 			genbank_path = None,
 			locus_tag = 'locus_tag',
 			blast_threads = 'auto', # if zero, no run_bbh_blast
+			e_value_cutoff = 1e-10,
 			df_gene_cplxs_mods_rxns = 'automated-org-with-refs.xlsx',
 			df_TranscriptionalUnits = '',
 			df_matrix_stoichiometry = '',
@@ -49,6 +50,9 @@ class MEBuilder(object):
 			df_metadata_metabolites = '',
 			out_directory = './',
 			log_directory = './',
+			estimate_keffs = True,
+			add_lipoproteins = True,
+			include_pseudo_genes = False,
 			relax_rrna_modifications = False,
 
 			**kwargs):
@@ -104,12 +108,14 @@ class MEBuilder(object):
 			'locus_tag' : locus_tag,
 			'run_bbh_blast' : run_bbh_blast,
 			'blast_threads' : blast_threads,
+			'e_value_cutoff' : e_value_cutoff,
 			'dev_reference' : True,
-			'add_lipoproteins' : True,
+			'add_lipoproteins' : add_lipoproteins,
+			'include_pseudo_genes' : include_pseudo_genes,
 			'relax_rrna_modifications' : relax_rrna_modifications,
 
 			# 'add_translocases' : False,
-			'estimate_keffs' : True,
+			'estimate_keffs' : estimate_keffs,
 
 			'defer_to_rxn_matrix' : [],
 
@@ -1973,6 +1979,10 @@ class MEReconstruction(MEBuilder):
 
 		# RNA components different from tRNAs and from 5S, 16S, and 23S rRNAs
 		rna_components = set(me.global_info['rna_components']) # in order: RNase_P_RNA, SRP_RNA, 6S RNA
+		# if user forgot to set up rna_components, ncRNAs are misidentified as proteins
+		for rna_component in [ x.id[4:] for x in me.ncRNA_genes ]:
+			rna_components.add(rna_component)
+		logging.warning('INFO: Detected ncRNAs added to global_info: {:s}.'.format(', '.join(rna_components)))
 
 		# cplx_dct is a dictionary {complex_name: {locus_tag/generic_name/subcomplex_name: count}}
 		cplx_dct = coralme.builder.flat_files.get_complex_subunit_stoichiometry(df_cplxs, rna_components)
@@ -2013,13 +2023,18 @@ class MEReconstruction(MEBuilder):
 
 		generics = coralme.builder.preprocess_inputs.get_generics(df_data)
 		fes_transfers = []
+		detected = False
 		for generic, components in tqdm.tqdm(generics, 'Adding Generic(s) into the ME-model...', bar_format = bar_format):
 			if 'generic_fes_transfers_complex' in generic:
 				components = set([ x.split('_mod_')[0] for x in components ])
 				fes_transfers.append(components)
 				continue
+			if 'generic_5s_rRNAs' in generic:
+				detected = True
 			coralme.core.processdata.GenericData(generic, me, components).create_reactions()
 		fes_transfers = [ x for y in fes_transfers for x in y ]
+		if not detected:
+			me.troubleshooting_guesses.add('generic_5s_rRNAs')
 
 		# ### 6) Add dummy reactions to model and the *unmodeled_protein_fraction* constraint
 		#

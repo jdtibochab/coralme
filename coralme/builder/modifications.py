@@ -132,7 +132,7 @@ def add_glycyl_modifications(me_model):
 
 def add_pan4p_modifications(me_model):
 	# dct = { "mod_pan4p_c" : [ "acpP_activation" ] }
-	dct = me_model.global_info['complex_cofactors'].get('acps_subreactions', {})
+	dct = me_model.global_info['complex_cofactors'].get('acps_subreactions', { "mod_pan4p_c" : [ "acpP_activation" ]})
 	if bool(dct):
 		_replace_modification(dct, me_model)
 

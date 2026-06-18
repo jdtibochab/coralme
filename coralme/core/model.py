@@ -270,6 +270,7 @@ class MEModel(cobra.core.object.Object):
 		# troubleshooting flags
 		self.troubleshooted = False
 		self.troubleshooting = False
+		self.troubleshooting_guesses = set()
 
 		# merging flags
 		self.merged_models = {}
