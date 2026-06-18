@@ -380,7 +380,7 @@ class MEBuilder(object):
 		config['m-model-path'] = filename
 
 		logging.warning("Generating new configuration file")
-		self.input_data(self.org.m_model, overwrite)
+		self.input_data(self.org.m_model, overwrite, self.me_model.reconstruction_time)
 		coralme.core.extended_classes.ListHandler.print_and_log("{}File processing done.".format(sep))
 
 		logging.shutdown()
@@ -1566,8 +1566,8 @@ class MEBuilder(object):
 				self.configuration['out_directory']+ '/curation_notes.txt'
 			)
 
-	def input_data(self, gem, overwrite):
-		tmp1, tmp2 = coralme.builder.main.MEReconstruction(self).input_data(gem, overwrite)
+	def input_data(self, gem, overwrite, reconstruction_time):
+		tmp1, tmp2 = coralme.builder.main.MEReconstruction(self).input_data(gem, overwrite, reconstruction_time)
 		self.df_tus, self.df_rmsc, self.df_subs, self.df_mets, self.df_keffs = tmp1
 		self.df_data, self.df_rxns, self.df_cplxs, self.df_ptms, self.df_enz2rxn, self.df_rna_mods, self.df_protloc, self.df_transpaths = tmp2
 		return tmp1, tmp2
@@ -1615,7 +1615,7 @@ class MEReconstruction(MEBuilder):
 			self.me_model = coralme.core.model.MEModel(name = self.configuration.get('ME-Model-ID', 'coralME'), mu = self.configuration.get('growth_key', 'mu'))
 		self.curation_notes = builder.curation_notes
 
-	def input_data(self, m_model, overwrite = False):
+	def input_data(self, m_model, overwrite = False, reconstruction_time = None):
 		if hasattr(self, 'df_data'):
 			return (self.df_tus, self.df_rmsc, self.df_subs, self.df_mets, self.df_keffs), (self.df_data, self.df_rxns, self.df_cplxs, self.df_ptms, self.df_enz2rxn, self.df_rna_mods, self.df_protloc, self.df_transpaths)
 
@@ -1798,7 +1798,7 @@ class MEReconstruction(MEBuilder):
 			# generate a minimal dataframe from the genbank and m-model files
 			df_data = coralme.builder.preprocess_inputs.generate_organism_specific_matrix(gb, config.get('locus_tag', 'locus_tag'), model = m_model)
 			# complete minimal dataframe with automated info from homology
-			df_data = coralme.builder.preprocess_inputs.complete_organism_specific_matrix(self, df_data, model = m_model, output = filename)
+			df_data = coralme.builder.preprocess_inputs.complete_organism_specific_matrix(self, df_data, model = m_model, output = filename, reconstruction_time = reconstruction_time)
 			coralme.core.extended_classes.ListHandler.print_and_log('Organism-Specific Matrix saved to {:s} file.'.format(filename))
 
 		# All other inputs and remove unnecessary genes from df_data
@@ -1885,7 +1885,7 @@ class MEReconstruction(MEBuilder):
 		me.global_info.update(self.configuration)
 
 		# Read user inputs
-		tmp1, tmp2 = coralme.builder.main.MEReconstruction.input_data(self, me.gem, overwrite)
+		tmp1, tmp2 = coralme.builder.main.MEReconstruction.input_data(self, me.gem, overwrite, me.reconstruction_time)
 		(df_tus, df_rmsc, df_subs, df_mets, df_keffs), (df_data, df_rxns, df_cplxs, df_ptms, df_enz2rxn, df_rna_mods, df_protloc, df_transpaths) = tmp1, tmp2
 
 		#TODO: Iterate tmp1 and tmp2 and warn empty dataframes
@@ -2210,6 +2210,7 @@ class MEReconstruction(MEBuilder):
 		dna_replication.upper_bound = dna_demand_bound
 
 		# ### 9) Save ME-model as a pickle file
+		me.reconstruction_time = datetime.datetime.now().astimezone()
 		with open('{:s}/MEModel-step1-{:s}.pkl'.format(out_directory, model), 'wb') as outfile:
 			pickle.dump(me, outfile)
 
@@ -2823,6 +2824,7 @@ class MEReconstruction(MEBuilder):
 				rnum = len(me.reactions)
 
 		# Part 9. Save and report
+		me.reconstruction_time = datetime.datetime.now().astimezone()
 		with open('{:s}/MEModel-step2-{:s}.pkl'.format(out_directory, model), 'wb') as outfile:
 			pickle.dump(me, outfile)
 
@@ -3066,6 +3068,7 @@ class METroubleshooter(object):
 
 			# save model as a pickle file
 			if savefile is None:
+				self.me_model.reconstruction_time = datetime.datetime.now().astimezone()
 				savefile = '{:s}/MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
 				message = 'coralME model was saved in the {:s} directory as MEModel-step3-{:s}-TS.pkl'.format(out_directory, self.me_model.id)
 			elif pathlib.Path(savefile).parent.exists():

@@ -24,14 +24,17 @@ def _save_to_excel(data, output, reconstruction_time):
 		if pathlib.Path(output).exists():
 			pathlib.Path(output).unlink() # python==3.7
 
+	sheet_name = 'Created {}'.format(reconstruction_time.strftime("%Y-%m-%d %H:%M %z"))
+	sheet_name = re.sub(r'[\[\]\:\*\?\/\\]', '_', sheet_name)
+
 	with open(output, 'wb') as outfile:
 		writer = pandas.ExcelWriter(outfile, engine = 'xlsxwriter')
-		data.to_excel(writer, index = False, freeze_panes = (1, 8))
+		data.to_excel(writer, index = False, freeze_panes = (1, 8), sheet_name = sheet_name)
 		(max_row, max_col) = data.shape
 
 		# Get the xlsxwriter workbook and worksheet objects.
 		workbook  = writer.book
-		worksheet = writer.sheets['Sheet1']
+		worksheet = writer.sheets[sheet_name]
 
 		# Set the autofilter.
 		worksheet.autofilter(0, 0, max_row, max_col - 1)
@@ -129,7 +132,7 @@ def generate_organism_specific_matrix(genbank, locus_tag, model):
 	# df.set_index(['Gene Locus ID', 'Definition', 'Feature type'], inplace = True)
 	return df.sort_values(['M-model Reaction ID', 'Gene Locus ID'])
 
-def complete_organism_specific_matrix(builder, data, model, output = False):
+def complete_organism_specific_matrix(builder, data, model, output = False, reconstruction_time = None):
 	if not hasattr(builder, 'org'):
 		raise Exception('Please, run MEBuilder(*[configuration file]).generate_files() to generate the Organism-Specific Matrix.')
 
@@ -655,12 +658,12 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 
 			gene_ids = data[data['M-model Reaction ID'].isin(rxn_ids[rxn_ids < 1000].index)]['Gene Locus ID']
 			tmp = pandas.concat([ data[data['Gene Locus ID'].isin(gene_ids)], data[data['M-model Reaction ID'].isna()]], axis = 1)
-			_save_to_excel(tmp, '.'.join(output.split('.')[:-1]) + '_{:02d}.xlsx'.format(0))
+			_save_to_excel(tmp, '.'.join(output.split('.')[:-1]) + '_{:02d}.xlsx'.format(0), reconstruction_time)
 
 			if output.endswith('.xlsx'):
 				for idx, gene_id in enumerate(rxn_ids[rxn_ids >= 1000].index):
 					tmp = data[data['Gene Locus ID'].isin([gene_id])]
-					_save_to_excel(tmp, '.'.join(output.split('.')[:-1]) + '_{:03d}.xlsx'.format(idx+1))
+					_save_to_excel(tmp, '.'.join(output.split('.')[:-1]) + '_{:03d}.xlsx'.format(idx+1), reconstruction_time)
 
 			# save the output as a tsv file
 			if not output.endswith('.txt'):
@@ -669,7 +672,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False):
 			with open(output, 'w') as outfile:
 				data.to_csv(outfile, index = False, sep = '\t')
 		else:
-			_save_to_excel(data, output)
+			_save_to_excel(data, output, reconstruction_time)
 		# except:
 		# 	logging.warning('ERROR: The builder.df_data was not saved to the \'{:s}\' file.'.format(output))
 
