@@ -432,9 +432,10 @@ class MEModel(cobra.core.object.Object):
 			# bof: defaultdict = { (optlang.gurobi_interface.Variable, coeff) }
 			bof = model.objective.expression.as_coefficients_dict()
 			for variable, objective_coefficient in bof.items():
-				if 'reverse' in variable.name:
+				if not hasattr(variable, 'name') or 'reverse' in variable.name:
 					continue
-				new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
+				if hasattr(variable, 'name'):
+					new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
 
 		new_model.gem = coralme.builder.helper_functions._copy_m_model(model) # troubleshooter will report model and model.gem optimization
 		new_model.gem.notes = { 'deepcopy' : True }

@@ -530,8 +530,9 @@ def _copy_m_model(m_model):
 
 	bof = m_model.objective.expression.as_coefficients_dict()
 	for variable, objective_coefficient in bof.items():
-		if 'reverse' in variable.name:
+		if not hasattr(variable, 'name') or 'reverse' in variable.name:
 			continue
-		new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
+		if hasattr(variable, 'name'):
+			new_model.reactions.get_by_id(variable.name).objective_coefficient = objective_coefficient
 
 	return new_model

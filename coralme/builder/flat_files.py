@@ -144,7 +144,8 @@ def process_m_model(
 	me_compartments = set(), defer_to_rxn_matrix = list(), repair = True):
 
 	# copy the M-model object
-	m_model = m_model.copy()
+	# m_model = m_model.copy()
+	m_model = coralme.builder.helper_functions._copy_m_model(m_model)
 
 	# old code, known bug
 	#for rxn in m_model.reactions:
