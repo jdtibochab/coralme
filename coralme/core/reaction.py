@@ -1566,10 +1566,11 @@ class PostTranslationReaction(MEReaction):
 
 		# Add biomass from significant modifications (i.e. lipids for lipoproteins)
 		biomass = self.add_biomass_from_subreactions(posttranslation_data)
-		if biomass > 0 and posttranslation_data.biomass_type:
+
+		if isinstance(biomass, collections.defaultdict) and posttranslation_data.biomass_type:
 			# self.add_metabolites({metabolites.get_by_id(posttranslation_data.biomass_type): biomass})
-			object_stoichiometry.update({metabolites.get_by_id(posttranslation_data.biomass_type): biomass})
-		elif biomass > 0 and not posttranslation_data.biomass_type:
+			object_stoichiometry.update({metabolites.get_by_id(posttranslation_data.biomass_type): biomass['prosthetic_group']})
+		elif isinstance(biomass, collections.defaultdict) and not posttranslation_data.biomass_type:
 			raise ValueError('If SubReactions in PostTranslationData modify the protein, the \'biomass_type\' must be provided.')
 
 		# self.add_metabolites(object_stoichiometry, combine = False)
