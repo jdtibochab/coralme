@@ -1947,6 +1947,19 @@ class MEReconstruction(MEBuilder):
 		# Other `metabolites` are added as a coralme.core.component.Metabolite object
 		coralme.util.building.add_m_model_content(me, m_model, complex_metabolite_ids = set(cplx_lst))
 
+		# WARNING: experimental: add new constraints for biomass components
+		# Before: total (variable) = flux_of_biomass_constituents (constant) + biomass from formation reactions (variable)
+		# After: total (constant) = flux_of_biomass_constituents (variable) + biomass from formation reactions (variable)
+		dct = me.global_info.get('flux_of_biomass_constraints', {})
+		if bool(dct):
+			me.add_biomass_constraints_to_model([ k + '_biomass' for k in dct.keys() ])
+			for k,v in dct.items():
+				biomass = me.metabolites.get_by_id(k).formula_weight / 1000.
+				rxn = coralme.core.reaction.SummaryVariable('DM_' + k)
+				me.add_reactions([rxn])
+				rxn.add_metabolites({ k : -1, k + '_biomass' : biomass })
+				me.reactions.get_by_id(k + '_biomass_to_biomass').lower_bound = abs(v)
+
 		# NEW! Add metabolic subreactions (e.g. 10-Formyltetrahydrofolate:L-methionyl-tRNA N-formyltransferase)
 		rxn_to_cplx_dict = coralme.builder.flat_files.get_reaction_to_complex(m_model, df_enz2rxn)
 
@@ -2190,10 +2203,10 @@ class MEReconstruction(MEBuilder):
 						rxn.lower_bound = 0. # me.mu # coralme.util.mu
 						rxn.upper_bound = 0. # me.mu # originally 1000.
 					except:
-						msg = 'Metabolite \'{:s}\' lacks a formula. Please correct it in the M-model or the \'metabolites.txt\' metadata file.'
+						msg = 'ERROR: Metabolite \'{:s}\' lacks a formula. Please correct it in the M-model or the \'metabolites.txt\' metadata file.'
 						logging.warning(msg.format(met))
 		else:
-			logging.warning('All metabolites in the \'flux_of_lipid_constituents\' configuration key lack their formulae.')
+			logging.warning('ERROR: All metabolites in the \'flux_of_lipid_constituents\' configuration key lack their formulae.')
 
 		# set active biomass reaction and lipid reactions
 		if me.global_info.get('active_biomass_reaction', False):
