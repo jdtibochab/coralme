@@ -379,10 +379,10 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 			filter2 = tag.split(':')[0] in dct and mods in dct.get(tag.split(':')[0], [None])
 			filter3 = 'generic_{:s}'.format(tag) in dct #and mods in dct.get('generic_{:s}'.format(tag), [None])
 
-			if (filter1 or filter2 or filter3) and mods == '':
+			if (filter1 or filter2 or filter3):# and mods == '':
 				return 'ribosome:1'
-			elif (filter1 or filter2 or filter3) and mods in ['acetyl(1)', 'acetyl(2)']:
-				return 'ribosome:2' # This will correct the stoichiometry from builder.org.update_ribosome_stoich
+			# elif (filter1 or filter2 or filter3) and mods in ['acetyl(1)', 'acetyl(2)']:
+				# return 'ribosome:2' # This will correct the stoichiometry from builder.org.update_ribosome_stoich
 
 	dct = {}
 	for x in [ x for y in [builder.org.ribosome_stoich[x]['stoich'].keys() for x in ['30_S_assembly', '50_S_assembly']] for x in y ]:
