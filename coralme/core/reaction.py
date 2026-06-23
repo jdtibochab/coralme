@@ -344,7 +344,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 				self._model.add_metabolites([new_met])
 		return object_stoichiometry
 
-	def add_biomass_from_subreactions(self, process_data, biomass = 0.):
+	def add_biomass_from_subreactions(self, process_data):
 		"""
 		Account for the biomass of metabolites added to macromolecule (protein,
 		complex, etc.) due to a modification such as prosthetic group addition.
@@ -367,12 +367,12 @@ class MEReaction(cobra.core.reaction.Reaction):
 		# before, only one value was returned depending on the total mass of the modification
 		for subrxn, count in process_data.subreactions.items():
 			subrxn_obj = self._model.process_data.get_by_id(subrxn)
-			if self._model.metabolites.has_id(subrxn[4:-2] + '_biomass'):
-				biomass[subrxn[4:-2]] += subrxn_obj.calculate_biomass_contribution() / 1000. * count
+			if self._model.metabolites.has_id(subrxn[4:] + '_biomass'): # mod_mg2_c -> mg2_c_biomass
+				biomass[subrxn[4:]] += subrxn_obj.calculate_biomass_contribution() / 1000. * count
 			else:
 				biomass['prosthetic_group'] += subrxn_obj.calculate_biomass_contribution() / 1000. * count
 		if not biomass:
-			biomass = 0.
+			return None
 		return biomass  # in kDa
 
 	def clear_metabolites(self):
