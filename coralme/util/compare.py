@@ -38,6 +38,3 @@ def main(path1, path2):
 		f1, f2 = compare_files(f'{path1}/{file}', f'{path2}/{file}')
 		if f1 != f2:
 			print()
-
-if __name__ == '__main__':
-	main(path1, path2)

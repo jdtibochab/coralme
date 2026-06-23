@@ -824,7 +824,7 @@ class MEModel(cobra.core.object.Object):
 		for rxn_id, rxn_bound in medium.items():
 			rxn = self.reactions.get_by_id(rxn_id)
 			if rxn not in exchange_rxns:
-				logger.warning(
+				print(
 					f"{rxn.id} does not seem to be an an exchange reaction. "
 					f"Applying bounds anyway."
 				)
@@ -1106,7 +1106,7 @@ class MEModel(cobra.core.object.Object):
 			try:
 				reaction = self.reactions[self.reactions.index(reaction)]
 			except ValueError:
-				warn(f"{reaction} not in {self}")
+				print(f"{reaction} not in {self}")
 			else:
 				self.reactions.remove(reaction)
 				reaction._model = None

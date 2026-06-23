@@ -146,6 +146,3 @@ def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 			return gene, False # gene is not essential (over the threshold)
 	else:
 		return gene, True # gene is essential
-
-if __name__ == '__main__':
-	single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos')
