@@ -565,7 +565,7 @@ EG50003-MONOMER_mod_pan4p(1)_mod_3hocta(1)	EG50003-MONOMER	pan4p(1) AND 3hocta(1
 MiaB_mono_mod_4fe4s(1)	MiaB_mono	4fe4s(1)	2011_Updated_E_recon
 RumB_mono_mod_4fe4s(1)	RumB_mono	4fe4s(1)	2011_Updated_E_recon
 RumA_mono_mod_4fe4s(1)	RumA_mono	4fe4s(1)	2011_Updated_E_recon
-rpL7/12_mod_acetyl(1)	rpL7/12	acetyl(2)	2011_Updated_E_recon
+rpL7/12_mod_acetyl(2)	rpL7/12	acetyl(2)	2011_Updated_E_recon
 Def_mono_mod_fe2(1)	Def_mono	fe2(1)	2011_Updated_E_recon
 Map_mono_mod_fe2(2)	Map_mono	fe2(2)	2011_Updated_E_recon
 Mfd_mono_mod_mg2(1)	Mfd_mono	mg2(1)	2011_Updated_E_recon
