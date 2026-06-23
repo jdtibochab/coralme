@@ -3,6 +3,7 @@ import tqdm
 import logging
 log = logging.getLogger(__name__)
 
+import cobra
 import coralme
 from coralme.core.extended_classes import log_format, bar_format
 import collections
@@ -43,7 +44,8 @@ def add_remaining_complex_formulas(me, df_mets):
 			mod_name = mod.split('(')[0]
 
 			if mod_name in modification_formulas:
-				mod_elements = coralme.builder.helper_functions.parse_composition(modification_formulas[mod_name])
+				# mod_elements = coralme.builder.helper_functions.parse_composition(modification_formulas[mod_name])
+				mod_elements = cobra.core.formula.Formula(modification_formulas[mod_name]).elements
 				# 2fe2s_c and 4fe4s_c appear as free metabolites in reactions and need to have formula for correct mass balance determination
 				if me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is None:
 					me.metabolites.get_by_id(mod_name + '_c').formula = modification_formulas[mod_name]
@@ -102,7 +104,8 @@ def add_remaining_complex_formulas(me, df_mets):
 		
 		complex_elements = { k:base_complex_elements[k] for k in sorted(base_complex_elements) if base_complex_elements[k] != 0 }
 		met.formula = ''.join([ '{:s}{:d}'.format(k, v) for k,v in complex_elements.items() ])
-		met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
+		# met.elements = coralme.builder.helper_functions.parse_composition(met.formula)
+		met.elements = cobra.core.formula.Formula(met.formula).elements
 		logging.warning('INFO: Setting new formula for \'{:s}\' to \'{:s}\' successfully.'.format(met.id, met.formula))
 
 	# Update a second time to incorporate all of the metabolite formulas correctly

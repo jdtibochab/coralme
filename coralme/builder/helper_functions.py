@@ -37,41 +37,6 @@ def get_base_complex_data(model, complex_id):
 
 	return data
 
-# from cobra with changes
-def parse_composition(tmp_formula) -> dict:
-	"""Break the chemical formula down by element."""
-	element_re = re.compile("([A-Z][a-z]?)([0-9.]+[0-9.]?|(?=[A-Z])?)")
-	#tmp_formula = self.formula
-	# commonly occuring characters in incorrectly constructed formulas
-	if "*" in tmp_formula:
-		print(f"invalid character '*' found in formula '{tmp_formula}'")
-		tmp_formula = self.formula.replace("*", "")
-	if "(" in tmp_formula or ")" in tmp_formula:
-		print(f"parenthesis found in formula '{tmp_formula}'")
-		return
-	composition = {}
-	parsed = element_re.findall(tmp_formula)
-	for element, count in parsed:
-		if count == "":
-			count = 1
-		else:
-			try:
-				count = float(count)
-				int_count = int(count)
-				if count == int_count:
-					count = int_count
-				else:
-					warn(f"{count} is not an integer (in formula {self.formula})")
-			except ValueError:
-				warn(f"failed to parse {count} (in formula {self.formula})")
-				#self.elements = {}
-				return
-		if element in composition:
-			composition[element] += count
-		else:
-			composition[element] = count
-	return composition
-
 ## Network traversing
 def substitute_value(m,coeff):
 	"""Substitute coefficient with a value"""
