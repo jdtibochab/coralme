@@ -1240,19 +1240,28 @@ class MEModel(cobra.core.object.Object):
 	# WARNING: Modified functions from COBRAme and new functions
 	@property
 	def get_exchange_reactions(self):
-		return self.reactions.query('^EX_')
+		return self.reactions.query('^EX_') # WARNING: merged models share exchange reactions
 
 	@property
 	def get_sink_reactions(self):
-		return self.reactions.query('^SK_')
+		res = self.reactions.query('^SK')
+		for k in self.merged_models:
+			res += self.reactions.query(f'^{k}_SK_')
+		return res
 
 	@property
 	def get_demand_reactions(self):
-		return self.reactions.query('^DM_')
+		res = self.reactions.query('^DM')
+		for k in self.merged_models:
+			res += self.reactions.query(f'^{k}_DM_')
+		return res
 
 	@property
 	def get_troubleshooted_reactions(self):
-		return self.reactions.query('^TS_|^COFACTOR_TS_')
+		res = self.reactions.query('^TS_|^COFACTOR_TS_')
+		for k in self.merged_models:
+			res += self.reactions.query(f'^{k}_TS_')
+		return res
 
 	def remove_troubleshooted_reactions(self):
 		return self.remove_reactions(self.get_troubleshooted_reactions)
@@ -1263,7 +1272,10 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def get_spontaneous_reactions(self):
-		return self.reactions.query('_FWD_SPONT$|_REV_SPONT$')
+		res = self.reactions.query('_FWD_SPONT$|_REV_SPONT$')
+		for k in self.merged_models:
+			res += self.reactions.query(f'^{k}_SPONT$')
+		return res
 
 	@property
 	def get_null_gpr_metabolic_reactions(self):
