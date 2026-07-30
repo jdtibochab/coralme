@@ -1359,18 +1359,18 @@ class Organism(object):
         """Call ligases from provided files using regex"""
         return self._get_slice_from_regex(
             complexes_df,
-            "[-]{,2}tRNA (?:synthetase|ligase)(?!.*subunit.*)")
+            "-{0,2}tRNA (?:synthetase|ligase)(?!.*(?:subunit|chain).*)")
 
     def _get_ligases_subunits_from_regex(self,
                                 complexes_df):
         """Call ligases subunits from provided files using regex"""
         return self._get_slice_from_regex(
             complexes_df,
-            "[-]{,2}tRNA (?:synthetase|ligase)(?=.*subunit.*)")
+            "-{0,2}tRNA (?:synthetase|ligase)(?=.*(?:subunit|chain).*)")
     def _extract_trna_string(self,
                              trna_string):
-        """Srip the tRNA ligase information to call the amino acid"""
-        t = re.findall(".*[-]{,2}tRNA (?:synthetase|ligase)",trna_string)
+        """Strip the tRNA ligase information to call the amino acid"""
+        t = re.findall("-{0,2}tRNA (?:synthetase|ligase)",trna_string)
         return t[0] if t else None
 
     def _is_base_complex_in_list(self,cplx,lst):
@@ -1619,7 +1619,7 @@ class Organism(object):
                         regex,
                        ):
         """The a slice of a dataframe from a regex"""
-        return df[df["name"].str.contains(regex,regex=True)]
+        return df[df["name"].str.contains(regex,regex=True,na=False)]
 
     def _get_complex_from_regex(self,
                                complexes_df,
@@ -2111,7 +2111,7 @@ class Organism(object):
 
     def _check_for_duplicates_within_datasets(self,
                                              info):
-        """Checks for duplicates within optinal files"""
+        """Checks for duplicates within optional files"""
         import collections
         warn_dups = {}
         for k,v in tqdm.tqdm(info.items(),
@@ -2134,7 +2134,7 @@ class Organism(object):
 
     def _check_for_duplicates_between_datasets(self,
                                                info):
-        """Checks for duplicates between optinal files"""
+        """Checks for duplicates between optional files"""
         cplxs = set(info['complexes_df'])
         rnas = set(info['RNA_df'])
         genes = set(info['gene_dictionary'])
