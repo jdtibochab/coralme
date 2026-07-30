@@ -1003,6 +1003,10 @@ class TranslationData(ProcessData):
 		self.product = product
 		self.notes = []
 
+		# correct translation if nucleotide sequence has a valid stop codon
+		if self.translation.endswith('*'):
+			self.translation = self.translation[:-1]
+
 		self.subreactions = collections.defaultdict(int)
 		# self._coupling_coefficient_ribosome = sympy.Mul(len(translation), model.symbols['v_ribo'], evaluate = False)
 		self._coupling_coefficient_ribosome = len(translation) * model.symbols['v_ribo']
