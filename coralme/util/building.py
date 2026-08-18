@@ -499,7 +499,9 @@ def build_reactions_from_genbank(
 
 			bnum = feature.qualifiers[me_model.global_info.get('locus_tag', 'locus_tag')][0]
 
-			if me_model.process_data.has_id(bnum):
+			# WARNING: This condition only works for CDS because bnum refers to the protein, not the transcriptional unit
+			# if me_model.process_data.has_id(bnum):
+			if me_model.process_data.has_id(bnum) or me_model.metabolites.has_id('RNA_{:s}'.format(bnum)):
 				logging.warning('WARNING: A gene with a Gene Locus ID \'{:s}\' was added previously. Please, check the GenBank file and correct it accordingly.'.format(bnum))
 				continue
 
@@ -548,6 +550,7 @@ def build_reactions_from_genbank(
 
 			# Add TranscribedGene metabolite
 			create_transcribed_gene(me_model, bnum, rna_type, str(seq), left_pos, right_pos, strand)
+			logging.warning('INFO: A TranscribedGene component with ID \'RNA_{:s}\' was added to the ME-model.'.format(bnum))
 
 			# Add translation reaction for mRNA
 			# builder.generate_files will create a modified genbank
