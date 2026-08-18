@@ -370,40 +370,42 @@ class ME_NLP:
         inform = numpy.array(0)
         precision = precision.lower()
 
+        def run_optimizer(optimizer, opt_name):
+            stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = \
+                self.get_solver_opts(opt_name)
+
+            return optimizer(
+                inform, probname, m, ha, ka, ad, bld, bud, hs, warm,
+                stropts, intopts, realopts, intvals, realvals,
+                nstropts=nStrOpts,
+                nintopts=nIntOpts,
+                nrealopts=nRealOpts
+            )
+
         if precision == 'quad':
-            optimizer = qwarmLP.qwarmlp
-            stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = self.get_solver_opts('lp')
+            x, pi, rc = run_optimizer(qwarmLP.qwarmlp, 'lp')
 
         elif precision == 'double':
-            optimizer = warmLP.warmlp
-            stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = self.get_solver_opts('lp_d')
+            x, pi, rc = run_optimizer(warmLP.warmlp, 'lp_d')
 
-        elif precision == 'dq' or precision == 'dqq':
+        elif precision in ('dq', 'dqq'):
             # D
             self.opt_intdict['lp_d']['Scale option'] = 2
-            optimizer = warmLP.warmlp
-            stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = self.get_solver_opts('lp_d')
+            x, pi, rc = run_optimizer(warmLP.warmlp, 'lp_d')
 
-            # Q1: pass optimal basis hs and scale = 2
-            warm = True
+            if int(inform) == 0:
+                # Q1 / Q2
+                warm = True
+
+                for scale in (2, 0) if precision == 'dqq' else (2,):
+                    self.opt_intdict['lp']['Scale option'] = scale
+                    x, pi, rc = run_optimizer(qwarmLP.qwarmlp, 'lp')
+
+                    if int(inform) != 0:
+                        break
+
+            # Kindly reset scale option to default
             self.opt_intdict['lp']['Scale option'] = 2
-            optimizer = qwarmLP.qwarmlp
-            stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = self.get_solver_opts('lp')
-
-            # Last Q2 if requested: pass optimal basis hs and scale = 0
-            if precision == 'dqq':
-                self.opt_intdict['lp']['Scale option'] = 0
-                optimizer = qwarmLP.qwarmlp
-                stropts, intopts, realopts, intvals, realvals, nStrOpts, nIntOpts, nRealOpts = self.get_solver_opts('lp')
-
-                # Kindly reset scale option to default
-                self.opt_intdict['lp']['Scale option'] = 2
-
-        x, pi, rc = optimizer(
-            inform, probname, m, ha, ka, ad, bld, bud, hs, warm,
-            stropts, intopts, realopts, intvals, realvals,
-            nstropts = nStrOpts, nintopts = nIntOpts, nrealopts = nRealOpts
-            )
 
         #self.inform = inform
         #self.hs = hs
