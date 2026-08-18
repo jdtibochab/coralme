@@ -5,7 +5,7 @@ import cobra
 import pandas
 # from IPython.display import display, HTML
 
-def FromExcel(infile:str, model_name:str, outfile:str, f_replace:dict = {}, debug:bool = False, report_missing_mets:bool = False) -> cobra.Model:
+def FromExcel(infile:str, model_name:str = 'coralME M-model', outfile:str = os.devnull, f_replace:dict = {}, debug:bool = False, report_missing_mets:bool = False) -> cobra.Model:
 	code = []
 	code.append('import cobra\n')
 	code.append('from cobra.core.gene import GPR\n')
