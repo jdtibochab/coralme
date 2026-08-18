@@ -287,6 +287,7 @@ def flux_based_reactions(model,
 						 flux_dict=0,
 						 solution = None,
 						 keffs=False,
+						 print_reactions=True,
 						 verbose=False):
 	warn(
 		"flux_based_reactions will be removed soon."
@@ -301,6 +302,7 @@ def flux_based_reactions(model,
 						 flux_dict=flux_dict,
 						 solution = solution,
 						 keffs=keffs,
+						 print_reactions=print_reactions,
 						 verbose=verbose)
 def get_reactions_of_met(me,met,s = 0, ignore_types = (),only_types = (), verbose = False,growth_key='mu'):
 	warn(

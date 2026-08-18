@@ -85,6 +85,7 @@ def flux_based_reactions(model,
 						 solution = None,
 						 aliases = None,
 						 keffs=False,
+						 print_reactions=True,
 						 verbose=False):
 	"""
 	Returns a summary of the mass balance of a metabolite in a
@@ -130,7 +131,8 @@ def flux_based_reactions(model,
 
 		result_dict[rxn.id]['rxn_flux'] = f
 		result_dict[rxn.id]['met_flux'] = f*coeff
-		result_dict[rxn.id]['reaction'] = rxn.reaction
+		if print_reactions:
+			result_dict[rxn.id]['reaction'] = rxn.reaction
 		if keffs:
 			result_dict[rxn.id]['keff'] = rxn.keff if hasattr(rxn,'keff') else ''
 	df = pandas.DataFrame.from_dict(result_dict).T
