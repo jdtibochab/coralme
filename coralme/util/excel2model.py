@@ -193,6 +193,7 @@ def FromExcel(infile:str, model_name:str = 'coralME M-model', outfile:str = os.d
 				annots['biocyc'] = df_rxns.iloc[idx]['biocyc'].replace('META:', '').split(';') if (df_rxns.iloc[idx]['biocyc'] != '') else []
 			if 'ec-code' in df_rxns.columns:
 				annots['ec-code'] = df_rxns.iloc[idx]['ec-code'].split(';') if (df_rxns.iloc[idx]['ec-code'] != '') else []
+				annots['ec-code'] = df_rxns.iloc[idx]['ec-code'].split(',') if (df_rxns.iloc[idx]['ec-code'] != '') else []
 			if 'kegg.reaction' in df_rxns.columns:
 				annots['kegg.reaction'] = df_rxns.iloc[idx]['kegg.reaction'].split(';') if (df_rxns.iloc[idx]['kegg.reaction'] != '') else []
 			annots = str(annots).replace('{', '{\n\t').replace('}', '\n\t}').replace(', ', ',\n\t') if annots else '{}'
