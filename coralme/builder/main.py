@@ -1670,7 +1670,7 @@ class MEReconstruction(MEBuilder):
 
 		if config.get('lipid_modifications', None) is None or len(config.get('lipid_modifications')) == 0:
 			if hasattr(self, 'org'):
-				config['lipid_modifications'] = [ x for x in self.org.lipids if x.endswith('_p') and x.startswith('pg') and not x.startswith('pgp') ]
+				config['lipid_modifications'] = [ x for x in self.org.lipids if x.endswith(('_p', '_c')) and x.startswith('pg') and not x.startswith('pgp') ]
 				logging.warning('The lipid modifications were set from M-model metabolites.')
 
 		if config.get('lipoprotein_precursors', None) is None or len(config.get('lipoprotein_precursors')) == 0:
