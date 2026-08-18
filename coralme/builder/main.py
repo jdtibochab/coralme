@@ -50,6 +50,8 @@ class MEBuilder(object):
 			df_metadata_metabolites = '',
 			out_directory = './',
 			log_directory = './',
+			config_files = None,
+
 			estimate_keffs = True,
 			add_lipoproteins = True,
 			include_pseudo_genes = False,
@@ -137,7 +139,10 @@ class MEBuilder(object):
 				},
 			}
 
-		for input_file in args:
+		if config_files is not None and not isinstance(config_files, list):
+			config_files = [config_files]
+
+		for input_file in config_files or []:
 			with open(input_file, 'r') as infile:
 				config.update(anyconfig.load(infile))
 		
