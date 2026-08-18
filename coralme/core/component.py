@@ -128,7 +128,7 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 			<tr><td><strong>Name</strong></td><td>{cobra.util.util.format_long_string(self.name)}</td></tr>
 			<tr><td><strong>Memory address</strong></td><td>{id(self):#x}</td></tr>
 			<tr><td><strong>Formula</strong></td><td>{self.formula}</td></tr>
-			<tr><td><strong>Compartment</strong></td><td>{self._model.compartments[self.compartment] or self.compartment}</td></tr>
+			<tr><td><strong>Compartment</strong></td><td>{self._model.compartments.get(self.compartment) if self._model is not None else self.compartment}</td></tr>
 			<tr><td><strong>Metabolite type</strong></td><td>{met_type}</td></tr>
 			<tr><td><strong>In {len(self.reactions)} reaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.reactions), 200)}</td></tr>
 			<tr><td><strong>In {len(self.subreactions)} subreaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.subreactions), 200)}</td></tr>
