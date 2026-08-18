@@ -1,2 +1,2 @@
 subreaction	enzymes	element_contribution	stoich
-sec_addition_at_UGA	O:-1,Se:1	SelA_deca_mod_pydx5p(10),SelB_mono	h_c:1,selnp_c:-1,pi_c:1,generic_tRNA_UGA_ser__L_c:-1
+sec_addition_at_UGA	SelA_deca_mod_pydx5p(10),SelB_mono	O:-1,Se:1	h_c:1,selnp_c:-1,pi_c:1,generic_tRNA_UGA_ser__L_c:-1

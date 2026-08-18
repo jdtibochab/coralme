@@ -112,69 +112,102 @@ class ProcessData(object):
 
 	def _repr_html_(self):
 		import html
-		def safe(val):
-			"""Escape HTML for safety."""
-			return html.escape(str(val))
 
-		def format_dict(d):
-			if not d:
-				return "<em>empty</em>"
-			return "<table>\n" + \
-					"\n".join(
-						f"<tr><td>{safe(k)}</td>"
-						f"<td>{safe(v)}</td></tr>"
-						for k, v in d.items()
-					) + "\n</table>"
+		def safe(x):
+			return html.escape(str(x))
 
 		def format_iterable(it):
-			if not it:
+			return "<em>empty</em>" if not it else ", ".join(safe(x) for x in it)
+
+		def format_dict(d):
+			return (
+				"<table style='border-collapse:collapse;'>"
+				+ "".join(
+					"<tr><td style='vertical-align:top'>{}</td><td>{}</td></tr>".format(
+						safe(k),
+						format_dict(v) if isinstance(v, dict)
+						else format_iterable(v) if isinstance(v, (list, tuple, set))
+						else safe(v)
+					)
+					for k, v in d.items()
+				)
+				+ "</table>"
+			)
+
+		def format_sequence(seq):
+			if not seq:
 				return "<em>empty</em>"
-			return ", ".join(safe(x) for x in it)
+			return "<pre style='margin:0;font-family:monospace;overflow-wrap:anywhere;white-space:pre-wrap;'>{}</pre>".format(safe(seq))
 
-		# --- Gather main fields
 		rows = []
-		rows.append(("<strong>Class</strong>", self.__class__.__name__))
-		rows.append(("<strong>Memory address</strong>", f"{id(self):#x}"))
-		rows.append(("<strong>Identifier</strong>", getattr(self, "id", "")))
 
-		# --- Special biological tables ---
-		if hasattr(self, "stoichiometry"):
-			rows.append(("<strong>Stoichiometry</strong>", format_dict(self.stoichiometry)))
-		if hasattr(self, "subreactions"):
-			rows.append(("<strong>Subreactions</strong>", format_dict(self.subreactions)))
-		if hasattr(self, "RNA_products"):
-			rows.append(("<strong>RNA products</strong>", format_iterable(self.RNA_products)))
-		if hasattr(self, "component_list"):
-			rows.append(("<strong>Component list</strong>", format_iterable(self.component_list)))
-		if hasattr(self, "enzyme_dict"):
-			rows.append(("<strong>Enzyme dictionary</strong>", format_dict(self.enzyme_dict)))
+		def add_row(name, value, html = False):
+			rows.append(("<strong>{}</strong>".format(safe(name)), value if html else safe(value)))
 
-		# --- General attributes (excluding large or redundant ones) ---
+		add_row("Identifier", getattr(self, "id", ""))
+		add_row("Memory address", "{:#x}".format(id(self)))
+		add_row("Class", self.__class__.__name__)
+
+		if hasattr(self, "stoichiometry") and self.stoichiometry:
+			if self.__class__.__name__ == "StoichiometricData":
+				if all(self._model.metabolites.has_id(k) for k in self.stoichiometry):
+					tmp = coralme.core.reaction.MEReaction("tmp")
+					tmp._metabolites = {self._model.metabolites.get_by_id(k): v for k, v in self.stoichiometry.items()}
+					rxn_as_ids = cobra.util.util.format_long_string(tmp.build_reaction_string(False), 1000)
+					rxn_as_names = cobra.util.util.format_long_string(tmp.build_reaction_string(True), 1000)
+				else:
+					rxn_as_ids = rxn_as_names = "Incomplete stoichiometry: some metabolites not found in model."
+
+				add_row("Stoichiometry", "<p style='margin:0;text-align:right'>{}</p><p style='.3em 0 0;text-align:right;color:#666'>{}</p>".format(safe(rxn_as_ids), safe(rxn_as_names)), html = True)
+			else:
+				add_row("Stoichiometry", format_dict(self.stoichiometry), html = True)
+
+		for attr, formatter in (
+			("subreactions", format_dict),
+			("RNA_products", format_iterable),
+			("original_RNA_products", format_iterable),
+			("component_list", format_iterable),
+			("enzyme", format_iterable),
+			("nucleotide_sequence", format_sequence),
+			("rna_components", format_iterable),
+			("prot_components", format_iterable),
+			("translocation", format_iterable),
+			("notes", format_iterable),
+			("translation", format_sequence),
+		):
+			if hasattr(self, attr):
+				add_row(attr, formatter(getattr(self, attr)), html = True)
+
+		if hasattr(self, "transl_table"):
+			add_row("transl_table", "<pre style='margin:0;font-family:monospace;text-align:left;overflow-wrap:anywhere;white-space:pre-wrap'>{}</pre>".format(safe(self.transl_table)), html = True)
+
 		skip = {
-			"_model", "_parent_reactions", "stoichiometry", "subreactions",
-			"RNA_products", "enzyme_dict", "component_list", "id"
+			"_model", "_parent_reactions", "id",
+			"stoichiometry", "subreactions",
+			"RNA_products", "original_RNA_products",
+			"component_list", "enzyme",
+			"nucleotide_sequence", "translation",
+			"transl_table", "rna_components",
+			"prot_components", "translocation",
+			"notes",
 		}
+
 		for k, v in self.__dict__.items():
 			if k in skip or k.startswith("_") or callable(v):
 				continue
-			if isinstance(v, (dict, list, set)):
-				display_val = f"{type(v).__name__} ({len(v)})"
+			if isinstance(v, dict):
+				add_row(k, format_dict(v), html = True)
+			elif isinstance(v, (list, tuple, set)):
+				add_row(k, "{} ({})".format(type(v).__name__, len(v)))
 			else:
-				display_val = v
-			rows.append((safe(k), safe(display_val)))
+				add_row(k, v)
 
-		# --- Build the HTML table ---
-		table_rows = "\n".join(
-			f"<tr><td style='font-weight:bold; vertical-align:top;'>{key}</td><td>{val}</td></tr>"
-			for key, val in rows
+		return "<table style='border-collapse:collapse;width:100%;'>{}</table>".format(
+			"".join(
+				"<tr><td style='font-weight:bold;vertical-align:top;'>{}</td><td>{}</td></tr>".format(k, v)
+				for k, v in rows
+			)
 		)
-
-		html_output = f"""
-		<table style='border-collapse:collapse; width:100%;'>
-			{table_rows}
-		</table>
-		"""
-		return html_output
 
 class StoichiometricData(ProcessData):
 	"""Encodes the stoichiometry for a metabolic reaction.
