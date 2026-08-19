@@ -1233,6 +1233,7 @@ class MEBuilder(object):
 		ref_excision_machinery = self.ref.excision_machinery
 		org_excision_machinery = self.org.excision_machinery
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
+		rnpB = self.configuration.get('ncRNAs', {}).get('rnpB') # get locus tag from user input
 		for k, v in tqdm.tqdm(ref_excision_machinery.items(),
 					'Updating excision machinery from homology...',
 					bar_format = bar_format,
@@ -1243,6 +1244,10 @@ class MEBuilder(object):
 			org_cplxs = [
 				ref_cplx_homolog[i] for i in ref_cplxs if i in ref_cplx_homolog
 			]
+			if 'rnpB' in ref_cplxs and rnpB is not None:
+				org_cplxs.append(rnpB) # this should be the locus tag from user input
+			else:
+				logging.warning('ERROR: No identified rnpB homolog from user input. Please check if it is correct or correct \'ncRNAs\'.')
 			for i in org_cplxs:
 				if self._is_base_complex_in_list(i,defined_cplxs):
 					continue
@@ -1360,6 +1365,7 @@ class MEBuilder(object):
 		ref_translocation_pathways = self.ref.translocation_pathways
 		org_translocation_pathways = self.org.translocation_pathways
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
+		ffs = self.configuration.get('ncRNAs', {}).get('ffs') # get locus tag from user input
 		for k, v in tqdm.tqdm(ref_translocation_pathways.items(),
 					'Updating translocation machinery from homology...',
 					bar_format = bar_format,
@@ -1373,6 +1379,10 @@ class MEBuilder(object):
 			org_cplxs = [
 				ref_cplx_homolog[i] for i in ref_cplxs if i in ref_cplx_homolog
 			]
+			if 'ffs' in ref_cplxs and ffs is not None:
+				org_cplxs.append(ffs) # this should be the locus tag from user input
+			else:
+				logging.warning('ERROR: No identified ffs homolog from user input. Please check if it is correct or correct \'ncRNAs\'.')
 			for i in org_cplxs:
 				if self._is_base_complex_in_list(i,defined_cplxs):
 					continue

@@ -124,6 +124,8 @@ class MEModel(cobra.core.object.Object):
 				'Translation_termination_ribosome_recycler'
 				],
 
+			'ncRNAs' : { 'ffs' : '', 'rnpB' : '' },
+
 			'translocation_pathway' : {
 				'sec' : {
 					'abbrev' : 's',

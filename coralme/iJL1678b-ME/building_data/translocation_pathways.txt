@@ -11,12 +11,15 @@ bam	0.027	False		Bam-CPLX	False	False
 lol	0.9	False	atp_c:-1.0,h2o_c:-1.0,adp_c:1.0,pi_c:1.0,h_c:1.0	LolCDE-CPLX	False	False
 lol	0.9	False	atp_c:-1.0,h2o_c:-1.0,adp_c:1.0,pi_c:1.0,h_c:1.0	LolA_MONOMER	False	False
 lol	0.9	False	atp_c:-1.0,h2o_c:-1.0,adp_c:1.0,pi_c:1.0,h_c:1.0	LolB_MONOMER	False	False
+yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	ffs	True	False
 yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	SRP-CPLX	True	False
 yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	YidC_MONOMER	True	False
 secA	4.0	True	atp_c:-0.013333333333333332,h2o_c:-0.013333333333333332,adp_c:0.013333333333333332,pi_c:0.013333333333333332,h_c:0.013333333333333332	SecA_MONOMER	True	False
+srp_yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	ffs	True	False
 srp_yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	SRP-CPLX	True	False
 srp_yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	YidC_MONOMER	True	False
 srp_yidC	20.0	False	gtp_c:-1.0,h2o_c:-1.0,gdp_c:1.0,pi_c:1.0,h_c:1.0	Sec-CPLX	True	False
+srp	20.0	False	gtp_c:-2.0,h2o_c:-2.0,gdp_c:2.0,pi_c:2.0,h_c:2.0	ffs	True	False
 srp	20.0	False	gtp_c:-2.0,h2o_c:-2.0,gdp_c:2.0,pi_c:2.0,h_c:2.0	SRP-CPLX	True	False
 srp	20.0	False	gtp_c:-2.0,h2o_c:-2.0,gdp_c:2.0,pi_c:2.0,h_c:2.0	FtsY_MONOMER	False	True
 srp	20.0	False	gtp_c:-2.0,h2o_c:-2.0,gdp_c:2.0,pi_c:2.0,h_c:2.0	Sec-CPLX	True	False

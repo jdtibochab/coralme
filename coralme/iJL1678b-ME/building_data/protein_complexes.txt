@@ -1008,7 +1008,7 @@ ACYLCOADEHYDROG-MONOMER	default_name	b0221(1)	M_protein_recon
 RplU_mono	50S ribosomal subunit protein L21	b3186(1)	2011_Updated_E_recon
 CPLX0-743	default_name	b0420(2)	M_protein_recon
 G6849-MONOMER	default_name	b1591(1)	M_protein_recon
-RNase_P_cplx	protein C5 component of RNase P (EC:3.1.26.5)	b3704(1) AND b3123(1)	2011_Updated_E_recon
+RNase_P_cplx	protein C5 component of RNase P (EC:3.1.26.5)	b3704(1)	2011_Updated_E_recon
 ArgS_mono	arginyl-tRNA synthetase (EC:6.1.1.19)	b1876(1)	2011_Updated_E_recon
 ACETYLGLUTKIN-CPLX	default_name	b3959(2)	M_protein_recon
 GLYOCARBOLIG-CPLX	default_name	b0507(2)	M_protein_recon
@@ -1287,7 +1287,7 @@ TatE_MONOMER	defualt_name	b0627(1)	2011_Updated_E_recon
 TatBC_octa	default_name	b3838(8) AND b3839(8)	2011_Updated_E_recon
 SecA_MONOMER	default_name	b0098(1)	2011_Updated_E_recon
 SecB_tetra	default_name	b3609(4)	2011_Updated_E_recon
-SRP-CPLX	default_name	b2610(1) AND b0455(1)	2011_Updated_E_recon
+SRP-CPLX	default_name	b2610(1)	2011_Updated_E_recon
 Sec-CPLX	default_name	b3300(1) AND b3981(1) AND b3175(1) AND b0408(1) AND b0409(1)	2011_Updated_E_recon
 SecYE-CPLX	Sec CPLX without secG	b3300(1) AND b3981(1) AND b0408(1) AND b0409(1)	2011_Updated_E_recon
 LolA_MONOMER	default_name	b0891(1)	2011_Updated_E_recon

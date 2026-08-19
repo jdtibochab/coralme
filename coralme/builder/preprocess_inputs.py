@@ -396,15 +396,16 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 		for key, subdct in dct.items():
 			mods = '' if x['Cofactors in Modified Complex'] is None else x['Cofactors in Modified Complex']
 			#tags = [ x['Gene Locus ID'], x['Old Locus Tag'], x['BioCyc'], x['Complex ID'], x['Generic Complex ID'] ]
-			tags = [ x['Complex ID'], x['Generic Complex ID'] ]
+			tags = [ x['Complex ID'], x['Generic Complex ID'], x['Gene Locus ID'] ]
 			tags = [ str(x).split(';') for x in tags ]
 			for tag in [ x for y in tags for x in y ]:
 				#if '{:s}-MONOMER'.format(tag) in lst or tag.split(':')[0] in lst or 'generic_{:s}'.format(tag) in lst:
 				filter1 = '{:s}-MONOMER'.format(tag) in subdct and mods in subdct.get('{:s}-MONOMER'.format(tag), [None])
 				filter2 = tag.split(':')[0] in subdct and mods in subdct.get(tag.split(':')[0], [None])
 				filter3 = 'generic_{:s}'.format(tag) in subdct #and mods in subdct.get('generic_{:s}'.format(tag), [None])
+				filter4 = tag in key # rnpB is a ncRNA # WARNING: DO NOT REMOVE
 
-				if filter1 or filter2 or filter3:
+				if filter1 or filter2 or filter3 or filter4:
 					subrxns.append(key + ':1')
 
 		if len(subrxns) != 0:
@@ -490,7 +491,11 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 			tags = [ x['Gene Locus ID'], x['Old Locus Tag'], x['BioCyc'], x['Complex ID'], x['Generic Complex ID'] ]
 			tags = [ str(x).split(';') for x in tags ]
 			for tag in [ x for y in tags for x in y ]:
-				if '{:s}-MONOMER'.format(tag) in lst or tag.split(':')[0] in lst or 'generic_{:s}'.format(tag) in lst:
+				filter1 = '{:s}-MONOMER'.format(tag) in lst
+				filter2 = tag.split(':')[0] in lst
+				filter3 = 'generic_{:s}'.format(tag) in lst
+				# filter4 = tag in lst # ffs is a ncRNA # Apparently it is not needed
+				if filter1 or filter2 or filter3:
 					pathways.append('translocation_pathway_' + key)
 		if len(pathways) != 0:
 			return pathways
@@ -520,7 +525,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 	data['ME-model SubReaction'] = data.apply(lambda x: _get_ribosome_subrxns(x, dct), axis = 1)
 
 	def _get_translation_subrxns(x, dct):
-		subprocess = []
+		subreaction = []
 		for key, subdct in dct.items():
 			mods = '' if x['Cofactors in Modified Complex'] is None else x['Cofactors in Modified Complex']
 			tags = [ x['Gene Locus ID'], x['Old Locus Tag'], x['BioCyc'], x['Complex ID'], x['Generic Complex ID'] ]
@@ -532,28 +537,28 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 
 				if filter1 or filter2 or filter3:
 					if key.endswith('InfA') or key.endswith('InfC'):
-						subprocess.append(key)
+						subreaction.append(key)
 					elif key.endswith('InfB'):
-						subprocess.append('Translation_initiation_gtp_factor_InfB')
+						subreaction.append('Translation_initiation_gtp_factor_InfB')
 					elif key == 'fmet_addition_at_START':
-						subprocess.append('Translation_initiation_' + key)
+						subreaction.append('Translation_initiation_' + key)
 					elif key == 'FusA_mono_elongation':
-						subprocess.append('Translation_elongation_FusA_mono')
+						subreaction.append('Translation_elongation_FusA_mono')
 					elif key == 'Tuf_gtp_regeneration':
-						subprocess.append('Translation_elongation_' + key)
+						subreaction.append('Translation_elongation_' + key)
 					elif key in ['N_terminal_methionine_cleavage', 'DnaK_dependent_folding', 'GroEL_dependent_folding']:
-						subprocess.append('Protein_processing_' + key)
+						subreaction.append('Protein_processing_' + key)
 					elif key == 'PrfA_mono_mediated_termination':
-						subprocess.append('Translation_termination_PrfA_mono_mediated')
+						subreaction.append('Translation_termination_PrfA_mono_mediated')
 					elif key == 'PrfB_mono_mediated_termination':
-						subprocess.append('Translation_termination_PrfB_mono_mediated')
+						subreaction.append('Translation_termination_PrfB_mono_mediated')
 					elif key == 'generic_RF_mediated_termination':
-						subprocess.append('Translation_termination_generic_RF_mediated')
+						subreaction.append('Translation_termination_generic_RF_mediated')
 					else:
-						subprocess.append('Translation_termination_' + key)
+						subreaction.append('Translation_termination_' + key)
 
-		if len(subprocess) != 0:
-			return subprocess
+		if len(subreaction) != 0:
+			return subreaction
 
 	dct = { k:[ x for x in v['enzymes'] ] for k,v in builder.org.initiation_subreactions.items() }
 	dct.update({ k:[ x for x in v['enzymes'] ] for k,v in builder.org.elongation_subreactions.items() })

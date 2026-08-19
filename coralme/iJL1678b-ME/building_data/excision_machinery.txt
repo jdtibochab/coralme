@@ -1,4 +1,4 @@
 mechanism	enzymes
-rRNA_containing	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),generic_RNase,RNase_III_dim_mod_mg2(2),RNase_G_dim,RNase_T_dim_mod_mg2(4)
-monocistronic	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),generic_RNase
-polycistronic_wout_rRNA	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),generic_RNase,RNase_III_dim,RNase_G_dim,RNase_T_dim_mod_mg2(4)
+rRNA_containing	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),rnpB,generic_RNase,RNase_III_dim_mod_mg2(2),RNase_G_dim,RNase_T_dim_mod_mg2(4)
+monocistronic	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),rnpB,generic_RNase
+polycistronic_wout_rRNA	RNase_E_tetra_mod_zn2(2),RNase_P_cplx_mod_mg2(2),rnpB,generic_RNase,RNase_III_dim,RNase_G_dim,RNase_T_dim_mod_mg2(4)
