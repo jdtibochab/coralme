@@ -661,7 +661,17 @@ class MappableList(list):
 		str
 			Formatted representation.
 		"""
-		return "MappableList({})".format(list(self))
+
+		return 'MappableList({})'.format(list.__repr__(self))
+		
+	def _repr_pretty_(self, p, cycle):
+		if cycle:
+			p.text('MappableList(...)')
+			return
+
+		p.text('MappableList(')
+		p.pretty(list(self))
+		p.text(')')
 
 class MCounter(collections.Counter):
 	"""
