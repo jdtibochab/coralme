@@ -16,30 +16,30 @@ lipoyl_scavenging	amp_c	+1.0
 lipoyl_scavenging	ppi_c	+1.0
 
 # Lipoylation (de novo synthesis)
-lipoyl_denovo	BSU15920-MONOMER_mod_pan4p(1)_mod_oc(1)	-1.0
-lipoyl_denovo	BSU32330-MONOMER_mod_4fe4s(2)	-1.0
-lipoyl_denovo	amet_c	-2.0
-lipoyl_denovo	nad_c	-1.0
-lipoyl_denovo	h_c	-1.0
-lipoyl_denovo	BSU15920-MONOMER_mod_pan4p(1)	1.0
-lipoyl_denovo	BSU32330-MONOMER_mod_2fe2s(1)_mod_4fe4s(1)	1.0
-lipoyl_denovo	fe2_c	2.0
-lipoyl_denovo	met__L_c	2.0
-lipoyl_denovo	dad_5_c	2.0
-lipoyl_denovo	nadh_c	1.0
+lipoyl_denovo_from_ocACP	BSU15920-MONOMER_mod_pan4p(1)_mod_oc(1)	-1.0
+lipoyl_denovo_from_ocACP	BSU32330-MONOMER_mod_4fe4s(2)	-1.0
+lipoyl_denovo_from_ocACP	amet_c	-2.0
+lipoyl_denovo_from_ocACP	nad_c	-1.0
+lipoyl_denovo_from_ocACP	h_c	-1.0
+lipoyl_denovo_from_ocACP	BSU15920-MONOMER_mod_pan4p(1)	1.0
+lipoyl_denovo_from_ocACP	BSU32330-MONOMER_mod_2fe2s(1)_mod_4fe4s(1)	1.0
+lipoyl_denovo_from_ocACP	fe2_c	2.0
+lipoyl_denovo_from_ocACP	met__L_c	2.0
+lipoyl_denovo_from_ocACP	dad_5_c	2.0
+lipoyl_denovo_from_ocACP	nadh_c	1.0
 
 # Lipoylation (de novo synthesis using Octanoyl-CoA)
-lipoyl_denovo_from_coa	occoa_c	-1.0
-lipoyl_denovo_from_coa	BSU32330-MONOMER_mod_4fe4s(2)	-1.0
-lipoyl_denovo_from_coa	amet_c	-2.0
-lipoyl_denovo_from_coa	nad_c	-1.0
-lipoyl_denovo_from_coa	h_c	-1.0
-lipoyl_denovo_from_coa	coa_c	1.0
-lipoyl_denovo_from_coa	BSU32330-MONOMER_mod_2fe2s(1)_mod_4fe4s(1)	1.0
-lipoyl_denovo_from_coa	fe2_c	2.0
-lipoyl_denovo_from_coa	met__L_c	2.0
-lipoyl_denovo_from_coa	dad_5_c	2.0
-lipoyl_denovo_from_coa	nadh_c	1.0
+lipoyl_denovo_from_occoa	occoa_c	-1.0
+lipoyl_denovo_from_occoa	BSU32330-MONOMER_mod_4fe4s(2)	-1.0
+lipoyl_denovo_from_occoa	amet_c	-2.0
+lipoyl_denovo_from_occoa	nad_c	-1.0
+lipoyl_denovo_from_occoa	h_c	-1.0
+lipoyl_denovo_from_occoa	coa_c	1.0
+lipoyl_denovo_from_occoa	BSU32330-MONOMER_mod_2fe2s(1)_mod_4fe4s(1)	1.0
+lipoyl_denovo_from_occoa	fe2_c	2.0
+lipoyl_denovo_from_occoa	met__L_c	2.0
+lipoyl_denovo_from_occoa	dad_5_c	2.0
+lipoyl_denovo_from_occoa	nadh_c	1.0
 
 # 2'-(5-triphosphoribosyl)-3'-dephospho-CoA:apo-[citrate (pro-3S)-lyase] 2'-(5-phosphoribosyl)-3'-dephospho-CoA-transferase
 citx_transfer_to_citd	2tpr3dpcoa	-1.0
