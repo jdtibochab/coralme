@@ -633,7 +633,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 
 		if hasattr(self._model, 'solution'):
 			try:
-				return coralme.core.extended_classes.ExtendedQuantity(self._model.solution.fluxes[self.id] * unit)
+				return coralme.core.extended_classes.ExtendedQuantity(self._model.solution.fluxes[self.id], unit, registry=self._model.unit_registry)
 			except KeyError:
 				raise RuntimeError(f"reaction '{self.id}' is not part of a model")
 		else:
@@ -734,7 +734,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._lower_bound = value
 		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
-		elif isinstance(float(value), float):
+		elif isinstance(value, (float, int)):
 			unit = 1.
 			if self._model is not None and 'default_parameters' in self._model.global_info:
 				unit = self._model.unit_registry.parse_units('mmols per gram per hour')
@@ -787,7 +787,7 @@ class MEReaction(cobra.core.reaction.Reaction):
 		elif isinstance(value, sympy.core.symbol.Symbol):
 			self._upper_bound = value
 		# WARNING: to check for numpy.int or numpy.float types, use numpy.issubdtype per type, i.e., numpy.integer and numpy.floating
-		elif isinstance(float(value), float):
+		elif isinstance(value, (float, int)):
 			unit = 1.
 			if self._model is not None and 'default_parameters' in self._model.global_info:
 				unit = self._model.unit_registry.parse_units('mmols per gram per hour')

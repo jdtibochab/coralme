@@ -59,99 +59,163 @@ class ExtendedQuantity(pint.Quantity):
 	- Unit-aware arithmetic with substituted values
 	- Rich comparison operators against quantities or scalars
 	- Clean string representation
-
-	Example:
-		>>> t = sympy.Symbol("t")
-		>>> q = ExtendedQuantity(t, "s")
-		>>> q.subs(t, 5)
-		5 second
 	"""
-	def __new__(cls, value, units=None):
-		if isinstance(value, pint.Quantity):
-			return super().__new__(cls, value.magnitude, value.units)
-		return super().__new__(cls, value, units)
 
-	def __init__(self, value, units=None):
+	def __new__(cls, value, units=None, registry=None):
+		if registry is not None:
+			ureg = registry
+
+		elif isinstance(value, pint.Quantity):
+			ureg = value._REGISTRY
+
+		elif isinstance(units, pint.Unit):
+			ureg = units._REGISTRY
+
+		else:
+			raise ValueError(
+				'A Pint UnitRegistry must be provided.'
+			)
+
+		if isinstance(value, pint.Quantity):
+			if value._REGISTRY is not ureg:
+				raise ValueError(
+					'The quantity belongs to a different UnitRegistry.'
+				)
+
+			magnitude = value.magnitude
+			units = value.units
+			value = magnitude
+
+		elif isinstance(units, str):
+			units = ureg.parse_units(units)
+
+		obj = super().__new__(cls, value, units)
+		obj._REGISTRY = ureg
+
+		return obj
+
+	def __init__(self, value, units=None, registry=None):
+		# The object is fully initialized in __new__.
 		pass
 
 	def subs(self, *args):
 		"""Substitute symbolic variables in the attached expression.
 
-		Example:
-			>>> t = sympy.Symbol("t")
-			>>> q = ExtendedQuantity(t, "s")
+		Examples:
+			>>> t = sympy.Symbol('t')
+			>>> q = ExtendedQuantity(t, 's', registry=ureg)
 			>>> q.subs(t, 10)
+			10 second
+
+			>>> t = sympy.Symbol('t')
+			>>> q = ExtendedQuantity(t, 's', registry=ureg)
+			>>> q.subs(t, 10 * ureg.second)
 			10 second
 		"""
 		if len(args) == 1 and isinstance(args[0], dict):
 			substitutions = args[0]
+
 		elif len(args) % 2 == 0:
-			substitutions = {args[i]: args[i + 1] for i in range(0, len(args), 2)}
+			substitutions = {
+				args[i]: args[i + 1]
+				for i in range(0, len(args), 2)
+			}
+
 		else:
-			raise TypeError("subs() takes either (dict) or (old, new) arguments.")
+			raise TypeError(
+				'subs() takes either (dict) or even number of arguments '
+				'as (old, new) pairs.'
+			)
 
 		magnitude_subs = {}
-		resulting_units = self.units
 
 		for key, value in substitutions.items():
 			if value is None:
 				continue
+
+			# Symbol without units
 			if isinstance(key, sympy.Symbol):
 				symbol = key
 				symbol_units = 1
-			elif isinstance(key, pint.Quantity) and isinstance(key.magnitude, sympy.Symbol):
+
+			# Symbol with units, e.g. mu = Symbol('mu') * 1/hour
+			elif (
+				isinstance(key, pint.Quantity)
+				and isinstance(key.magnitude, sympy.Symbol)
+			):
 				symbol = key.magnitude
 				symbol_units = key.units
-			else:
-				raise TypeError("subs() expects a dict or even number of arguments as (old, new) pairs.")
 
-			if isinstance(value, pint.Quantity):
-				magnitude_subs[symbol] = value.to(symbol_units).magnitude
-				resulting_units *= symbol_units * value.units / symbol_units
-			elif isinstance(float(value), float):
-				magnitude_subs[symbol] = value
 			else:
-				raise TypeError("Substitution values must be float, int, or pint.Quantity.")
+				raise TypeError(
+					'subs() expects a dict or even number of arguments '
+					'as (old, new) pairs.'
+				)
+
+			# Quantity substitution
+			if isinstance(value, pint.Quantity):
+				magnitude_subs[symbol] = value.to(
+					symbol_units
+				).magnitude
+
+			# Numeric substitution
+			elif isinstance(value, (float, int)):
+				magnitude_subs[symbol] = value
+
+			else:
+				raise TypeError(
+					'Substitution values must be float, int, '
+					'or pint.Quantity.'
+				)
 
 		new_expr = self.magnitude.subs(magnitude_subs)
-		return ExtendedQuantity(new_expr, resulting_units)
+
+		return self.__class__(
+			new_expr,
+			self.units,
+			registry=self._REGISTRY,
+		)
 
 	def _compare(self, other, op):
 		"""Helper for comparisons."""
-		if isinstance(other, ExtendedQuantity):
-			return op(self, other.magnitude)
-		elif isinstance(float(other), float):
+		if isinstance(other, pint.Quantity):
+			if other._REGISTRY is not self._REGISTRY:
+				raise ValueError(
+					'Cannot compare quantities from different registries.'
+				)
+
+			other = other.to(self.units)
+
+			return op(
+				self.magnitude,
+				other.magnitude,
+			)
+
+		if isinstance(other, (float, int)):
 			return op(self.magnitude, other)
-		else:
-			return NotImplemented
+
+		return NotImplemented
 
 	def __lt__(self, other):
-		"""Less-than comparison."""
 		return self._compare(other, lambda x, y: x < y)
 
 	def __le__(self, other):
-		"""Less-than-or-equal comparison."""
 		return self._compare(other, lambda x, y: x <= y)
 
 	def __gt__(self, other):
-		"""Greater-than comparison."""
 		return self._compare(other, lambda x, y: x > y)
 
 	def __ge__(self, other):
-		"""Greater-than-or-equal comparison."""
 		return self._compare(other, lambda x, y: x >= y)
 
 	def __eq__(self, other):
-		"""Equality comparison."""
 		return self._compare(other, lambda x, y: x == y)
 
 	def __ne__(self, other):
-		"""Inequality comparison."""
 		return self._compare(other, lambda x, y: x != y)
 
 	def __repr__(self):
-		"""Return string with magnitude and units."""
-		return "{} {}".format(self.magnitude, self.units)
+		return '{} {}'.format(self.magnitude, self.units)
 
 class DefaultParameters(dict):
 	"""
