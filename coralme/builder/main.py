@@ -1284,7 +1284,7 @@ class MEBuilder(object):
 		org_rna_modification = self.org.rna_modification_df
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
 		for mod,row in ref_rna_modification.iterrows():
-			enzymes = set(row['enzymes'].split('AND'))
+			enzymes = set(row['enzymes'].split(' AND '))
 			positions = row['positions'].split(',')
 			if mod in org_rna_modification.index:
 				df = org_rna_modification.loc[[mod]]
