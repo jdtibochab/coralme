@@ -37,6 +37,7 @@ class MEBuilder(object):
 
 	"""
 	def __init__(self, *args,
+			me_model_id = 'coralME',
 			m_model_path = None,
 			genbank_path = None,
 			locus_tag = 'locus_tag',
@@ -93,7 +94,7 @@ class MEBuilder(object):
 			blast_threads = os.cpu_count()-1
 		
 		config = {
-			'ME-Model-ID' : 'coralME',
+			'ME-Model-ID' : me_model_id,
 			'm-model-path' : m_model_path,
 			'genbank-path' : genbank_path,
 
