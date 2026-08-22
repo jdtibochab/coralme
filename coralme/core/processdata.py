@@ -117,7 +117,16 @@ class ProcessData(object):
 			return html.escape(str(x))
 
 		def format_iterable(it):
-			return "<em>empty</em>" if not it else ", ".join(safe(x) for x in it)
+			if not it:
+				return "<em>empty</em>"
+
+			return (
+				"<ul style='margin:0;padding-left:1.2em'>"
+				+ "".join("<li>{}</li>".format(safe(x)) for x in sorted(it) if isinstance(it, (set, frozenset)))
+				+ "</ul>"
+				if isinstance(it, (set, frozenset))
+				else ", ".join(safe(x) for x in it)
+			)
 
 		def format_dict(d):
 			return (
@@ -162,6 +171,8 @@ class ProcessData(object):
 			else:
 				add_row("Stoichiometry", format_dict(self.stoichiometry), html = True)
 
+		skip = {"_model", "_parent_reactions", "id", "stoichiometry"}
+
 		for attr, formatter in (
 			("subreactions", format_dict),
 			("RNA_products", format_iterable),
@@ -177,28 +188,22 @@ class ProcessData(object):
 		):
 			if hasattr(self, attr):
 				add_row(attr, formatter(getattr(self, attr)), html = True)
+			skip.add(attr)
 
 		if hasattr(self, "transl_table"):
 			add_row("transl_table", "<pre style='margin:0;font-family:monospace;text-align:left;overflow-wrap:anywhere;white-space:pre-wrap'>{}</pre>".format(safe(self.transl_table)), html = True)
-
-		skip = {
-			"_model", "_parent_reactions", "id",
-			"stoichiometry", "subreactions",
-			"RNA_products", "original_RNA_products",
-			"component_list", "enzyme",
-			"nucleotide_sequence", "translation",
-			"transl_table", "rna_components",
-			"prot_components", "translocation",
-			"notes",
-		}
+			skip.add("transl_table")
 
 		for k, v in self.__dict__.items():
 			if k in skip or k.startswith("_") or callable(v):
 				continue
+
 			if isinstance(v, dict):
 				add_row(k, format_dict(v), html = True)
-			elif isinstance(v, (list, tuple, set)):
-				add_row(k, "{} ({})".format(type(v).__name__, len(v)))
+			elif isinstance(v, (list, tuple, set, frozenset)):
+				add_row(k, format_iterable(v), html = True)
+			elif isinstance(v, str) and k in {"nucleotide_sequence", "translation"}:
+				add_row(k, format_sequence(v), html = True)
 			else:
 				add_row(k, v)
 
