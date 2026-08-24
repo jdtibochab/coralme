@@ -1300,9 +1300,30 @@ SurA_MONOMER	default_name	b0053(1)	2011_Updated_E_recon
 Lgt_MONOMER	Diacylglycerol transferase	b2828(1)	2011_Updated_E_recon
 LspA_MONOMER	Signal peptidase II	b0027(1)	2011_Updated_E_recon
 FtsY_MONOMER	SRP receptor	b3464(1)	2011_Updated_E_recon
+
 CPLX0-7617	iron-sulfur cluster insertion protein ErpA	b0156(2)	Manual
 EG11910-MONOMER_dimer_EG11911-MONOMER	default_name	b3951(2) AND b3952(1)	Manual
 YdaO_dim	predicted C32 tRNA thiolase	b1344(2)	2011_Updated_E_recon
+RsmJ_mono	16S rRNA (guanine1516-N2)-methyltransferase	b3497(1)	Manual
+TapT_mono	tRNA 3-amino-3-carboxypropyltransferase	b2583(1)	Manual
+
+TsaA_mono	tRNA m6t6A37 methyltransferase	b0195(1)	Manual
+TsaB_mono	N6-L-threonylcarbamoyladenine synthase, TsaB subunit	b1807(1)	Manual
+TsaC_mono	L-threonylcarbamoyladenylate synthase	b3282(1)	Manual
+TsaD_mono	N6-L-threonylcarbamoyladenine synthase, TsaD subunit	b3064(1)	Manual
+TsaE_mono	N6-L-threonylcarbamoyladenine synthase, TsaE subunit	b4168(1)	Manual
+RimI_mono	ribosomal-protein-S18-alanine N-acetyltransferase	b4373(1)	Manual
+NfuA_dim	iron-sulfur cluster carrier protein NfuA	b3414(2)	Manual
+HypC_dim	hydrogenase maturation factor HypC	b2728(2)	Manual
+hypD_mono	Fe-(CN)2CO cofactor assembly scaffold protein HypD	b2729(1)	Manual
+hypCD	HypC-HypD heterodimer	b2728(1) AND b2729(1)	Manual
+hypE	carbamoyl dehydratase HypE	b2730(1)	Manual
+hypCDE	HypC-HypD-HypE heterotetramer	b2728(1) AND b2729(1) AND b2730(2)	Manual
+hypF	carbamoyl--[HypE] ligase	b2712(1)	Manual
+hypA	hydrogenase 3 nickel incorporation protein HypA	b2726(1)	Manual
+hypB	hydrogenase isozymes nickel incorporation protein HypB	b2727(1)	Manual
+hypAB	HypA-HypB heterodimer	b2726(1) AND b2727(1)	Manual
+
 OX-FERREDOXIN	oxidized ferredoxin	b2525(1)	Manual
 FERREDOXIN-MONOMER	ferredoxin	b2525(1)	Manual
 MoaDE	molybdopterin synthase	b0784(2) AND b0785(2)	Manual
@@ -1319,3 +1340,5 @@ CPLX0-7933	putative carbamoyltransferase YgeW	b2870(3)	Manual
 G7491-MONOMER	putative peptidase YgeY	b2872(1)	Manual
 #G7493-MONOMER	putative amino acid kinase YqeA	b2874(1)	Manual
 #CPLX0-1401	2,3-diaminopropionate ammonia-lyase	b2871(2)	Manual
+rdsA_mono	ribosomal dihydrouridine synthase A	b3492(1)	Manual
+rlmJ_mono	23S rRNA m6A2030 methyltransferase	b3499(1)	Manual

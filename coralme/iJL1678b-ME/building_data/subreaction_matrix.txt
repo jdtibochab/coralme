@@ -6,6 +6,7 @@ mod_acetyl_c	coa_c	+1.0
 # biotin---[acetyl-CoA-carboxylase] ligase
 biotin_ligase	atp_c	-1.0
 biotin_ligase	btn_c	-1.0
+biotin_ligase	h_c	-1.0
 biotin_ligase	amp_c	+1.0
 biotin_ligase	ppi_c	+1.0
 
@@ -29,17 +30,17 @@ lipoyl_denovo_from_ocACP	dad_5_c	2.0
 lipoyl_denovo_from_ocACP	nadh_c	1.0
 
 # Lipoylation (de novo synthesis using CoA)
-lipoyl_denovo_from_coa	occoa_c	-1.0
-lipoyl_denovo_from_coa	CPLX0-782_mod_4fe4s(2)	-1.0
-lipoyl_denovo_from_coa	amet_c	-2.0
-lipoyl_denovo_from_coa	nad_c	-1.0
-lipoyl_denovo_from_coa	h_c	-1.0
-lipoyl_denovo_from_coa	coa_c	1.0
-lipoyl_denovo_from_coa	CPLX0-782_mod_2fe2s(1)_mod_4fe4s(1)	1.0
-lipoyl_denovo_from_coa	fe2_c	2.0
-lipoyl_denovo_from_coa	met__L_c	2.0
-lipoyl_denovo_from_coa	dad_5_c	2.0
-lipoyl_denovo_from_coa	nadh_c	1.0
+lipoyl_denovo_from_occoa	occoa_c	-1.0
+lipoyl_denovo_from_occoa	CPLX0-782_mod_4fe4s(2)	-1.0
+lipoyl_denovo_from_occoa	amet_c	-2.0
+lipoyl_denovo_from_occoa	nad_c	-1.0
+lipoyl_denovo_from_occoa	h_c	-1.0
+lipoyl_denovo_from_occoa	coa_c	1.0
+lipoyl_denovo_from_occoa	CPLX0-782_mod_2fe2s(1)_mod_4fe4s(1)	1.0
+lipoyl_denovo_from_occoa	fe2_c	2.0
+lipoyl_denovo_from_occoa	met__L_c	2.0
+lipoyl_denovo_from_occoa	dad_5_c	2.0
+lipoyl_denovo_from_occoa	nadh_c	1.0
 
 # 2'-(5-triphosphoribosyl)-3'-dephospho-CoA:apo-[citrate (pro-3S)-lyase] 2'-(5-phosphoribosyl)-3'-dephospho-CoA-transferase
 citx_transfer_to_citd	2tpr3dpcoa	-1.0
@@ -139,6 +140,11 @@ m4Cm,m62A	ahcys_c	+2.0
 D	nadph_c	-1.0
 D	h_c	-1.0
 D	nadp_c	+1.0
+
+# D (Reduction (NADH))
+D_NADH	nadh_c	-1.0
+D_NADH	h_c	-1.0
+D_NADH	nad_c	+1.0
 
 # t6A (threonylcarbamoyladenylate)
 t6A	atp_c	-1.0
