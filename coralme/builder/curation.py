@@ -483,17 +483,20 @@ class ManualComplexes(CurationInfo):
         new_complexes["replace"] = [''] * new_complexes.shape[0]
 
         df = self.org.protein_mod
-        new_mods = pandas.DataFrame(columns = new_complexes.columns)
-        flag = (df["Source"].str.contains("Homology") & df["Source"].notna())
-        protein_mod = df[flag]
-        for cplx_id,row in protein_mod.iterrows():
-            df = pandas.DataFrame.from_dict({
-                    row['Core_enzyme']:{
-                        "mod":row["Modifications"]
-                    }
-                })
-            new_mods = pandas.concat([new_mods,df.T],axis=0)
-        return pandas.concat([self.data,new_complexes,new_mods.fillna("")],axis=0).rename_axis("complex_id")
+        try:
+            new_mods = pandas.DataFrame(columns = new_complexes.columns)
+            flag = (df["Source"].str.contains("Homology") & df["Source"].notna())
+            protein_mod = df[flag]
+            for cplx_id,row in protein_mod.iterrows():
+                df = pandas.DataFrame.from_dict({
+                        row['Core_enzyme']:{
+                            "mod":row["Modifications"]
+                        }
+                    })
+                new_mods = pandas.concat([new_mods,df.T],axis=0)
+            return pandas.concat([self.data,new_complexes,new_mods.fillna("")],axis=0).rename_axis("complex_id")
+        except AttributeError:
+            raise('If using protein_complexes.txt instead of protein_corrections.txt, protein_modification.txt cannot be missing.')
 
     def _modify_for_save(self):
         return self.org_data
