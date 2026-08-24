@@ -1547,14 +1547,13 @@ class MEModel(cobra.core.object.Object):
 			solution = self.solution
 		if solution.status != 'optimal':
 			raise ValueError('Solution status \'{:s}\' is not \'optimal\'.'.format(solution.status))
-		flux_dict = {}
-		for reaction in tqdm.tqdm(self.reactions, 'Processing ME-model Reactions...', bar_format = bar_format):
-			if isinstance(reaction, coralme.core.reaction.TranscriptionReaction):
-				for rna_id in reaction.transcription_data.RNA_products:
-					locus_id = rna_id.replace('RNA_', '', 1)
-					if locus_id not in flux_dict:
-						flux_dict[locus_id] = 0
-					flux_dict[locus_id] += solution.fluxes[reaction.id]
+		flux_dict = collections.defaultdict(float)
+		
+		reactions = self.query(types = [coralme.core.reaction.TranscriptionReaction])
+		for reaction in tqdm.tqdm(reactions, 'Processing ME-model Reactions...', bar_format = bar_format):
+			for rna_id in reaction.transcription_data.RNA_products:
+				locus_id = rna_id.replace('RNA_', '', 1)
+				flux_dict[locus_id] += solution.fluxes[reaction.id]
 		return flux_dict
 
 	def get_translation_flux(self, solution = None):
@@ -1563,11 +1562,12 @@ class MEModel(cobra.core.object.Object):
 			solution = self.solution
 		if solution.status != 'optimal':
 			raise ValueError('Solution status \'{:s}\' is not \'optimal\'.'.format(solution.status))
-		flux_dict = {r.id: 0 for r in tqdm.tqdm(list(self.translation_data), 'Building reaction dictionary...', bar_format = bar_format)}
-		for reaction in tqdm.tqdm(self.reactions, 'Processing ME-model Reactions...', bar_format = bar_format):
-			if isinstance(reaction, coralme.core.reaction.TranslationReaction):
-				protein_id = reaction.translation_data.id
-				flux_dict[protein_id] += solution.fluxes[reaction.id]
+		flux_dict = collections.defaultdict(float)
+		
+		reactions = self.query(types = [coralme.core.reaction.TranslationReaction])
+		for reaction in tqdm.tqdm(reactions, 'Processing ME-model Reactions...', bar_format = bar_format):
+			protein_id = reaction.translation_data.id
+			flux_dict[protein_id] += solution.fluxes[reaction.id]
 		return flux_dict
 
 	def prune(self, skip = None, dry_run = False):
