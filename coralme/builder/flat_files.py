@@ -127,7 +127,7 @@ def get_reaction_to_complex(m_model, enz2rxn, modifications = True):
 def remove_compartment(id_str):
 	# original ecolime remove_compartment function
 	#return id_str.replace('_c', '').replace('_p', '').replace('_e', '')
-	return '_'.join(id_str.split('_')[:-1]) # compartment ID follows the last underscore
+	return '_'.join(id_str.split('_')[:-1]) if '_' in id_str else id_str # compartment ID follows the last underscore
 
 def process_reaction_matrix_dict(reaction_matrix, cplx_data, me_compartments = set()):
 	reaction_matrix = reaction_matrix.copy(deep = True)
