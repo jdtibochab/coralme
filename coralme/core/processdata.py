@@ -1210,7 +1210,7 @@ class TranslationData(ProcessData):
 				# TODO: set compartment of the recoded stop codon?
 				precount.append(list(self._model.global_info['genetic_recoding'][codon].keys())[0])
 			elif amino_acid == '_' and codon not in self._model.global_info.get('genetic_recoding', {}):
-				logging.warning('WARNING: Internal stop codon at position \'{:d}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(idx))
+				logging.warning('WARNING: Internal stop codon \'{:s}\' at position {:d} in \'{:s}\' has no recoding alternative. Please set up \'genetic_recoding\' dictionary. '.format(codon.replace('T', 'U'), idx, self.id))
 			else:
 				precount.append(coralme.util.dogma.amino_acids[amino_acid] + compartment)
 		return coralme.core.extended_classes.MCounter(precount).sorted()
