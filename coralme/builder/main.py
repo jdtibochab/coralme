@@ -1292,6 +1292,7 @@ class MEBuilder(object):
 		ref_rna_modification = self.ref.rna_modification_df
 		org_rna_modification = self.org.rna_modification_df
 		ref_cplx_homolog = self.homology.ref_cplx_homolog
+		org_generics = self.org.generic_dict # some modifications are made by generics
 		for mod,row in ref_rna_modification.iterrows():
 			enzymes = set(row['enzymes'].split(' AND '))
 			positions = row['positions'].split(',')
