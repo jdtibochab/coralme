@@ -1121,7 +1121,7 @@ class TranslationData(ProcessData):
 			self.transl_table = Bio.Data.CodonTable.generic_by_id[int(list(self.transl_table)[0])]
 
 		if codons[0] not in self.transl_table.start_codons:
-			logging.warning('WARNING: First codon in \'{:s}\' (\'{:s}\') does not encode a start methionine. A methionine replaces the first amino acid in the \'amino_acid_sequence\' property.'.format(self.id, codons[0]))
+			logging.warning('WARNING: First codon in \'{:s}\' ({:s}) does not encode a valid start methionine in translation table \'{:d}\'. A methionine replaces the first amino acid in the \'amino_acid_sequence\' property.'.format(self.id, codons[0], self.transl_table.id))
 			self.notes.append('Codon at position 0 does not encode a start methionine.')
 
 		# translate rest of the sequence
@@ -1130,17 +1130,17 @@ class TranslationData(ProcessData):
 				# Ser-tRNA is the precursor of Sec-tRNA.
 				# Reaction Ser-tRNA(Sec) => Sec-tRNA(Sec) is added as a subreaction in translation reactions
 				aa = 'S'
-				logging.warning('INFO: Internal stop codon UGA identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
+				logging.warning('INFO: Internal stop codon \'UGA\' identified in \'{:s}\' and translated into Selenocysteine tRNA precursor.'.format(self.id))
 				self.notes.append('Codon at position {:d} encodes Selenocysteine.'.format(idx+1))
 			elif codon in self._model.global_info.get('genetic_recoding', {}).keys():
 				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
-				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\' following user input.'.format(codon, self.id))
+				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\' and it will be recoded following user input.'.format(codon.replace('T', 'U'), self.id))
 				self.notes.append('Codon at position {:d} encodes a recoded stop codon.'.format(idx+1))
 			elif codon in self.transl_table.stop_codons:
 				aa = '_' # placeholder to identify a recoded stop codon in self.amino_acid_sequence when creating TranslationReactions
-				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\'. Translation will not proceed. Please check if the gene is a pseudogene.'.format(codon, self.id))
-				self.notes.append('Codon at position {:d} encodes an internal stop codon (\'{:s}\') not recoded.'.format(idx+1, codon))
-				#break
+				logging.warning('INFO: Internal stop codon \'{:s}\' identified in \'{:s}\'. Translation will not proceed. Please check if the gene is a pseudogene.'.format(codon.replace('T', 'U'), self.id))
+				self.notes.append('Codon at position {:d} encodes an internal stop codon (\'{:s}\') not recoded.'.format(idx+1, codon.replace('T', 'U')))
+				break
 			else:
 				aa = Bio.Seq.Seq(codon).translate(self.transl_table)
 			# append the translated nucleotide
@@ -1148,8 +1148,8 @@ class TranslationData(ProcessData):
 
 		# last codon does not need translation unless is not a stop codon
 		if codons[-1] not in self.transl_table.stop_codons:
-			logging.warning('WARNING: Last codon in \'{:s}\' does not encode a stop codon.'.format(self.id))
-			self.notes.append('Codon at position {:d} does not encode a stop codon.'.format(idx+2))
+			logging.warning('WARNING: Last codon \'{:s}\' in \'{:s}\' does not encode a stop codon.'.format(codons[-1].replace('T', 'U'), self.id))
+			self.notes.append('Last codon \'{:s}\' (position {:d}) does not encode a stop codon.'.format(codons[-1].replace('T', 'U'), idx+2))
 			amino_acid_sequence += Bio.Seq.Seq(codons[-1]).translate(self.transl_table)
 
 		self.notes = sorted(set(self.notes))
