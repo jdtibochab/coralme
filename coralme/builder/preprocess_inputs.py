@@ -262,7 +262,7 @@ def complete_organism_specific_matrix(builder, data, model, output = False, reco
 		tags = [ str(x).split(';') for x in tags ]
 		for key, lst in dct.items():
 			for tag in [ x for y in tags for x in y ]:
-				if tag + '-MONOMER' == key[0]:
+				if tag + '-MONOMER' == key[0] and str(x['Cofactors in Modified Complex']).split(':')[0] == key[1]:
 					generics.append(lst[0])
 				if 'RNA_' + tag == key[0]:
 					generics.append(lst[0])
