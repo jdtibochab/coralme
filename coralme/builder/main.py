@@ -1987,19 +1987,6 @@ class MEReconstruction(MEBuilder):
 		# Other `metabolites` are added as a coralme.core.component.Metabolite object
 		coralme.util.building.add_m_model_content(me, m_model, complex_metabolite_ids = set(cplx_lst))
 
-		# WARNING: experimental: add new constraints for biomass components
-		# Before: total (variable) = flux_of_biomass_constituents (constant) + biomass from formation reactions (variable)
-		# After: total (constant) = flux_of_biomass_constituents (variable) + biomass from formation reactions (variable)
-		dct = me.global_info.get('flux_of_biomass_constraints', {})
-		if bool(dct):
-			me.add_biomass_constraints_to_model([ k + '_biomass' for k in dct.keys() ])
-			for k,v in dct.items():
-				biomass = me.metabolites.get_by_id(k).formula_weight / 1000.
-				rxn = coralme.core.reaction.SummaryVariable('DM_' + k)
-				me.add_reactions([rxn])
-				rxn.add_metabolites({ k : -1, k + '_biomass' : biomass })
-				me.reactions.get_by_id(k + '_biomass_to_biomass').lower_bound = abs(v)
-
 		# NEW! Add metabolic subreactions (e.g. 10-Formyltetrahydrofolate:L-methionyl-tRNA N-formyltransferase)
 		rxn_to_cplx_dict = coralme.builder.flat_files.get_reaction_to_complex(m_model, df_enz2rxn)
 
@@ -2156,6 +2143,19 @@ class MEReconstruction(MEBuilder):
 		for key in [ 'gam', 'ngam', 'unmodeled_protein_fraction' ]:
 			if key in me.global_info:
 				setattr(me, key, me.global_info[key])
+
+		# WARNING: experimental: add new constraints for biomass components
+		# Before: total (variable) = flux_of_biomass_constituents (constant) + biomass from formation reactions (variable)
+		# After: total (constant) = flux_of_biomass_constituents (variable) + biomass from formation reactions (variable)
+		dct = me.global_info.get('flux_of_biomass_constraints', {})
+		if bool(dct):
+			me.add_biomass_constraints_to_model([ k + '_biomass' for k in dct.keys() ])
+		for k,v in dct.items():
+			biomass = me.metabolites.get_by_id(k).formula_weight / 1000.
+			rxn = coralme.core.reaction.SummaryVariable('DM_' + k)
+			me.add_reactions([rxn])
+			rxn.add_metabolites({ k : -1., k + '_biomass' : biomass })
+			me.reactions.get_by_id(k + '_biomass_to_biomass').bounds = abs(v)*biomass*me.mu, abs(v)*biomass*me.mu
 
 		# if only one biomass reaction, default ID is 'biomass_constituent_demand'
 		me.global_info['biomass_reactions'] = me.global_info.get('biomass_reactions', ['biomass_constituent_demand'])
