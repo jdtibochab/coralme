@@ -1285,8 +1285,8 @@ class MEModel(cobra.core.object.Object):
 		return [ x for x in self.get('CPLX_dummy').reactions ]
 
 	@property
-	def get_proxy_metabolites(self):
-		return [ x for x in self.metabolites if isinstance(x, coralme.core.component.Proxy) ]
+	def get_token_metabolites(self):
+		return [ x for x in self.metabolites if isinstance(x, coralme.core.component.Token) ]
 
 	@property
 	def get_mass_unbalanced_reactions(self):
