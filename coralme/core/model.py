@@ -1866,7 +1866,7 @@ class MEModel(cobra.core.object.Object):
 		subtypes:
 			for MEReaction: ComplexDegradation, ComplexFormation, GenericFormationReaction, MEReaction, MetabolicReaction, PostTranslationReaction, SummaryVariable, TranscriptionReaction, TranslationReaction, rRNAFormationReaction, tRNAChargingReaction,
 
-			for MEComponent: Complex, Constraint, GenericComponent, GenerictRNA, MEComponent, Metabolite, ProcessedProtein, Proxy, RNAP, Ribosome, TranscribedGene, TranslatedGene,
+			for MEComponent: Complex, Constraint, GenericComponent, GenerictRNA, MEComponent, Metabolite, ProcessedProtein, Token, RNAP, Ribosome, TranscribedGene, TranslatedGene,
 
 			for ProcessData: ComplexData, GenericData, PostTranslationData, ProcessData, StoichiometricData, SubreactionData, TranscriptionData, TranslationData, TranslocationData, rRNAData, tRNAData
 		"""
