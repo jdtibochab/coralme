@@ -3027,7 +3027,10 @@ class METroubleshooter(object):
 			'M-matrix' : [ 'ME-Deadends', 'Biomass', 'Cofactors', 'Amino-acids', 'All-Deadends', 'Metabolite' ],
 			'E-matrix' : [ 'GenericComponent', 'ProcessedProtein', 'TranslatedGene', 'TranscribedGene', 'Complex' ]
 			}
-		
+
+		if len(check) == 0:
+			raise ValueError('The \'check\' parameter must be a list with any combination of \'M-matrix\' and/or \'E-matrix\'.')
+
 		if hasattr(self, 'notes') and self.notes.get('from cobra', False):
 			met_types = [ ('M-matrix', 'Metabolite') ]
 		elif len(met_types) > 0:
@@ -3037,6 +3040,8 @@ class METroubleshooter(object):
 			logging.warning('Metabolite types valid values are {:s}. The predefined order of metabolites will be tested.\n'.format(', '.join(types['M-matrix'] + types['E-matrix'])))
 			met_types = []
 			for x, y in types.items():
+				if x not in check:
+					continue
 				for met_type in y:
 					if met_type not in skip_met_types:
 						met_types.append((x, met_type))
