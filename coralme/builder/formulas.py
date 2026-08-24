@@ -49,10 +49,14 @@ def add_remaining_complex_formulas(me, df_mets):
 				# 2fe2s_c and 4fe4s_c appear as free metabolites in reactions and need to have formula for correct mass balance determination
 				if me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is None:
 					me.metabolites.get_by_id(mod_name + '_c').formula = modification_formulas[mod_name]
+					# me.metabolites.get_by_id(mod_name + '_c').formula_in_complex = modification_formulas[mod_name]
 					logging.warning('WARNING: New formula for \'{:s}\' was updated using me_mets.txt file.'.format(mod_name + '_c'))
-					me.metabolites.get_by_id(mod_name + '_c').charge = modification_charges.get(mod_name, 0)
+					me.metabolites.get_by_id(mod_name + '_c').charge = modification_charges.get(mod_name, me.metabolites.get_by_id(mod_name + '_c').charge)
 					logging.warning('WARNING: New charge for \'{:s}\' was updated using me_mets.txt file.'.format(mod_name + '_c'))
-				logging.warning('INFO: Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
+					logging.warning('INFO: Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
+				else:
+					mod_elements = cobra.core.formula.Formula(modification_formulas[mod_name]).elements
+					logging.warning('INFO: Elemental contribution for \'{:s}\' calculated from me_mets.txt file.'.format(mod_name))
 			
 			elif me.metabolites.has_id(mod_name + '_c') and me.metabolites.get_by_id(mod_name + '_c').formula is not None:
 				mod_elements = me.metabolites.get_by_id(mod_name + '_c').elements
@@ -109,7 +113,9 @@ def add_remaining_complex_formulas(me, df_mets):
 		logging.warning('INFO: Setting new formula for \'{:s}\' to \'{:s}\' successfully.'.format(met.id, met.formula))
 
 	# Update a second time to incorporate all of the metabolite formulas correctly
-	for data in tqdm.tqdm(me.subreaction_data.query(r'(?!^\w\w\w_addition_at_\w\w\w$)'), 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
+	for data in tqdm.tqdm(me.subreaction_data, 'Recalculation of the elemental contribution in SubReactions...', bar_format = bar_format):
+		if 'addition_at' in data.id:
+			continue
 		data._element_contribution = data.calculate_element_contribution()
 
 	# Update reactions affected by formula update
