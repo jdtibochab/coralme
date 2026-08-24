@@ -221,6 +221,15 @@ class MEBuilder(object):
 		# debug data
 		self.debug_data = {}
 
+	def __getstate__(self):
+		state = self.__dict__.copy()
+		state['logger'] = None
+		return state
+
+	def __setstate__(self, state):
+		self.__dict__.update(state)
+		self.logger = logging.getLogger(self.__class__.__name__)
+
 	def generate_files(self, overwrite = True):
 		"""Performs the Synchronize and Complement steps of the reconstruction.
 
