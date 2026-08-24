@@ -194,7 +194,7 @@ def brute_force_check(me_model, metabolites_to_add, growth_key_and_value,solver=
 	# 	me_model.get_solution = me_model.optimize
 	# 	me_model.get_feasibility = me_model.feasibility
 
-	logging.warning('  '*5 + 'Adding sink reactions for {:d} metabolites...'.format(len(metabolites_to_add)))
+	logging.warning('  '*5 + 'Adding sink reactions for {:d} components...'.format(len(metabolites_to_add)))
 # 	existing_sinks = [r.id for r in me_model.reactions.query('^TS_')]
 	sk_rxns = coralme.builder.troubleshooting.add_exchange_reactions(me_model, metabolites_to_add, prefix='TS_')
 
