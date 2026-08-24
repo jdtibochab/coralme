@@ -1515,7 +1515,7 @@ class MEModel(cobra.core.object.Object):
 	@property
 	def pseudo_genes(self):
 		lst = []
-		if hasattr(self.translation_data[0], 'pseudo'):
+		if len(self.translation_data) != 0 and hasattr(self.translation_data[0], 'pseudo'):
 			lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
 		return lst
 
