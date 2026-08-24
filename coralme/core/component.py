@@ -444,9 +444,9 @@ class Constraint(MEComponent):
 	#def __repr__(self):
 		#return 'Constraint'
 
-class Proxy(MEComponent):
+class Token(MEComponent):
 	"""
-	Metabolite class for proxy metabolites
+	Metabolite class for token metabolites
 
 	Parameters
 	----------
@@ -455,6 +455,3 @@ class Proxy(MEComponent):
 	"""
 	def __init__(self, id):
 		MEComponent.__init__(self, id)
-
-	#def __repr__(self):
-		#return 'Proxy'
