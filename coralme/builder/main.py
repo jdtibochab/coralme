@@ -1295,19 +1295,33 @@ class MEBuilder(object):
 		for mod,row in ref_rna_modification.iterrows():
 			enzymes = set(row['enzymes'].split(' AND '))
 			positions = row['positions'].split(',')
-			if mod in org_rna_modification.index:
-				df = org_rna_modification.loc[[mod]]
-				mod_type = row['type']
-				if df['type'].str.contains(mod_type).any():
-					continue
-			hits = enzymes.intersection(set(ref_cplx_homolog.keys()))
-			if len(hits) == len(enzymes):
-				row = row.copy()
-				row['enzymes'] = ' AND '.join([ref_cplx_homolog[i] for i in enzymes])
-				row['positions'] = ','.join(positions)
-				row['source'] = 'Homology'
-				df = pandas.DataFrame(row).T
-				org_rna_modification = pandas.concat([org_rna_modification,df])
+			# TODO: check this condition when user input is used
+			# if mod in org_rna_modification.index:
+			# 	df = org_rna_modification.loc[[mod]]
+			# 	mod_type = row['type']
+				# if df['type'].str.contains(mod_type).any():
+				# 	continue
+			is_generic = [i.startswith('generic_') for i in enzymes]
+			# if any(is_generic) and not all(is_generic):
+			# 	continue
+			if all(is_generic):
+				# If all enzymes are generics, check if they are defined in the organism
+				if all([i in org_generics for i in enzymes]):
+					row = row.copy()
+					row['enzymes'] = ' AND '.join([ i for i in enzymes if i.startswith('generic_') ])
+					row['positions'] = ','.join(positions)
+					row['source'] = 'Homology'
+					df = pandas.DataFrame(row).T
+					org_rna_modification = pandas.concat([org_rna_modification,df])
+			else:
+				hits = enzymes.intersection(set(ref_cplx_homolog.keys()))
+				if len(hits) == len(enzymes):
+					row = row.copy()
+					row['enzymes'] = ' AND '.join([ref_cplx_homolog[i] for i in enzymes])
+					row['positions'] = ','.join(positions)
+					row['source'] = 'Homology'
+					df = pandas.DataFrame(row).T
+					org_rna_modification = pandas.concat([org_rna_modification,df])
 		org_rna_modification.index.name = 'modification'
 		self.org.rna_modification_df = org_rna_modification
 
