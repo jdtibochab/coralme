@@ -1,13 +1,14 @@
 import copy
 import cobra
 import coralme
+import tqdm
 
 # Written originally by Rodrigo Santibanez for coralME models and COBRApy models
 def perform_gene_knockouts(model, genes, mets_to_test = []):
 	if isinstance(genes, (str, coralme.core.component.TranscribedGene)):
 		genes = set([genes])
 
-	if isinstance(model, coralme.core.model.MEModel):
+	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
 		test = model.copy()
 		for gene in genes:
 			gene = gene.id if isinstance(gene, coralme.core.component.TranscribedGene) else gene
@@ -197,3 +198,346 @@ def single_cofactor_essentiality_analysis(model, threshold = 0.01):
 		rxns, status = test_cofactor_essentiality(model, [cofactor], threshold = threshold)
 		results[cofactor] = {'rxns': rxns, 'status': status}
 	return results
+
+# Originally developed by Diego Tec-Campos, UCSD, 2026
+# Modified from COBRApy's single_gene_deletion functions for compatibility with coralME M-models
+import pandas as pd
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
+CofactorLike = Union[str, object]
+def _reaction_cofactor_ids(reaction) -> set[str]:
+    """Return cofactor identifiers occurring in a reaction cofactor rule."""
+    rule = getattr(reaction, "cofactors", None)
+    if rule is None:
+        return set()
+    return {str(cofactor) for cofactor in rule.genes}
+
+def _model_cofactor_ids(model) -> List[str]:
+    """Return sorted cofactor identifiers associated with model reactions."""
+    cofactors = set()
+
+    # Prefer a native CORALME cofactor collection if present.
+    model_cofactors = getattr(model, "get_cofactors", None)
+    if model_cofactors is not None:
+        try:
+            for cofactor in model_cofactors:
+                cofactor_id = getattr(cofactor, "id", cofactor)
+                cofactors.add(str(cofactor_id))
+        except TypeError:
+            pass
+
+    # reaction.cofactors is the canonical fallback and is available for
+    # models loaded through FromExcel -> MEModel.from_cobra.
+    for reaction in model.reactions:
+        cofactors.update(_reaction_cofactor_ids(reaction))
+
+    return sorted(cofactors)
+
+def _entity_ids(entities: Iterable[CofactorLike]) -> List[str]:
+    """Return identifiers from strings or objects exposing an ``id`` field."""
+    result = []
+
+    for entity in entities:
+        identifier = getattr(entity, "id", entity)
+        result.append(str(identifier))
+
+    return result
+
+def _normalize_cofactor_list(
+    model,
+    cofactor_list: Optional[Iterable[CofactorLike]],
+) -> List[str]:
+    """Normalize and validate a requested cofactor list."""
+    available = _model_cofactor_ids(model)
+    available_set = set(available)
+
+    if cofactor_list is None:
+        return available
+
+    if isinstance(cofactor_list, str) or hasattr(cofactor_list, "id"):
+        cofactor_list = [cofactor_list]
+
+    requested = _entity_ids(cofactor_list)
+
+    # Remove duplicates while retaining user-supplied order.
+    requested = list(dict.fromkeys(requested))
+
+    missing = [cofactor for cofactor in requested if cofactor not in available_set]
+    if missing:
+        raise KeyError(
+            "Cofactor(s) not associated with model reactions: "
+            + ", ".join(missing)
+        )
+
+    return requested
+
+def _get_coralme_growth(
+    model: coralme.core.model.MEModel,
+    **kwargs,
+) -> Tuple[float, str]:
+    """Return objective value and status for a CORALME model."""
+    options = dict(kwargs)
+    options.setdefault("verbose", False)
+
+    # success = model.optimize(**options)
+    success = model.feasibility(**options) # faster, we need a yes, no answer at a single growth rate
+
+    if (
+        success
+        and getattr(model, "solution", None) is not None
+        and model.solution.objective_value is not None
+    ):
+        return (
+            float(model.solution.objective_value),
+            str(model.solution.status),
+        )
+
+    return float("nan"), "not_optimal"
+
+def _cofactor_deletion(
+    model,
+    cofactor_ids: Sequence[str],
+    method: str = "fba",
+    solution=None,
+    **kwargs,
+) -> Tuple[List[str], float, str]:
+    """Perform one cofactor deletion simulation."""
+    test_model, _ = perform_cofactor_knockouts(model, cofactor_ids)
+
+    if isinstance(test_model, coralme.core.model.MEModel):
+        if method != "fba":
+            raise NotImplementedError(
+                "MOMA and ROOM are not currently implemented for "
+                "coralme.core.model.MEModel cofactor deletions."
+            )
+
+        growth, status = _get_coralme_growth(test_model, **kwargs)
+        return list(cofactor_ids), growth, status
+
+    if isinstance(test_model, cobra.Model):
+        if "moma" in method:
+            add_moma(
+                test_model,
+                solution=solution,
+                linear="linear" in method,
+            )
+        elif "room" in method:
+            add_room(
+                test_model,
+                solution=solution,
+                linear="linear" in method,
+                **kwargs,
+            )
+
+        growth, status = _get_cobra_growth(test_model)
+        return list(cofactor_ids), growth, status
+
+    raise TypeError(
+        "model must be a cobra.Model or coralme.core.model.MEModel."
+    )
+
+def single_cofactor_deletion(
+    model,
+    cofactor_list: Optional[List[CofactorLike]] = None,
+    method: str = "fba",
+    solution=None,
+    processes: Optional[int] = None,
+    **kwargs,
+) -> pd.DataFrame:
+    """Knock out each cofactor from ``cofactor_list``.
+
+    Parameters
+    ----------
+    model
+        Cofactor-aware ``cobra.Model`` or ``coralme.core.model.MEModel``.
+        Reaction cofactor requirements must be stored in
+        ``reaction.cofactors`` as ``cobra.core.GPR`` objects.
+    cofactor_list : list of str or cofactor objects, optional
+        Cofactors to delete individually. If not passed, all cofactors
+        associated with reaction cofactor rules are used.
+    method : {"fba", "moma", "linear moma", "room", "linear room"}, optional
+        Method used to predict growth (default ``"fba"``). For CORALME
+        ``MEModel`` objects, the current implementation supports FBA only.
+        COBRApy models additionally support MOMA and ROOM.
+    solution : cobra.Solution, optional
+        Previous solution used as reference for (linear) MOMA or ROOM.
+        Ignored for FBA.
+    processes : int, optional
+        Included for API compatibility with COBRApy deletion functions.
+        Parallel execution is not yet enabled for CORALME cofactor deletion.
+        ``None`` and ``1`` execute sequentially.
+    **kwargs
+        For CORALME models, keyword arguments are forwarded to
+        ``MEModel.optimize``. For COBRApy ROOM simulations, keyword arguments
+        are forwarded to ``add_room``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        One row per single-cofactor deletion with columns:
+
+        ``ids``
+            Set containing the deleted cofactor identifier.
+        ``growth``
+            Predicted objective value after deletion.
+        ``status``
+            Optimization status.
+
+    Notes
+    -----
+    Only cofactors that occur in at least one reaction cofactor rule are
+    included by default. Cofactors with zero reaction associations are not
+    considered part of the functional deletion set.
+    """
+    method = str(method).lower().strip()
+
+    valid_methods = {
+        "fba",
+        "moma",
+        "linear moma",
+        "room",
+        "linear room",
+    }
+
+    if method not in valid_methods:
+        raise ValueError(
+            f"Unknown method '{method}'. "
+            f"Expected one of {sorted(valid_methods)}."
+        )
+
+    if isinstance(model, coralme.core.model.MEModel) and method != "fba":
+        raise NotImplementedError(
+            "CORALME MEModel cofactor deletion currently supports FBA only."
+        )
+
+    if processes not in (None, 1):
+        raise NotImplementedError(
+            "Parallel cofactor deletion is not yet implemented. "
+            "Use processes=None or processes=1."
+        )
+
+    cofactor_ids = _normalize_cofactor_list(model, cofactor_list)
+
+    results = []
+
+    for cofactor_id in cofactor_ids:
+        ids, growth, status = _cofactor_deletion(
+            model,
+            [cofactor_id],
+            method=method,
+            solution=solution,
+            **kwargs,
+        )
+
+        results.append(
+            (
+                set(ids),
+                growth,
+                status,
+            )
+        )
+
+    return pd.DataFrame(
+        results,
+        columns=["ids", "growth", "status"],
+    )
+
+def _candidate_reactions(model, cofactor_ids: set[str]):
+    """Return reactions containing at least one selected cofactor."""
+    candidates = set()
+
+    # Use a native cofactor.reactions interface when available. This keeps
+    # the implementation compatible with CORALME's emerging cofactor API.
+    model_cofactors = getattr(model, "get_cofactors", None)
+
+    if model_cofactors is not None and hasattr(model_cofactors, "get_by_id"):
+        for cofactor_id in cofactor_ids:
+            try:
+                cofactor = model_cofactors.get_by_id(cofactor_id)
+            except (KeyError, ValueError):
+                continue
+
+            reactions = getattr(cofactor, "reactions", None)
+            if reactions is not None:
+                candidates.update(reactions)
+
+    # GPR-based fallback used by the current public CORALME model loaded via
+    # FromExcel -> MEModel.from_cobra.
+    if not candidates:
+        for reaction in model.reactions:
+            if _reaction_cofactor_ids(reaction).intersection(cofactor_ids):
+                candidates.add(reaction)
+
+    return candidates
+
+def constrained_reactions(
+    model,
+    cofactor_ids: Union[str, Iterable[str]],
+) -> List[str]:
+    """Return reactions disabled by deletion of one or more cofactors.
+
+    Parameters
+    ----------
+    model
+        Cofactor-aware COBRA or CORALME model.
+    cofactor_ids
+        Cofactor identifier or iterable of identifiers considered unavailable.
+
+    Returns
+    -------
+    list of str
+        Sorted reaction identifiers whose complete Boolean cofactor rule
+        evaluates to ``False``.
+    """
+    if isinstance(cofactor_ids, str):
+        knockout_ids = {cofactor_ids}
+    else:
+        knockout_ids = {str(cofactor) for cofactor in cofactor_ids}
+
+    constrained = []
+
+    for reaction in _candidate_reactions(model, knockout_ids):
+        rule = getattr(reaction, "cofactors", None)
+
+        if rule is None or not rule.to_string().strip():
+            continue
+
+        if not rule.eval(knockout_ids):
+            constrained.append(reaction.id)
+
+    return sorted(constrained)
+
+def perform_cofactor_knockouts(
+    model,
+    cofactors: Union[CofactorLike, Iterable[CofactorLike]],
+):
+    """Return a copy of ``model`` after deleting selected cofactors.
+
+    Reactions are constrained to zero only when their complete Boolean
+    cofactor rule becomes false.
+
+    Parameters
+    ----------
+    model
+        Cofactor-aware COBRA or CORALME model.
+    cofactors
+        Cofactor identifier/object or iterable of identifiers/objects.
+
+    Returns
+    -------
+    knockout_model
+        Copy of the input model with affected reactions constrained to zero.
+    constrained_rxns : list of str
+        Reaction identifiers constrained by the deletion.
+    """
+    if isinstance(cofactors, str) or hasattr(cofactors, "id"):
+        cofactors = [cofactors]
+
+    cofactor_ids = _entity_ids(cofactors)
+
+    knockout_model = model.copy()
+    constrained_rxns = constrained_reactions(knockout_model, cofactor_ids)
+
+    for reaction_id in constrained_rxns:
+        knockout_model.reactions.get_by_id(reaction_id).bounds = (0.0, 0.0)
+
+    return knockout_model, constrained_rxns
