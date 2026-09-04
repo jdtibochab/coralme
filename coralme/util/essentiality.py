@@ -146,3 +146,54 @@ def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 			return gene, False # gene is not essential (over the threshold)
 	else:
 		return gene, True # gene is essential
+
+def test_cofactor_essentiality(model, cofactors, threshold = 0.01):
+	if isinstance(cofactors, str):
+		if not model.metabolites.has_id(cofactors):
+			raise AttributeError('Cofactor ID \'{:s}\' is not in the model.'.format(cofactors))
+		else:
+			cofactors = model.metabolites.get_by_id(cofactors)
+	if isinstance(cofactors, coralme.core.component.Metabolite):
+		cofactors = set([ cofactors ])
+
+	test = copy.deepcopy(model)
+	# test._mu = sympy.Symbol('mu', positive = True)
+	# test._mu_old = test.mu
+
+	# get proteins associated to cofactors
+	proteins = set()
+	for cofactor in cofactors:
+		for rxn in [ x for x in cofactor.reactions if x.id.startswith('formation_') ]:
+			for reactant in rxn.reactants:
+				if isinstance(reactant, (coralme.core.component.ProcessedProtein, coralme.core.component.TranslatedGene)):
+					proteins.add(reactant.id)
+
+	if len(proteins) == 0:
+		return None,None  
+
+	# delete multiple formation reactions at once
+	rxns = set()
+	for protein in proteins:
+		tmp = [ x.id for x in test.metabolites.get_by_id(protein).reactions 
+		 	if x.id.startswith('formation') and 
+			cofactor.id.removesuffix('_' + cofactor.compartment) in x.id 
+			]
+		for rxn in tmp:
+			test.reactions.get_by_id(rxn).bounds = (0., 0.)
+			rxns.add(rxn)
+			
+	if test.feasibility({ model.mu.magnitude : threshold }):
+		return rxns,'Can grow without cofactor'
+	else:
+		return rxns,'Can\'t grow without cofactor'
+
+def single_cofactor_essentiality_analysis(model, threshold = 0.01):
+	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is True:
+		raise Exception('The model must be a coralME ME-model.')
+
+	results = {}
+	cofactors = model.get_cofactors
+	for cofactor in tqdm.tqdm(cofactors):
+		rxns, status = test_cofactor_essentiality(model, [cofactor], threshold = threshold)
+		results[cofactor] = {'rxns': rxns, 'status': status}
+	return results
