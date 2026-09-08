@@ -627,14 +627,15 @@ class MEModel(cobra.core.object.Object):
 
 	@property
 	def growth_rate(self):
+		self.gr = self.dt = numpy.nan
 		if hasattr(self, 'solution'):
 			if self.notes.get('from cobra', False):
 				self.gr = self.solution.objective_value
 			else:
 				self.gr = self.solution.fluxes['biomass_dilution']
-			self.dt = numpy.log(2) / self.gr
-		else:
-			self.gr = self.dt = numpy.nan
+
+			if self.gr > 0:
+				self.dt = numpy.log(2) / self.gr
 
 		# retrocompatiblity added with v1.0
 		return self.gr * self.unit_registry.parse_units('1 per hour') if hasattr(self, 'unit_registry') else self.gr
