@@ -663,7 +663,7 @@ def feas_cplex(model, keys = dict(), **kwargs):
 	# output solution
 	if mpModel.solve_details.status == 'optimal':
 		# WARNING: the objective value is not the objective function flux, but rather the biomass_dilution flux
-		muopt = mpModel._vars_by_name['biomass_dilution'].solution_value
+		muopt = sum([ mpModel._vars_by_name[v].solution_value for x,c,v in zip(mpModel._vars_by_name.keys(), c, Lr) if c != 0. ]) # mpModel._vars_by_name['biomass_dilution'].solution_value
 		model.solution = _solver_solution_to_cobrapy_solution(model, muopt, mpModel._vars_by_name, mpModel._cts_by_name, mpModel._vars_by_name, stat = 'optimal', solver = 'cplex')
 		return True
 	else:
@@ -684,7 +684,7 @@ def feas_gurobi(model, keys = dict(), precision = 'quad', **kwargs):
 	import gurobipy as gp
 	if gpModel.status == gp.GRB.OPTIMAL:
 		# WARNING: the objective value is not the objective function flux, but rather the biomass_dilution flux
-		muopt = gpModel.x[0]
+		muopt = sum([ x for x,c in zip(gpModel.x, c) if c != 0. ])
 		model.solution = _solver_solution_to_cobrapy_solution(model, muopt, gpModel.x, gpModel.pi, gpModel.RC, stat = 'optimal', solver = 'gurobi')
 		return True
 	else:
