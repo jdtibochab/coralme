@@ -884,15 +884,17 @@ class MEReaction(cobra.core.reaction.Reaction):
 		return reaction_string
 
 	# Based on reactions.functional from COBRApy
-	def functional(self) -> bool:
+	def functional(self, compartment = '_c') -> bool:
 		"""All required cofactors for reaction are functional.
 		"""
 		if self._model is not None and self._model.notes.get('from cobra', False):
 			filter1 = filter2 = True
 			if hasattr(self, 'cofactors'):
-				filter1 = cobra.core.gene.GPR._eval_gpr(self.cofactors, expr = self.cofactors.body, knockouts = {cofactor.id for cofactor in self._model.metabolites if not cofactor.functional})
+				filter1 = cobra.core.gene.GPR._eval_gpr(self.cofactors, expr = self.cofactors.body, 
+					knockouts = {cofactor.id.removesuffix(compartment) for cofactor in self._model.metabolites if not cofactor.functional})
 			if hasattr(self, 'genes'):
-				filter2 = cobra.core.gene.GPR._eval_gpr(self.gpr, expr = self.gpr.body, knockouts = {gene.id for gene in self._model.genes if not gene.functional})
+				filter2 = cobra.core.gene.GPR._eval_gpr(self.gpr, expr = self.gpr.body, 
+					knockouts = {gene.id for gene in self._model.genes if not gene.functional})
 			return filter1 and filter2
 		return True
 
