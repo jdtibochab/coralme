@@ -189,15 +189,38 @@ def test_cofactor_essentiality(model, cofactors, threshold = 0.01):
 		return rxns,'Can\'t grow without cofactor'
 
 def single_cofactor_essentiality_analysis(model, threshold = 0.01):
-	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is True:
-		raise Exception('The model must be a coralME ME-model.')
+    if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is True:
+        results = _m_model_single_cofactor_essentiality_analysis(model = model, threshold = threshold)
+    else:
+        results = {}
+        cofactors = model.get_cofactors
+        for cofactor in tqdm.tqdm(cofactors):
+            rxns, status = test_cofactor_essentiality(model, [cofactor], threshold = threshold)
+            results[cofactor] = {'rxns': rxns, 'status': status}
+    return results
 
-	results = {}
-	cofactors = model.get_cofactors
-	for cofactor in tqdm.tqdm(cofactors):
-		rxns, status = test_cofactor_essentiality(model, [cofactor], threshold = threshold)
-		results[cofactor] = {'rxns': rxns, 'status': status}
-	return results
+def _m_model_single_cofactor_essentiality_analysis(model, threshold = 0.01):
+    def _helper(test):
+        # if sol.status != 'optimal' or sol.objective_value < threshold:
+        if hasattr(test, 'solution'):
+            if test.solution.status == 'infeasible':
+                return 'Can\'t grow without cofactor' # cofactor is essential
+            elif test.solution.status == 'optimal' and test.solution.objective_value < threshold:
+                return 'Can\'t grow without cofactor' # cofactor is essential
+            else:
+                return 'Can grow without cofactor' # cofactor is not essential (over the threshold)
+        else:
+            return 'Can\'t grow without cofactor' # cofactor is essential
+
+    results = {}
+    cofactors = model.get_cofactors
+    for cofactor in tqdm.tqdm(cofactors):
+        test = model.copy()
+        test.troubleshooting = True
+        test.metabolites.get_by_id(cofactor.id).functional = False
+        test.optimize()
+        results[cofactor] = _helper(test)
+    return results
 
 # Originally developed by Diego Tec-Campos, UCSD, 2026
 # Modified from COBRApy's single_gene_deletion functions for compatibility with coralME M-models
@@ -221,7 +244,7 @@ def _model_cofactor_ids(model) -> List[str]:
         try:
             for cofactor in model_cofactors:
                 cofactor_id = getattr(cofactor, "id", cofactor)
-                cofactors.add(str(cofactor_id))
+                cofactors.add(str(cofactor_id.removesuffix('_c')))
         except TypeError:
             pass
 
@@ -277,9 +300,8 @@ def _get_coralme_growth(
     """Return objective value and status for a CORALME model."""
     options = dict(kwargs)
     options.setdefault("verbose", False)
-
-    # success = model.optimize(**options)
-    success = model.feasibility(**options) # faster, we need a yes, no answer at a single growth rate
+    model.troubleshooting = True # remove disclaimer for quad MINOS
+    success = model.optimize(**options)
 
     if (
         success
@@ -389,13 +411,13 @@ def single_cofactor_deletion(
     considered part of the functional deletion set.
     """
     method = str(method).lower().strip()
-
+    # TODO:
     valid_methods = {
         "fba",
-        "moma",
-        "linear moma",
-        "room",
-        "linear room",
+        # "moma",
+        # "linear moma",
+        # "room",
+        # "linear room",
     }
 
     if method not in valid_methods:
