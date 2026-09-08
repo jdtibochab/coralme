@@ -1520,6 +1520,11 @@ class MEModel(cobra.core.object.Object):
 			lst = [ g.mRNA for g in [ g for g in self.translation_data if g.pseudo ] if not g.id.endswith('dummy') ]
 		return lst
 
+	@property
+	def get_cofactors(self):
+		lst = [ m for m in self.metabolites if m._model is not None and len(m.as_enzyme_cofactor()) > 0]
+		return cobra.core.dictlist.DictList(sorted(lst, key = lambda x: x.id))
+
 	def get_metabolic_flux(self, solution = None):
 		"""Extract the flux state for Metabolic reactions."""
 		if solution is None:
