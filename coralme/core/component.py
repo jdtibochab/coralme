@@ -146,6 +146,7 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 			<tr><td><strong>Metabolite type</strong></td><td>{met_type}</td></tr>
 			<tr><td><strong>In {len(self.reactions)} reaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.reactions), 200)}</td></tr>
 			<tr><td><strong>In {len(self.subreactions)} subreaction(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.subreactions), 200)}</td></tr>
+			<tr><td><strong>In {len(self.as_enzyme_cofactor())} enzymes(s)</strong></td><td>{cobra.util.util.format_long_string(", ".join(r.id for r in self.as_enzyme_cofactor()), 200)}</td></tr>
 		</table>"""
 
 class Metabolite(MEComponent):
