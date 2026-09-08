@@ -443,14 +443,18 @@ class SubreactionData(ProcessData):
 				logging.warning('WARNING: The metabolite \'{:s}\' in reaction or subreaction \'{:s}\' must exist in the ME-model to calculate the element contribution.'.format(met, self.id))
 				continue
 
-			# elements lost in conversion are added to complex, protein, etc.
-			if not met_obj.elements and not isinstance(met_obj, coralme.core.component.GenerictRNA):
-				if isinstance(met_obj, coralme.core.component.Complex):
-					logging.warning('INFO: Formula of Complex \'{:s}\' will be determined from amino acid composition and prosthetic groups stoichiometry.'.format(met_obj.id))
-				else:
-					logging.warning('WARNING: Metabolite \'{:s}\' does not have formula. Please add it to the M-model.'.format(met_obj.id))
+			if isinstance(met_obj, coralme.core.component.Complex):
+				logging.warning('INFO: Formula of Complex \'{:s}\' will be determined from amino acid composition and prosthetic groups stoichiometry.'.format(met_obj.id))
 
-			for e, n in met_obj.elements.items():
+			if not met_obj.elements and not isinstance(met_obj, coralme.core.component.GenerictRNA):
+				logging.warning('WARNING: Metabolite \'{:s}\' does not have formula. Please add it to the M-model.'.format(met_obj.id))
+
+			if hasattr(met_obj, 'is_manual_formula'):
+				elements_from_formula = cobra.core.formula.Formula(met_obj.formula_in_complex).elements
+			else:
+				elements_from_formula = cobra.core.formula.Formula(met_obj.formula).elements
+
+			for e, n in elements_from_formula.items():
 				elements[e] -= n * coefficient
 
 		return elements
