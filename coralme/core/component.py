@@ -23,6 +23,20 @@ class MEComponent(cobra.core.metabolite.Metabolite):
 	@property
 	def subreactions(self):
 		return self._subreaction
+
+	# @property
+	def as_enzyme_cofactor(self, compartment = '_c'):
+		data = []
+		if hasattr(self._model, 'process_data'):
+			for cplx in [ x for x in self._model.complex_data if 'mod' in x.id ]:
+				for mod in cplx.id.split('_mod_')[1:]:
+					if self.id.removesuffix(compartment) == mod.split('(')[0]:
+						data.append(cplx)
+		else:
+			for rxn in self._model.reactions:
+				if hasattr(rxn, 'cofactors') and self.id.removesuffix(compartment) in rxn.cofactors.genes:
+					data.append(rxn)
+		return coralme.core.extended_classes.MappableList(sorted(data, key = lambda x: x.id))
 	
 	# @property
 	def metabolic_reactions(self):
