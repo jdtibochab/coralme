@@ -4,8 +4,20 @@ import coralme
 import tqdm
 
 # Written originally by Rodrigo Santibanez for coralME models and COBRApy models
+def single_gene_essentiality_analysis(model, threshold = 0.01, solver = 'qminos'):
+    res = []
+    if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
+        for gene in tqdm.tqdm(model.all_genes):
+            res.append(coralme.util.essentiality.single_gene_deletion(model, gene, threshold = threshold, solver = solver))
+    else:
+        model = coralme.core.model.MEModel.from_cobra(model)
+        model.troubleshooting = True
+        for gene in tqdm.tqdm(model.genes):
+            res.append(coralme.util.essentiality.single_gene_deletion(model, gene, threshold = threshold, solver = solver))
+    return res
+
 def perform_gene_knockouts(model, genes, mets_to_test = []):
-	if isinstance(genes, (str, coralme.core.component.TranscribedGene)):
+	if isinstance(genes, (str, cobra.core.gene.Gene, coralme.core.component.TranscribedGene)):
 		genes = set([genes])
 
 	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
@@ -121,7 +133,7 @@ def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 
 	test = perform_gene_knockouts(model, gene)
 
-	if isinstance(model, coralme.core.model.MEModel):
+	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
 		if test.feasibility({ test.mu.magnitude : threshold }):
 			return gene, False # gene is not essential
 		else:
