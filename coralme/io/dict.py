@@ -185,7 +185,7 @@ def get_sympy_expression(value, model, assumptions):
 		return sympy.parse_expr(value, assumptions) * model.mu.units
 	else:
 		# return expression_value.subs(str(growth_key.magnitude), growth_key) # replaces only mu
-		return sympy.sympify(value).subs(model.symbols).subs(str(model.mu.magnitude), model.mu)
+		return sympy.sympify(value).subs(model.symbols).subs(str(model.mu), model.mu) * model.mu.units
 
 def get_numeric_from_string(string):
 	"""
