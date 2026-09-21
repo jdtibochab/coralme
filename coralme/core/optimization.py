@@ -500,9 +500,8 @@ def optimize(model,
 		Whether to maximize or minimize the growth rate.
 	"""
 
-	if isinstance(model, coralme.core.model.MEModel) and not model.notes.get('from cobra', False):
-		if solver != "qminos":
-			return optimize_windows(model, max_mu = max_mu, min_mu = min_mu, maxIter = maxIter, lambdify = lambdify, tolerance = tolerance, precision = precision, verbose = verbose, solver = solver)
+	if solver != "qminos":
+		return optimize_windows(model, max_mu = max_mu, min_mu = min_mu, maxIter = maxIter, lambdify = lambdify, tolerance = tolerance, precision = precision, verbose = verbose, solver = solver)
 
 	# check options
 	# max_mu is constrained by the fastest-growing bacterium (14.8 min, doubling time)
