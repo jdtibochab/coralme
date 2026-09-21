@@ -57,6 +57,7 @@ class MEBuilder(object):
 			add_lipoproteins = True,
 			include_pseudo_genes = False,
 			relax_rrna_modifications = False,
+			tRNAscan_output = '',
 
 			**kwargs):
 		"""
@@ -104,6 +105,8 @@ class MEBuilder(object):
 			'df_matrix_subrxn_stoich' : df_matrix_subrxn_stoich,
 			'df_metadata_orphan_rxns' : df_metadata_orphan_rxns,
 			'df_metadata_metabolites' : df_metadata_metabolites,
+
+			'tRNAscan_output' : tRNAscan_output,
 
 			'log_directory' : log_directory,
 			'out_directory' : out_directory,
