@@ -135,6 +135,10 @@ def single_gene_deletion(model, gene, threshold = 0.01, solver = 'qminos'):
 		raise Exception('The method is limited to one gene only. Use model.perform_gene_knockouts(), followed by model.optimize() or model.feasibility().')
 
 	test = perform_gene_knockouts(model, gene)
+	if hasattr(test, 'solution'):
+		del test.solution
+	if hasattr(test, 'basis'):
+		del test.basis
 
 	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
 		if test.feasibility({ test.mu.magnitude : threshold }):
