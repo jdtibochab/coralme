@@ -22,6 +22,9 @@ def perform_gene_knockouts(model, genes, mets_to_test = []):
 
 	if isinstance(model, coralme.core.model.MEModel) and model.notes.get('from cobra', False) is False:
 		test = model.copy()
+		# delete degradation reactions
+		test.remove_reactions(list(test.query(types = [ coralme.core.reaction.ComplexDegradation ])))
+
 		for gene in genes:
 			gene = gene.id if isinstance(gene, coralme.core.component.TranscribedGene) else gene
 			gene = 'RNA_{:s}'.format(gene) if not gene.startswith('RNA_') else gene # only valid for ME-models
