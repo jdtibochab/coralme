@@ -1496,22 +1496,22 @@ class MEModel(cobra.core.object.Object):
 	@property
 	def mRNA_genes(self):
 		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'mRNA' ]
-		return cobra.core.dictlist.DictList(lst)
+		return cobra.core.dictlist.DictList(sorted(lst, key = lambda x: x.id))
 
 	@property
 	def rRNA_genes(self):
 		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'rRNA' ]
-		return cobra.core.dictlist.DictList(lst)
+		return cobra.core.dictlist.DictList(sorted(lst, key = lambda x: x.id))
 
 	@property
 	def tRNA_genes(self):
 		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'tRNA' ]
-		return cobra.core.dictlist.DictList(lst)
+		return cobra.core.dictlist.DictList(sorted(lst, key = lambda x: x.id))
 
 	@property
 	def ncRNA_genes(self):
 		lst = [ g for g in self.all_genes if hasattr(g, 'RNA_type') and g.RNA_type == 'ncRNA' ]
-		return cobra.core.dictlist.DictList(lst)
+		return cobra.core.dictlist.DictList(sorted(lst, key = lambda x: x.id))
 
 	@property
 	def pseudo_genes(self):
