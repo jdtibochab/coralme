@@ -83,6 +83,13 @@ Requirements
 - GUROBI and gurobipy are optional. Instead, the user should install GLPK or any solver compatible with COBRApy.
 - Windows and MacOS users need to install `Gurobi`_ or `IBM CPLEX Optimizer <cplex_>`_. Alternatively, Windows users can install `WSL <wsl_>`_ and Ubuntu. Windows and MacOS users can use as well Docker Desktop to install it. We recommend the installation of Jupyter in the guest and its access through a browser from the host.
 
+Disclaimer
+----------
+
+The MINOS and quad MINOS solvers are licensed for academic use only. 
+
+The MINOS and quad MINOS solvers are a courtesy of Prof Michael A. Saunders. Please cite Ma, D., Yang, L., Fleming, R. et al. Reliable and efficient solution of genome-scale models of Metabolism and macromolecular Expression. Sci Rep 7, 40863 (2017). https://doi.org/10.1038/srep40863
+
 The MINOS and quad MINOS solvers
 --------------------------------
 
